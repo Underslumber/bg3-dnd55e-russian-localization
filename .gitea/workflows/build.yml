@@ -81,8 +81,9 @@ jobs:
           if ($refName -and $refName -like "v*") {
               $archiveBaseName = "DnD 5.5e AIO Russian $refName"
           }
-          $sourcePath = [System.IO.Path]::GetFullPath($workspace)
+          $stagingPath = [System.IO.Path]::GetFullPath((Join-Path $workspace ".build-stage"))
           $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.pak"))
+          $tempPackagePath = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP "DnD 5.5e AIO Russian.pak"))
           $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/$archiveBaseName.zip"))
           $infoJsonPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/info.json"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
@@ -93,7 +94,26 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          & $divine.FullName -a create-package -g bg3 -s $sourcePath -d $packagePath
+          if (Test-Path -LiteralPath $stagingPath) {
+              Remove-Item -LiteralPath $stagingPath -Recurse -Force
+          }
+          if (Test-Path -LiteralPath $tempPackagePath) {
+              Remove-Item -LiteralPath $tempPackagePath -Force
+          }
+          if (Test-Path -LiteralPath $packagePath) {
+              Remove-Item -LiteralPath $packagePath -Force
+          }
+
+          New-Item -ItemType Directory -Path $stagingPath | Out-Null
+          Copy-Item -LiteralPath (Join-Path $workspace "Mods") -Destination $stagingPath -Recurse
+
+          & $divine.FullName -a create-package -g bg3 -s $stagingPath -d $tempPackagePath
+
+          if (-not (Test-Path -LiteralPath $tempPackagePath)) {
+              throw "Temporary package was not created."
+          }
+
+          Move-Item -LiteralPath $tempPackagePath -Destination $packagePath
 
           if (-not (Test-Path -LiteralPath "build/DnD 5.5e AIO Russian.pak")) {
               throw "Package was not created."
