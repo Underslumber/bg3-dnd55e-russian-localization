@@ -93,10 +93,15 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          & $divine.FullName -a create-package -g bg3 -s $modsPath -d $packagePath
+          & $divine.FullName -a pack -g bg3 -s $modsPath -d $packagePath
 
           if (-not (Test-Path -LiteralPath "build/DnD 5.5e AIO Russian.pak")) {
               throw "Package was not created."
+          }
+
+          $packageFile = Get-Item -LiteralPath $packagePath
+          if ($packageFile.Length -lt 1024) {
+              throw "Package looks invalid: '$packagePath' is only $($packageFile.Length) bytes."
           }
 
           if (Test-Path -LiteralPath $zipPath) {
@@ -121,7 +126,7 @@ jobs:
                   }
               )
               MD5 = $packageMd5
-          } | ConvertTo-Json
+          } | ConvertTo-Json -Depth 4
 
           Set-Content -LiteralPath $infoJsonPath -Value $infoJson -Encoding utf8
 
