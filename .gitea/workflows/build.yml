@@ -74,14 +74,14 @@ jobs:
           $modName = "DnD 5.5e All-in-One BEYOND Russian Localization"
           $modFolder = "DnD 5.5e AIO Russian"
           $modUuid = "6401e84d-daf2-416d-adeb-99c03a2487a6"
-          $modDescription = "Русская локализация мода DnD 5.5e All-in-One BEYOND."
+          $modDescription = "Russian Localization"
           $modAuthor = "MikhailRaw"
           $modVersion64 = "36028797018963968"
           $modGroup = "6401e84d-daf2-416d-adeb-99c03a2487a6"
           if ($refName -and $refName -like "v*") {
               $archiveBaseName = "DnD 5.5e AIO Russian $refName"
           }
-          $modsPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "Mods"))
+          $sourcePath = [System.IO.Path]::GetFullPath($workspace)
           $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.pak"))
           $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/$archiveBaseName.zip"))
           $infoJsonPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/info.json"))
@@ -93,7 +93,7 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          & $divine.FullName -a pack -g bg3 -s $modsPath -d $packagePath
+          & $divine.FullName -a create-package -g bg3 -s $sourcePath -d $packagePath
 
           if (-not (Test-Path -LiteralPath "build/DnD 5.5e AIO Russian.pak")) {
               throw "Package was not created."
