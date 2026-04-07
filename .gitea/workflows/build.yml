@@ -68,24 +68,6 @@ jobs:
       - name: Build .pak
         run: |
           $ErrorActionPreference = "Stop"
-          $workspace = "${{ gitea.workspace }}"
-          $refName = "${{ gitea.ref_name }}"
-          $archiveBaseName = "DnD 5.5e AIO Russian"
-          $modName = "DnD 5.5e All-in-One BEYOND Russian Localization"
-          $modFolder = "DnD 5.5e AIO Russian"
-          $modUuid = "6401e84d-daf2-416d-adeb-99c03a2487a6"
-          $modDescription = "Russian Localization"
-          $modAuthor = "MikhailRaw"
-          $modVersion64 = "36028797018963968"
-          $modGroup = "6401e84d-daf2-416d-adeb-99c03a2487a6"
-          if ($refName -and $refName -like "v*") {
-              $archiveBaseName = "DnD 5.5e AIO Russian $refName"
-          }
-          $stagingPath = [System.IO.Path]::GetFullPath((Join-Path $workspace ".build-stage"))
-          $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.pak"))
-          $tempPackagePath = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP "DnD 5.5e AIO Russian.pak"))
-          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/$archiveBaseName.zip"))
-          $infoJsonPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/info.json"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
             Where-Object { $_.Name -ieq "Divine.exe" } |
             Select-Object -First 1
@@ -94,67 +76,7 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          if (Test-Path -LiteralPath $stagingPath) {
-              Remove-Item -LiteralPath $stagingPath -Recurse -Force
-          }
-          if (Test-Path -LiteralPath $tempPackagePath) {
-              Remove-Item -LiteralPath $tempPackagePath -Force
-          }
-          if (Test-Path -LiteralPath $packagePath) {
-              Remove-Item -LiteralPath $packagePath -Force
-          }
-
-          New-Item -ItemType Directory -Path $stagingPath | Out-Null
-          Copy-Item -LiteralPath (Join-Path $workspace "Mods") -Destination $stagingPath -Recurse
-
-          & $divine.FullName -a create-package -g bg3 -s $stagingPath -d $tempPackagePath
-
-          if (-not (Test-Path -LiteralPath $tempPackagePath)) {
-              throw "Temporary package was not created."
-          }
-
-          Move-Item -LiteralPath $tempPackagePath -Destination $packagePath
-
-          if (-not (Test-Path -LiteralPath "build/DnD 5.5e AIO Russian.pak")) {
-              throw "Package was not created."
-          }
-
-          $packageFile = Get-Item -LiteralPath $packagePath
-          if ($packageFile.Length -lt 1024) {
-              throw "Package looks invalid: '$packagePath' is only $($packageFile.Length) bytes."
-          }
-
-          if (Test-Path -LiteralPath $zipPath) {
-              Remove-Item -LiteralPath $zipPath -Force
-          }
-
-          $packageMd5 = (Get-FileHash -LiteralPath $packagePath -Algorithm MD5).Hash.ToLowerInvariant()
-          $createdAt = (Get-Date).ToString("o")
-
-          $infoJson = [ordered]@{
-              Mods = @(
-                  [ordered]@{
-                      Author = $modAuthor
-                      Name = $modName
-                      Folder = $modFolder
-                      Version = $modVersion64
-                      Description = $modDescription
-                      UUID = $modUuid
-                      Created = $createdAt
-                      Dependencies = @()
-                      Group = $modGroup
-                  }
-              )
-              MD5 = $packageMd5
-          } | ConvertTo-Json -Depth 4
-
-          Set-Content -LiteralPath $infoJsonPath -Value $infoJson -Encoding utf8
-
-          Compress-Archive -LiteralPath @($packagePath, $infoJsonPath) -DestinationPath $zipPath -CompressionLevel Optimal
-
-          if (-not (Test-Path -LiteralPath $zipPath)) {
-              throw "ZIP archive was not created."
-          }
+          & ".\\scripts\\build.ps1" -DivinePath $divine.FullName -Workspace "${{ gitea.workspace }}" -VersionTag "${{ gitea.ref_name }}"
 
       - name: Show build result
         run: |
