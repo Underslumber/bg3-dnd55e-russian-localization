@@ -21,7 +21,7 @@
           <attribute id="CharacterCreationLevelName" type="FixedString" value=""/>
           <attribute id="Description" type="LSString" value="Русская локализация мода, который добавляет и обновляет контент в соответствии с правилами DnD 5.5e и другими источниками, включая предыстории, классы, таланты, расы, заклинания и многое другое. Это отдельный мод локализации и он требует установленный оригинальный мод."/>
           <attribute id="FileSize" type="uint64" value="0"/>
-          <attribute id="Folder" type="LSString" value="DnD55eRussian"/>
+          <attribute id="Folder" type="LSString" value="DnD 5.5e AIO Russian"/>
           <attribute id="LobbyLevelName" type="FixedString" value=""/>
           <attribute id="MD5" type="LSString" value=""/>
           <attribute id="MenuLevelName" type="FixedString" value=""/>

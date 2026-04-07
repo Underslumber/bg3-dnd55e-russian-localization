@@ -45,7 +45,7 @@ jobs:
           git -c "http.extraHeader=Authorization: Basic $authBasic" fetch --depth 1 origin $repoRef
           git checkout --force FETCH_HEAD
 
-          if (-not (Test-Path -LiteralPath "Mods\\DnD55eRussian\\Localization\\Russian\\russian.xml")) {
+          if (-not (Test-Path -LiteralPath "Mods\\DnD 5.5e AIO Russian\\Localization\\Russian\\russian.xml")) {
               throw "Repository sources are not available in the runner workspace."
           }
 
@@ -70,7 +70,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $workspace = "${{ gitea.workspace }}"
           $modsPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "Mods"))
-          $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD55eRussian.pak"))
+          $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.pak"))
           $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.zip"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
             Where-Object { $_.Name -ieq "Divine.exe" } |
@@ -82,7 +82,7 @@ jobs:
 
           & $divine.FullName -a create-package -g bg3 -s $modsPath -d $packagePath
 
-          if (-not (Test-Path -LiteralPath "build/DnD55eRussian.pak")) {
+          if (-not (Test-Path -LiteralPath "build/DnD 5.5e AIO Russian.pak")) {
               throw "Package was not created."
           }
 
@@ -99,5 +99,5 @@ jobs:
       - name: Show build result
         run: |
           $ErrorActionPreference = "Stop"
-          Get-ChildItem "build/DnD55eRussian.pak", "build/DnD 5.5e AIO Russian.zip" |
+          Get-ChildItem "build/DnD 5.5e AIO Russian.pak", "build/DnD 5.5e AIO Russian.zip" |
             Select-Object FullName, Length, LastWriteTime
