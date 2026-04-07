@@ -1,0 +1,7 @@
+build/
+*.pak
+*.tmp
+*.temp
+*.log
+Thumbs.db
+.DS_Store
