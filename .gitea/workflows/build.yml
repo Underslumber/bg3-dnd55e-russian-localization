@@ -7,30 +7,35 @@ on:
       - master
     tags:
       - "v*"
-  pull_request:
   workflow_dispatch:
-  release:
-    types:
-      - published
-
-permissions:
-  contents: write
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on:
+      - windows
+      - win11
+
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Prepare workspace
+        run: |
+          $ErrorActionPreference = "Stop"
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.x"
+          if ($env:GITHUB_WORKSPACE -and (Test-Path -LiteralPath $env:GITHUB_WORKSPACE)) {
+              Set-Location $env:GITHUB_WORKSPACE
+          }
+
+          if (-not (Test-Path -LiteralPath "Mods\\DnD55eRussian\\Localization\\Russian\\russian.xml")) {
+              throw "Repository sources are not available in the runner workspace."
+          }
+
+          New-Item -ItemType Directory -Path ".tools\\lslib" -Force | Out-Null
+          New-Item -ItemType Directory -Path "build" -Force | Out-Null
 
       - name: Download latest LSLib release
-        shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
           $release = Invoke-RestMethod -Uri "https://api.github.com/repos/Norbyte/lslib/releases/latest"
@@ -40,13 +45,10 @@ jobs:
               throw "Could not find a downloadable LSLib zip asset in the latest release."
           }
 
-          New-Item -ItemType Directory -Path ".tools/lslib" -Force | Out-Null
           Invoke-WebRequest -Uri $asset.browser_download_url -OutFile ".tools/lslib/lslib.zip"
           Expand-Archive -LiteralPath ".tools/lslib/lslib.zip" -DestinationPath ".tools/lslib" -Force
 
       - name: Resolve Divine executable
-        id: divine
-        shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
@@ -57,24 +59,18 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          "path=$($divine.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "DIVINE_PATH=$($divine.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Build .pak
-        shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          New-Item -ItemType Directory -Path "build" -Force | Out-Null
-          & "${{ steps.divine.outputs.path }}" -a create-package -g bg3 -s Mods -d build/DnD55eRussian.pak
+          & "$env:DIVINE_PATH" -a create-package -g bg3 -s Mods -d build/DnD55eRussian.pak
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: DnD55eRussian-pak
-          path: build/DnD55eRussian.pak
-          if-no-files-found: error
+          if (-not (Test-Path -LiteralPath "build/DnD55eRussian.pak")) {
+              throw "Package was not created."
+          }
 
-      - name: Attach package to GitHub Release
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build/DnD55eRussian.pak
+      - name: Show build result
+        run: |
+          $ErrorActionPreference = "Stop"
+          Get-ChildItem "build/DnD55eRussian.pak" | Select-Object FullName, Length, LastWriteTime
