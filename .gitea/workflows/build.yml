@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -69,9 +69,14 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $workspace = "${{ gitea.workspace }}"
+          $refName = "${{ gitea.ref_name }}"
+          $archiveBaseName = "DnD 5.5e AIO Russian"
+          if ($refName -and $refName -like "v*") {
+              $archiveBaseName = "DnD 5.5e AIO Russian $refName"
+          }
           $modsPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "Mods"))
           $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.pak"))
-          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.zip"))
+          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/$archiveBaseName.zip"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
             Where-Object { $_.Name -ieq "Divine.exe" } |
             Select-Object -First 1
@@ -99,5 +104,83 @@ jobs:
       - name: Show build result
         run: |
           $ErrorActionPreference = "Stop"
-          Get-ChildItem "build/DnD 5.5e AIO Russian.pak", "build/DnD 5.5e AIO Russian.zip" |
+          $workspace = "${{ gitea.workspace }}"
+          $refName = "${{ gitea.ref_name }}"
+          $archiveBaseName = "DnD 5.5e AIO Russian"
+          if ($refName -and $refName -like "v*") {
+              $archiveBaseName = "DnD 5.5e AIO Russian $refName"
+          }
+          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/$archiveBaseName.zip"))
+
+          Get-ChildItem "build/DnD 5.5e AIO Russian.pak", $zipPath |
             Select-Object FullName, Length, LastWriteTime
+
+      - name: Publish archive to release
+        if: startsWith(gitea.ref, 'refs/tags/v')
+        run: |
+          $ErrorActionPreference = "Stop"
+          $workspace = "${{ gitea.workspace }}"
+          $serverUrl = "${{ gitea.server_url }}"
+          $repository = "${{ gitea.repository }}"
+          $tagName = "${{ gitea.ref_name }}"
+          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian $tagName.zip"))
+          $assetName = [System.IO.Path]::GetFileName($zipPath)
+          $repoParts = $repository.Split("/", 2)
+
+          if ($repoParts.Length -ne 2) {
+              throw "Could not parse repository owner and name from '$repository'."
+          }
+
+          if (-not (Test-Path -LiteralPath $zipPath)) {
+              throw "Release archive was not found at '$zipPath'."
+          }
+
+          $owner = $repoParts[0]
+          $repo = $repoParts[1]
+          $apiBase = "$serverUrl/api/v1/repos/$owner/$repo"
+          $headers = @{
+              Authorization = "token ${{ secrets.GITEA_TOKEN }}"
+              Accept = "application/json"
+          }
+
+          $release = $null
+          try {
+              $release = Invoke-RestMethod -Method Get -Uri "$apiBase/releases/tags/$tagName" -Headers $headers
+          } catch {
+              $statusCode = $null
+              if ($_.Exception.Response) {
+                  $statusCode = [int]$_.Exception.Response.StatusCode
+              }
+
+              if ($statusCode -ne 404) {
+                  throw
+              }
+          }
+
+          if (-not $release) {
+              $releaseBody = @{
+                  tag_name = $tagName
+                  name = $tagName
+                  target_commitish = "${{ gitea.sha }}"
+                  draft = $false
+                  prerelease = $false
+              } | ConvertTo-Json
+
+              $release = Invoke-RestMethod -Method Post -Uri "$apiBase/releases" -Headers $headers -ContentType "application/json" -Body $releaseBody
+          }
+
+          $existingAsset = $null
+          if ($release.assets) {
+              $existingAsset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+          }
+
+          if ($existingAsset) {
+              Invoke-RestMethod -Method Delete -Uri "$apiBase/releases/$($release.id)/assets/$($existingAsset.id)" -Headers $headers
+          }
+
+          $uploadHeaders = @{
+              Authorization = "token ${{ secrets.GITEA_TOKEN }}"
+              Accept = "application/json"
+          }
+
+          Invoke-WebRequest -Method Post -Uri "$apiBase/releases/$($release.id)/assets?name=$([uri]::EscapeDataString($assetName))" -Headers $uploadHeaders -ContentType "application/octet-stream" -InFile $zipPath
