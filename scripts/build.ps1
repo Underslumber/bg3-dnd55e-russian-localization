@@ -62,10 +62,45 @@ foreach ($path in @($stagingPath, $tempPackagePath, $packagePath, $zipPath, $inf
 New-Item -ItemType Directory -Path $stagingPath | Out-Null
 Copy-Item -LiteralPath $modsPath -Destination $stagingPath -Recurse
 
-& $DivinePath -a create-package -g bg3 -s $stagingPath -d $tempPackagePath
+if (Test-Path -LiteralPath $tempPackagePath) {
+    Remove-Item -LiteralPath $tempPackagePath -Force
+}
 
-if (-not (Test-Path -LiteralPath $tempPackagePath)) {
-    throw "Temporary package was not created."
+$packageAttempts = @(
+    [ordered]@{ Name = "staging-root"; Source = $stagingPath },
+    [ordered]@{ Name = "mods-root"; Source = $modsPath },
+    [ordered]@{ Name = "workspace-root"; Source = $workspacePath }
+)
+
+$successfulAttempt = $null
+foreach ($attempt in $packageAttempts) {
+    if (Test-Path -LiteralPath $tempPackagePath) {
+        Remove-Item -LiteralPath $tempPackagePath -Force
+    }
+
+    Write-Host "[build.ps1] Trying Divine source '$($attempt.Name)': $($attempt.Source)"
+    & $DivinePath -a create-package -g bg3 -s $attempt.Source -d $tempPackagePath
+
+    if (-not (Test-Path -LiteralPath $tempPackagePath)) {
+        Write-Host "[build.ps1] No package created for attempt '$($attempt.Name)'."
+        continue
+    }
+
+    $attemptPackage = Get-Item -LiteralPath $tempPackagePath
+    Write-Host "[build.ps1] Attempt '$($attempt.Name)' produced $($attemptPackage.Length) bytes."
+
+    if ($attemptPackage.Length -ge 1024) {
+        $successfulAttempt = $attempt
+        break
+    }
+}
+
+if (-not $successfulAttempt) {
+    $lastSize = "missing"
+    if (Test-Path -LiteralPath $tempPackagePath) {
+        $lastSize = (Get-Item -LiteralPath $tempPackagePath).Length
+    }
+    throw "Package looks invalid after all attempts. Last output '$tempPackagePath' size: $lastSize bytes."
 }
 
 Move-Item -LiteralPath $tempPackagePath -Destination $packagePath
@@ -75,9 +110,7 @@ if (-not (Test-Path -LiteralPath $packagePath)) {
 }
 
 $packageFile = Get-Item -LiteralPath $packagePath
-if ($packageFile.Length -lt 1024) {
-    throw "Package looks invalid: '$packagePath' is only $($packageFile.Length) bytes."
-}
+Write-Host "[build.ps1] Using package from attempt '$($successfulAttempt.Name)'."
 
 $packageMd5 = (Get-FileHash -LiteralPath $packagePath -Algorithm MD5).Hash.ToLowerInvariant()
 $createdAt = (Get-Date).ToString("o")
