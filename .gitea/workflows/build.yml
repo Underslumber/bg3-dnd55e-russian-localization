@@ -9,6 +9,9 @@ on:
       - "v*"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on:
@@ -19,16 +22,28 @@ jobs:
         shell: powershell
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Prepare workspace
         run: |
           $ErrorActionPreference = "Stop"
+          $workspace = "${{ gitea.workspace }}"
+          $repoUrl = "${{ gitea.server_url }}/${{ gitea.repository }}.git"
+          $repoRef = "${{ gitea.ref }}"
+          $authPair = "${{ gitea.actor }}:${{ secrets.GITEA_TOKEN }}"
+          $authBytes = [System.Text.Encoding]::ASCII.GetBytes($authPair)
+          $authBasic = [Convert]::ToBase64String($authBytes)
 
-          if ($env:GITHUB_WORKSPACE -and (Test-Path -LiteralPath $env:GITHUB_WORKSPACE)) {
-              Set-Location $env:GITHUB_WORKSPACE
+          New-Item -ItemType Directory -Path $workspace -Force | Out-Null
+          Set-Location $workspace
+
+          if (-not (Test-Path -LiteralPath ".git")) {
+              git init | Out-Null
+              git remote add origin $repoUrl
+          } else {
+              git remote set-url origin $repoUrl
           }
+
+          git -c "http.extraHeader=Authorization: Basic $authBasic" fetch --depth 1 origin $repoRef
+          git checkout --force FETCH_HEAD
 
           if (-not (Test-Path -LiteralPath "Mods\\DnD55eRussian\\Localization\\Russian\\russian.xml")) {
               throw "Repository sources are not available in the runner workspace."
