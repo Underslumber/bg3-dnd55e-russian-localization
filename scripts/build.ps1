@@ -21,7 +21,8 @@ $workspacePath = [System.IO.Path]::GetFullPath($Workspace)
 $modsPath = Join-Path $workspacePath "Mods"
 $modPath = Join-Path $modsPath $ModFolder
 $buildPath = Join-Path $workspacePath "build"
-$stagingPath = Join-Path $workspacePath "build-stage"
+$stagingRoot = Join-Path $env:TEMP "bg3-dnd55e-russian-localization-stage"
+$stagingPath = Join-Path $stagingRoot "build-stage"
 $packagePath = Join-Path $buildPath $PackageName
 $tempPackagePath = Join-Path $env:TEMP $PackageName
 $archiveName = $ArchiveBaseName
@@ -59,8 +60,15 @@ foreach ($path in @($stagingPath, $tempPackagePath, $packagePath, $zipPath, $inf
     }
 }
 
-New-Item -ItemType Directory -Path $stagingPath | Out-Null
+if (Test-Path -LiteralPath $stagingRoot) {
+    Remove-Item -LiteralPath $stagingRoot -Recurse -Force
+}
+
+New-Item -ItemType Directory -Path $stagingPath -Force | Out-Null
 Copy-Item -LiteralPath $modsPath -Destination $stagingPath -Recurse
+
+Write-Host "[build.ps1] Staged source tree:"
+Get-ChildItem -Recurse $stagingPath | Select-Object FullName, Length | Format-Table -AutoSize
 
 if (Test-Path -LiteralPath $tempPackagePath) {
     Remove-Item -LiteralPath $tempPackagePath -Force
