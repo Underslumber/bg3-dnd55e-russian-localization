@@ -65,7 +65,7 @@ jobs:
           Invoke-WebRequest -Uri $asset.browser_download_url -OutFile ".tools/lslib/lslib.zip"
           Expand-Archive -LiteralPath ".tools/lslib/lslib.zip" -DestinationPath ".tools/lslib" -Force
 
-      - name: Resolve Divine executable
+      - name: Build .pak
         run: |
           $ErrorActionPreference = "Stop"
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
@@ -76,12 +76,7 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          "DIVINE_PATH=$($divine.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Build .pak
-        run: |
-          $ErrorActionPreference = "Stop"
-          & "$env:DIVINE_PATH" -a create-package -g bg3 -s Mods -d build/DnD55eRussian.pak
+          & $divine.FullName -a create-package -g bg3 -s Mods -d build/DnD55eRussian.pak
 
           if (-not (Test-Path -LiteralPath "build/DnD55eRussian.pak")) {
               throw "Package was not created."
