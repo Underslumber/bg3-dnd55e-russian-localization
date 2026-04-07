@@ -68,6 +68,9 @@ jobs:
       - name: Build .pak
         run: |
           $ErrorActionPreference = "Stop"
+          $workspace = "${{ gitea.workspace }}"
+          $modsPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "Mods"))
+          $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD55eRussian.pak"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
             Where-Object { $_.Name -ieq "Divine.exe" } |
             Select-Object -First 1
@@ -76,7 +79,7 @@ jobs:
               throw "Divine.exe was not found in the downloaded LSLib release."
           }
 
-          & $divine.FullName -a create-package -g bg3 -s Mods -d build/DnD55eRussian.pak
+          & $divine.FullName -a create-package -g bg3 -s $modsPath -d $packagePath
 
           if (-not (Test-Path -LiteralPath "build/DnD55eRussian.pak")) {
               throw "Package was not created."
