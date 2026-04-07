@@ -17,6 +17,34 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+function Convert-VersionTagToVersion64 {
+    param(
+        [string]$Tag,
+        [string]$FallbackVersion64
+    )
+
+    if (-not $Tag) {
+        return [int64]$FallbackVersion64
+    }
+
+    $normalized = $Tag
+    if ($normalized.StartsWith("v")) {
+        $normalized = $normalized.Substring(1)
+    }
+
+    if ($normalized -notmatch '^\d+(\.\d+){0,3}$') {
+        return [int64]$FallbackVersion64
+    }
+
+    $parts = $normalized.Split(".")
+    $numbers = @(0, 0, 0, 0)
+    for ($i = 0; $i -lt $parts.Length; $i++) {
+        $numbers[$i] = [int]$parts[$i]
+    }
+
+    return ([int64]$numbers[0] -shl 55) -bor ([int64]$numbers[1] -shl 47) -bor ([int64]$numbers[2] -shl 31) -bor [int64]$numbers[3]
+}
+
 $workspacePath = [System.IO.Path]::GetFullPath($Workspace)
 $modsPath = Join-Path $workspacePath "Mods"
 $modPath = Join-Path $modsPath $ModFolder
@@ -31,6 +59,7 @@ if ($VersionTag) {
 }
 $zipPath = Join-Path $buildPath "$archiveName.zip"
 $infoJsonPath = Join-Path $buildPath "info.json"
+$resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag -FallbackVersion64 $ModVersion64
 
 if (-not (Test-Path -LiteralPath $DivinePath)) {
     $resolvedCommand = Get-Command $DivinePath -ErrorAction SilentlyContinue
@@ -66,6 +95,15 @@ if (Test-Path -LiteralPath $stagingRoot) {
 
 New-Item -ItemType Directory -Path $stagingPath -Force | Out-Null
 Copy-Item -LiteralPath $modsPath -Destination $stagingPath -Recurse
+
+$stagedMetaPath = Join-Path $stagingPath "Mods\\$ModFolder\\meta.lsx"
+if (-not (Test-Path -LiteralPath $stagedMetaPath)) {
+    throw "Staged meta.lsx was not found: '$stagedMetaPath'."
+}
+
+$stagedMetaContent = Get-Content -LiteralPath $stagedMetaPath -Raw
+$stagedMetaContent = $stagedMetaContent -replace '(<attribute id="Version64" type="int64" value=")\d+("/>)', "`${1}$resolvedVersion64`${2}"
+Set-Content -LiteralPath $stagedMetaPath -Value $stagedMetaContent -Encoding utf8
 
 Write-Host "[build.ps1] Staged source tree:"
 Get-ChildItem -Recurse $stagingPath | Select-Object FullName, Length | Format-Table -AutoSize
@@ -129,7 +167,7 @@ $infoJson = [ordered]@{
             Author = $ModAuthor
             Name = $ModName
             Folder = $ModFolder
-            Version = $ModVersion64
+            Version = [string]$resolvedVersion64
             Description = $ModDescription
             UUID = $ModUuid
             Created = $createdAt
