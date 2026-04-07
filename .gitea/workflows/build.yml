@@ -71,6 +71,7 @@ jobs:
           $workspace = "${{ gitea.workspace }}"
           $modsPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "Mods"))
           $packagePath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD55eRussian.pak"))
+          $zipPath = [System.IO.Path]::GetFullPath((Join-Path $workspace "build/DnD 5.5e AIO Russian.zip"))
           $divine = Get-ChildItem -Path ".tools/lslib" -Recurse -File |
             Where-Object { $_.Name -ieq "Divine.exe" } |
             Select-Object -First 1
@@ -85,7 +86,18 @@ jobs:
               throw "Package was not created."
           }
 
+          if (Test-Path -LiteralPath $zipPath) {
+              Remove-Item -LiteralPath $zipPath -Force
+          }
+
+          Compress-Archive -LiteralPath $packagePath -DestinationPath $zipPath -CompressionLevel Optimal
+
+          if (-not (Test-Path -LiteralPath $zipPath)) {
+              throw "ZIP archive was not created."
+          }
+
       - name: Show build result
         run: |
           $ErrorActionPreference = "Stop"
-          Get-ChildItem "build/DnD55eRussian.pak" | Select-Object FullName, Length, LastWriteTime
+          Get-ChildItem "build/DnD55eRussian.pak", "build/DnD 5.5e AIO Russian.zip" |
+            Select-Object FullName, Length, LastWriteTime
