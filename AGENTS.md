@@ -127,8 +127,7 @@ Current workflow policy:
 
 User preference:
 
-- after making changes, ask for permission before committing
-- if the user approves, commit and push immediately
+- after making changes, commit and push by default without asking for separate permission
 - for significant changes, propose moving work into a separate branch
 - feature/fix branches must use the prefix `feat/` or `fix/`
 - after finishing work in a `feat/` or `fix/` branch, propose merging it back into `main`
@@ -136,8 +135,6 @@ User preference:
 - commit messages should describe what was done, not what should be done
 - if changes affect files that go into the final `.pak`, or change the build/release process, propose releasing the next version
 - if push fails, retry up to two more times with a 3-second pause between attempts
-
-Do not auto-commit or auto-push without explicit user approval.
 
 ## Cleanup Expectations
 
