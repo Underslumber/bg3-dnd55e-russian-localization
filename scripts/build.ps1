@@ -103,7 +103,8 @@ if (-not (Test-Path -LiteralPath $stagedMetaPath)) {
 
 $stagedMetaContent = Get-Content -LiteralPath $stagedMetaPath -Raw
 $stagedMetaContent = $stagedMetaContent -replace '(<attribute id="Version64" type="int64" value=")\d+("/>)', "`${1}$resolvedVersion64`${2}"
-Set-Content -LiteralPath $stagedMetaPath -Value $stagedMetaContent -Encoding utf8
+$utf8Bom = New-Object System.Text.UTF8Encoding($true)
+[System.IO.File]::WriteAllText($stagedMetaPath, $stagedMetaContent, $utf8Bom)
 
 Write-Host "[build.ps1] Staged source tree:"
 Get-ChildItem -Recurse $stagingPath | Select-Object FullName, Length | Format-Table -AutoSize

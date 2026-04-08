@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <save>
   <version major="4" minor="8" revision="0" build="500"/>
   <region id="Config">
@@ -19,7 +19,7 @@
         <node id="ModuleInfo">
           <attribute id="Author" type="LSString" value="MikhailRaw"/>
           <attribute id="CharacterCreationLevelName" type="FixedString" value=""/>
-          <attribute id="Description" type="LSString" value="Русская локализация мода, который добавляет и обновляет контент в соответствии с правилами DnD 5.5e и другими источниками, включая предыстории, классы, таланты, расы, заклинания и многое другое. Это отдельный мод локализации и он требует установленный оригинальный мод."/>
+          <attribute id="Description" type="LSString" value="Р СѓСЃСЃРєР°СЏ Р»РѕРєР°Р»РёР·Р°С†РёСЏ РјРѕРґР°, РєРѕС‚РѕСЂС‹Р№ РґРѕР±Р°РІР»СЏРµС‚ Рё РѕР±РЅРѕРІР»СЏРµС‚ РєРѕРЅС‚РµРЅС‚ РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРё СЃ РїСЂР°РІРёР»Р°РјРё DnD 5.5e Рё РґСЂСѓРіРёРјРё РёСЃС‚РѕС‡РЅРёРєР°РјРё, РІРєР»СЋС‡Р°СЏ РїСЂРµРґС‹СЃС‚РѕСЂРёРё, РєР»Р°СЃСЃС‹, С‚Р°Р»Р°РЅС‚С‹, СЂР°СЃС‹, Р·Р°РєР»РёРЅР°РЅРёСЏ Рё РјРЅРѕРіРѕРµ РґСЂСѓРіРѕРµ. Р­С‚Рѕ РѕС‚РґРµР»СЊРЅС‹Р№ РјРѕРґ Р»РѕРєР°Р»РёР·Р°С†РёРё Рё РѕРЅ С‚СЂРµР±СѓРµС‚ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅС‹Р№ РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ РјРѕРґ."/>
           <attribute id="FileSize" type="uint64" value="0"/>
           <attribute id="Folder" type="LSString" value="DnD 5.5e AIO Russian"/>
           <attribute id="LobbyLevelName" type="FixedString" value=""/>
