@@ -59,7 +59,7 @@ jobs:
               throw "Could not find a downloadable LSLib zip asset in the latest release."
           }
 
-          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile ".tools/lslib/lslib.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile ".tools/lslib/lslib.zip"
           Expand-Archive -LiteralPath ".tools/lslib/lslib.zip" -DestinationPath ".tools/lslib" -Force
 
       - name: Build .pak
@@ -157,4 +157,4 @@ jobs:
               Accept = "application/json"
           }
 
-          Invoke-WebRequest -Method Post -Uri "$apiBase/releases/$($release.id)/assets?name=$([uri]::EscapeDataString($assetName))" -Headers $uploadHeaders -ContentType "application/octet-stream" -InFile $zipPath
+          Invoke-WebRequest -UseBasicParsing -Method Post -Uri "$apiBase/releases/$($release.id)/assets?name=$([uri]::EscapeDataString($assetName))" -Headers $uploadHeaders -ContentType "application/octet-stream" -InFile $zipPath
