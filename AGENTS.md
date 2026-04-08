@@ -137,6 +137,8 @@ User preference:
 - commit messages should describe what was done, not what should be done
 - if changes affect files that go into the final `.pak`, or change the build/release process, propose releasing the next version
 - if push fails, retry up to two more times with a 3-second pause between attempts
+- when referring to a released version in user-facing messages, format the version as a direct link to the release archive whenever the archive URL can be derived
+- it is acceptable to provide that archive link immediately after publishing the tag, even if the build is still running and the link may become valid a bit later
 
 Do not auto-commit or auto-push without explicit user approval.
 
