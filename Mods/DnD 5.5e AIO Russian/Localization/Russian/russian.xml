@@ -16,7 +16,7 @@
   <content contentuid="h84f8977cg06ecg1e31gebd6g21e4b7346121" version="1">Когда вы совершаете атаку оружием во второй руке, вы можете совершить одну дополнительную атаку в рамках этой же атаки. Вы можете совершить эту дополнительную атаку только один раз за ход.</content>
   <content contentuid="h64e7021cg8b69g3f60gde38gd59f3cdc5846" version="1">Свойство мастерства: Отталкивание</content>
   <content contentuid="h694f6a66g0531g98f0ga23eg525e146eb4d7" version="1">Если вы попадаете по существу этим оружием, вы можете оттолкнуть его на расстояние до [1] прямо от себя, если его размер «Большой» или меньше.</content>
-  <content contentuid="haf74199bg92cbg93dega0fbgebb535603f83" version="1">Свойство мастерства: Ошеломление</content>
+  <content contentuid="haf74199bg92cbg93dega0fbgebb535603f83" version="1">Свойство мастерства: Истощение</content>
   <content contentuid="h6846e460g6aecg1e76g52c0g8c751abe8744" version="1">Если вы попадаете по существу этим оружием, оно совершает свой следующий бросок атаки до начала вашего следующего хода с помехой.</content>
   <content contentuid="hb839de91gb995ge42eg62b9g1dd41fe4da4b" version="1">Свойство мастерства: Замедление</content>
   <content contentuid="h7773a857g54d9g0e61gc338g5671eef1378d" version="1">Если вы попадаете по существу этим оружием и наносите ему урон, вы можете уменьшить его Скорость на [1] до начала вашего следующего хода. Если по существу попадают несколько раз оружием с этим свойством, снижение Скорости не превышает [1].</content>
@@ -26,9 +26,9 @@
   <content contentuid="hf0019ff2g27f5g13abg7a86g646b2f8a1f55" version="1">Если вы попадаете по существу этим оружием и наносите ему урон, вы совершаете следующий бросок атаки по этому существу до конца своего следующего хода с преимуществом.</content>
   <content contentuid="h3a51e8b8gf631gf9b1g55bdg6af9de9235ef" version="1">Большой топор, алебарда</content>
   <content contentuid="hfdefde84gd74bg13d6g3599g34e7bc9cbafe" version="1">Глефа, двуручный меч</content>
-  <content contentuid="h0de5940ag21a0gff32gb8dfg01c84e54f73e" version="1">Кинжал, лёгкий молот, серп, ятаган</content>
-  <content contentuid="h6fd4a879g6dd9g5936gc329gc012af72f9c6" version="1">Большая дубинка, копьё пехоты, боевой молот, тяжёлый арбалет</content>
-  <content contentuid="h05a1ab8cg6b39gabd2g55c7g3a1f851c31fb" version="1">Булава, копьё, цеп, длинный меч, утренняя звезда, боевой клюв</content>
+  <content contentuid="h0de5940ag21a0gff32gb8dfg01c84e54f73e" version="1">Кинжал, лёгкий молот, серп, скимитар</content>
+  <content contentuid="h6fd4a879g6dd9g5936gc329gc012af72f9c6" version="1">Большая дубинка, пика, боевой молот, тяжёлый арбалет</content>
+  <content contentuid="h05a1ab8cg6b39gabd2g55c7g3a1f851c31fb" version="1">Булава, копьё, цеп, длинный меч, моргенштерн, боевая кирка</content>
   <content contentuid="h53e29765gaf78g1680g5805g24b5594244ac" version="1">Дубинка, дротик, лёгкий арбалет, праща, длинный лук, мушкет</content>
   <content contentuid="h8ab19fdega28dg1fd1g0de1gc672bac4e6d3" version="2">Боевой посох, боевой топор, кувалда, трезубец</content>
   <content contentuid="hd724f72fgcda8gb6acgb5c4gd95d169dd0b4" version="1">Ручной топор, короткий лук, рапира, короткий меч, ручной арбалет, пистолет</content>
@@ -74,10 +74,10 @@
   <content contentuid="h1dedae79g3922gbd27g0925g98aec4318fa7" version="1">Вы можете использовать музыкальные ноты или слова силы, чтобы нарушить эффекты, влияющие на разум. Если вы или существо в пределах 30 футов от вас проваливает спасбросок против эффекта, налагающего состояние Очарования или Испуга, вы можете потратить реакцию для переброса спасброска, причем новый бросок совершается с Преимуществом.</content>
   <content contentuid="hf8844bacg4eb3geecdg5fbagf17d5ba9d6b0" version="1">Разрушение чар</content>
   <content contentuid="h0f358bf7g4a10gc77fg43cfg0c187137ef7a" version="1">Вы можете использовать музыкальные ноты или слова силы, чтобы нарушить эффекты, влияющие на разум. Если вы или существо в пределах 30 футов от вас проваливает спасбросок против эффекта, налагающего состояние Очарования или Испуга, вы можете потратить реакцию для переброса спасброска, причем новый бросок совершается с Преимуществом.</content>
-  <content contentuid="h3169b2acg5134gbc8dge8fagb01eabf3a278" version="1">Уровень 3: Очаровательная магия</content>
+  <content contentuid="h3169b2acg5134gbc8dge8fagb01eabf3a278" version="1">Уровень 3: Чарующая магия</content>
   <content contentuid="h035b29c1g51d0ge9f8gb63fgc75cd5045b0c" version="2">У вас всегда подготовлены заклинания «Очарование личности» и «Зеркальное отражение».&lt;br&gt;&lt;br&gt;Кроме того, сразу после произнесения заклинания Школы очарования или иллюзии, использующего ячейку заклинания, вы можете заставить существо, которое вы видите в пределах [1] от себя, совершить спасбросок Мудрости против сложности спасброска ваших заклинаний. В случае провала цель получает состояние Очарования или Испуга (на ваш выбор) на 1 минуту.</content>
-  <content contentuid="he30a14f7gb323g888eg2ff5g04b0a7374497" version="1">Очаровательная магия: Очарование</content>
-  <content contentuid="haac5a803g73dfg5282g175eg12c90e9a77cd" version="1">Очаровательная магия: Испуг</content>
+  <content contentuid="he30a14f7gb323g888eg2ff5g04b0a7374497" version="1">Чарующая магия: Очарование</content>
+  <content contentuid="haac5a803g73dfg5282g175eg12c90e9a77cd" version="1">Чарующая магия: Испуг</content>
   <content contentuid="h1e9e444agc6b5g3056g6b60g447875f0ec07" version="1">Уровень 3: Мантия вдохновения</content>
   <content contentuid="hd68a192ag408cg0b94ge1bcgb6efd87c7b6a" version="2">Вы можете вплетать фею магию в песню или танец, наполняя окружающих жизненной силой. Бонусным действием вы можете потратить одно использование Вдохновения барда и бросить кость Вдохновения барда. Сделав это, выберите количество других существ в пределах [1] от себя, не превышающее ваш модификатор Обаяния (минимум одно существо).&lt;br&gt;&lt;br&gt;Каждое из этих существ получает Временные очки здоровья, равные удвоенному результату броска кости Вдохновения барда, и каждое может перемещаться, не провоцируя атак по возможности, до конца своего следующего хода.</content>
   <content contentuid="h719facf1g5f1cg71c4gbf18g0bc0200d571d" version="2">Каждое из этих существ получает Временные очки здоровья, равные удвоенному результату броска кости Вдохновения барда, и каждое может перемещаться, не провоцируя атак по возможности, до конца своего следующего хода.</content>
@@ -92,29 +92,29 @@
   <content contentuid="h5380e85fg27eagff54gaa61g803d6710929e" version="1">Выберите до трех существ в пределах досягаемости. Максимальное количество очков здоровья и текущие очки здоровья каждой цели увеличиваются на [1] на время действия.</content>
   <content contentuid="he6319c8dga9bagd985gfc80gc057d99c3f06" version="1">Подмога</content>
   <content contentuid="h8c0c79e8geefage313gb534gd315de67d298" version="1">Увеличивает максимальное количество очков здоровья ваших союзников на [1].</content>
-  <content contentuid="hbdf4d91ege560gf373gb78fgc694716131ec" version="1">Сияющее слово</content>
-  <content contentuid="h0dd0eba8g9b93g7909g9d9cg2a09e01a4c46" version="2">Уровень 1: Божественный порядок: Защитник</content>
+  <content contentuid="hbdf4d91ege560gf373gb78fgc694716131ec" version="1">Слово сияния</content>
+  <content contentuid="h0dd0eba8g9b93g7909g9d9cg2a09e01a4c46" version="2">Уровень 1: Божественный приказ: Защитник</content>
   <content contentuid="h82c38cb3g39e6g13c8g7a26g5c63f737aa79" version="1">Защитник: Благодаря боевой подготовке вы получаете владение воинским оружием и тренировку в использовании тяжелых доспехов.</content>
   <content contentuid="hd91012edgb1a6g4aabg14d4g0d685464de55" version="1">Чудотворец: Вы знаете один дополнительный заговор из списка заклинаний жреца. Кроме того, ваша мистическая связь с божественным дает бонус к проверкам Интеллекта (Магия или Религия). Бонус равен вашему модификатору Мудрости (минимум +1).</content>
-  <content contentuid="h5eae110bgf170g8febg7b95gaf9957eab275" version="1">Напутствие</content>
+  <content contentuid="h5eae110bgf170g8febg7b95gaf9957eab275" version="1">Наставление</content>
   <content contentuid="hf42e4215gdaa7g8b2cg6d6cg34b3a7233576" version="1">Свет</content>
-  <content contentuid="h08e84982gdf0fgadf1g29d5g02cc8281827c" version="2">Лопнувшее сухожилие</content>
+  <content contentuid="h08e84982gdf0fgadf1g29d5g02cc8281827c" version="2">Взрыв сухожилий</content>
   <content contentuid="hf2980afegb1f3g08e3g5b30g296c1e8141b7" version="1">Сопротивление</content>
   <content contentuid="h3dc64960ga68egb106gddd9g8a83f2e5394a" version="1">Священное пламя</content>
-  <content contentuid="h37124d24g1b0dg1b86g632dg14623f5d21b6" version="1">Щадить умирающего</content>
-  <content contentuid="h31c6269fga1bfge0a9gb4bfg7f845b81b38a" version="1">Чудотворство</content>
+  <content contentuid="h37124d24g1b0dg1b86g632dg14623f5d21b6" version="1">Уход за умирающим</content>
+  <content contentuid="h31c6269fga1bfge0a9gb4bfg7f845b81b38a" version="1">Тавматургия</content>
   <content contentuid="h4d2d81f9g6a4cg493ege377gd246536aefa0" version="1">Погребальный звон</content>
-  <content contentuid="h5d663b96gee20gd7abg28bdgde325d686903" version="1">Божественный порядок</content>
+  <content contentuid="h5d663b96gee20gd7abg28bdgde325d686903" version="1">Божественный приказ</content>
   <content contentuid="hf078c843g4ca9gd89bgde69g7b94c3d7e9b4" version="1">Вы выбрали одну из следующих священных ролей.</content>
-  <content contentuid="hc0f7da49g83b0g2364gd22fg0e72e6d0f671" version="1">Уровень 1: Божественный уклад: Сияние слов</content>
-  <content contentuid="h4d5b8b7cg1eddg15a0g6e0cgb4e68f50ee06" version="1">Уровень 1: Божественный уклад: Наставление</content>
-  <content contentuid="h865f785bge303g1b8ag2f0egee91191a55fd" version="1">Уровень 1: Божественный уклад: Свет</content>
-  <content contentuid="h0bfe486dga99eg5aefg818agacd35ff6e130" version="2">Уровень 1: Божественный уклад: Напряжение жил</content>
-  <content contentuid="hd5ac78c8g2d8cg02bag6ebbg2f9ccd67bc36" version="1">Уровень 1: Божественный уклад: Сопротивление</content>
-  <content contentuid="h63c03147gca42g60bdgfa7ag47ceb695bc38" version="1">Уровень 1: Божественный уклад: Священное пламя</content>
-  <content contentuid="hf2f5e5c4g141ag2b8egb90cg9ff6727b6910" version="1">Уровень 1: Божественный уклад: Пощада умирающему</content>
-  <content contentuid="h50136471gff21g505fg888cgf856fc01281a" version="1">Уровень 1: Божественный уклад: Чудотворство</content>
-  <content contentuid="h9b0eeaeeg6a13gc99dg6669gc97c57ec0db5" version="1">Уровень 1: Божественный уклад: Погребальный звон</content>
+  <content contentuid="hc0f7da49g83b0g2364gd22fg0e72e6d0f671" version="1">Уровень 1: Божественный приказ: Слово сияния</content>
+  <content contentuid="h4d5b8b7cg1eddg15a0g6e0cgb4e68f50ee06" version="1">Уровень 1: Божественный приказ: Наставление</content>
+  <content contentuid="h865f785bge303g1b8ag2f0egee91191a55fd" version="1">Уровень 1: Божественный приказ: Свет</content>
+  <content contentuid="h0bfe486dga99eg5aefg818agacd35ff6e130" version="2">Уровень 1: Божественный приказ: Взрыв сухожилий</content>
+  <content contentuid="hd5ac78c8g2d8cg02bag6ebbg2f9ccd67bc36" version="1">Уровень 1: Божественный приказ: Сопротивление</content>
+  <content contentuid="h63c03147gca42g60bdgfa7ag47ceb695bc38" version="1">Уровень 1: Божественный приказ: Священное пламя</content>
+  <content contentuid="hf2f5e5c4g141ag2b8egb90cg9ff6727b6910" version="1">Уровень 1: Божественный приказ: Уход за умирающим</content>
+  <content contentuid="h50136471gff21g505fg888cgf856fc01281a" version="1">Уровень 1: Божественный приказ: Тавматургия</content>
+  <content contentuid="h9b0eeaeeg6a13gc99dg6669gc97c57ec0db5" version="1">Уровень 1: Божественный приказ: Погребальный звон</content>
   <content contentuid="h84a7d362gf65ag0f66g6103g7d1f4fc707d2" version="1">Уровень 2: Направление божественной энергии</content>
   <content contentuid="h619804afg28a4g6f48g9db2gb39ec7c1d073" version="1">Вы можете направлять божественную энергию для создания особых эффектов, таких как Божественная искра и Изгнание нежити, выбирая один эффект при каждом использовании. Дополнительные эффекты и использования открываются на более высоких уровнях жреца. Вы восстанавливаете одно использование после короткого отдыха и все использования — после долгого отдыха. Сложность спасбросков использует вашу Сл заклинаний.</content>
   <content contentuid="h0fdb1f5ag867fg21d4g6beeg681eae4df812" version="1">Божественная искра</content>
@@ -133,9 +133,9 @@
   <content contentuid="h4bebd04fg3a81gc270gd50bga237aecd8ef8" version="1">Благословенные удары</content>
   <content contentuid="h0c4d3581gf44cg6a9ag27f8ge9f2dd54d6ed" version="1">В бою вас наполняет божественная сила. Выберите один из следующих вариантов.</content>
   <content contentuid="hb6ac0f1cg84d4g5137g1a23g92f5941f06dc" version="1">Уровень 5: Выжигание нежити</content>
-  <content contentuid="hd9e8561fg5920g7f26g9d66g15b2d44e24f3" version="1">Щадить умирающего</content>
+  <content contentuid="hd9e8561fg5920g7f26g9d66g15b2d44e24f3" version="1">Уход за умирающим</content>
   <content contentuid="hb742b3aagabfcg536cg10e0g99bbe354e49a" version="1">Исцелите существо в пределах досягаемости, у которого 0 очков здоровья и которое не мертво.</content>
-  <content contentuid="hd085b0deg3cc9g0858gdf14geef98a4164c3" version="1">Сияющее слово</content>
+  <content contentuid="hd085b0deg3cc9g0858gdf14geef98a4164c3" version="1">Слово сияния</content>
   <content contentuid="hbb7ccd06g2737gdcf2gc167g21f32c9615fb" version="1">Обжигающее излучение вырывается из вас в области [1] Исходящая область. Каждое выбранное вами существо, которое вы видите в этой области, должно преуспеть в испытании Телосложения или получить урон излучением.</content>
   <content contentuid="hf652a768gef39g78fdg661dg8ddbb887d3f3" version="1">Уровень 3: Ученик жизни</content>
   <content contentuid="h748a060egc16cg7d82gf97eg22830dd0c9f1" version="1">Когда заклинание, сотворённое с затратой ячейки, восстанавливает существу очки здоровья, в тот же ход оно восстанавливает дополнительные очки здоровья. Количество дополнительных очков здоровья равно 2 + уровень ячейки заклинания.</content>
