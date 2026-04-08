@@ -132,6 +132,7 @@ User preference:
 - feature/fix branches must use the prefix `feat/` or `fix/`
 - after finishing work in a `feat/` or `fix/` branch, propose merging it back into `main`
 - comments and commit messages should be written in Russian
+- if changes affect files that go into the final `.pak`, or change the build/release process, propose releasing the next version
 
 Do not auto-commit or auto-push without explicit user approval.
 
