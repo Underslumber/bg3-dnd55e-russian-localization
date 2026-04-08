@@ -8,7 +8,7 @@ param(
     [string]$ModName = "DnD 5.5e All-in-One BEYOND Russian Localization",
     [string]$ModUuid = "6401e84d-daf2-416d-adeb-99c03a2487a6",
     [string]$ModAuthor = "MikhailRaw",
-    [string]$ModDescription = "Russian Localization",
+    [string]$ModDescription = "Русская локализация мода, который добавляет и обновляет контент в соответствии с правилами DnD 5.5e и другими источниками, включая предыстории, классы, таланты, расы, заклинания и многое другое. Это отдельный мод локализации и он требует установленный оригинальный мод.",
     [string]$ModVersion64 = "36028797018963968",
     [string]$ModGroup = "6401e84d-daf2-416d-adeb-99c03a2487a6",
     [string]$DependencyUuid = "897914ef-5c96-053c-44af-0be823f895fe",
