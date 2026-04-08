@@ -24,7 +24,8 @@ This repository is for the localization mod only. It must not gain gameplay logi
 
 - Mod sources: `Mods/DnD 5.5e AIO Russian`
 - Localization XML: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
-- Glossary: `glossary/glossary.normalized.json`
+- Original English localization reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
+- Translation glossary reference: `glossary/glossary.normalized.json` — use this as the primary terminology reference when translating
 - Mod metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
 - CI workflow: `.gitea/workflows/build.yml`
 - Main build script: `scripts/build.ps1`
