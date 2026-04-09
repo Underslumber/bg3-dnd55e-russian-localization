@@ -28,6 +28,45 @@ REPORT_FORMAT:
   - remaining
 
 ACTIONS:
+  translation:diff:
+    intent: fetch_upstream_english_and_compare_with_ru
+    inputs:
+      - AGENTS.md::Canonical Paths::Upstream English reference
+      - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
+    plan:
+      - download_upstream_english_into_ignored_cache
+      - compare_en_vs_ru_by_contentuid_and_version
+      - classify_diff_into_missing_changed_stale
+      - write_machine_readable_and_markdown_reports_for_local_review
+    checks:
+      - xml_valid
+      - cache_path_gitignored
+      - local_only_no_ci_workflow_required
+    outputs:
+      - .cache/upstream/english.xml
+      - build/translation-diff/summary.json
+      - build/translation-diff/summary.md
+      - build/translation-diff/candidates.json
+  translation:apply:
+    intent: apply_translation_edits_to_russian_xml
+    inputs:
+      - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
+      - build/translation-diff/candidates.json
+      - external_edit_file_with_updates
+    plan:
+      - create_temporary_copy_of_russian_xml
+      - load_edit_file_and_temporary_xml
+      - apply_updates_and_optional_new_entries_by_contentuid
+      - write_utf8_bom_xml_to_temporary_copy
+      - validate_temporary_xml_via_separate_script
+      - replace_original_russian_xml_after_successful_validation
+      - report_changed_entries
+    checks:
+      - xml_valid
+      - contentuid_uniqueness_preserved
+      - only_requested_entries_changed
+    outputs:
+      - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
   translation:update:
     intent: sync_ru_translation_with_upstream
     inputs:
@@ -35,16 +74,18 @@ ACTIONS:
       - glossary/glossary.normalized.json
       - AGENTS.md::Canonical Paths::Upstream English reference
     plan:
-      - compare_en_vs_ru_by_keys
-      - classify_diff_into_new_changed_stale_candidate
-      - update_ru_for_new_and_changed_using_glossary
-      - validate_xml_structure_and_service_attributes
-      - prepare_delta_summary_counts
+      - refresh_upstream_english_cache
+      - compare_en_vs_ru_by_contentuid_and_version
+      - if_no_diff_report_translation_is_up_to_date_and_stop
+      - else_apply_prepared_edits_to_temporary_russian_copy
+      - validate_temporary_xml_via_separate_script
+      - replace_original_russian_xml_after_successful_validation
     checks:
       - xml_valid
       - glossary_consistency
       - scope_limited_to_localization_and_allowed_metadata
     outputs:
+      - message: translation_up_to_date
       - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
       - optional: Mods/DnD 5.5e AIO Russian/meta.lsx (release-only)
     after_success:
