@@ -66,7 +66,7 @@
 - CI triggers: tag `v*` and manual dispatch; not every push to `main`.
 
 ### Version/Release Rules
-- Read release version only from `save/region/node[@id="ModuleSettings"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]` via explicit XML parsing.
+- Read release version only from `save/region[@id="Config"]/node[@id="root"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]` via explicit XML parsing.
 - `PublishVersion` must not be changed during release preparation.
 - Release tag must match the source-of-truth version.
 - Decision logic before tagging:
