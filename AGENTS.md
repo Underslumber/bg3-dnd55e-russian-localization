@@ -91,6 +91,11 @@ Current behavior:
 
 Do not manually hardcode release versions in the committed `meta.lsx` for each release if CI can derive them from tags.
 
+Release preparation rule:
+
+- before creating a release tag, run `scripts/set-version.ps1 -VersionTag <tag>` to update repository `Mods/DnD 5.5e AIO Russian/meta.lsx`
+- only after that commit the change and create/push the release tag
+
 ## info.json Expectations
 
 `info.json` is generated during build and should remain aligned with BG3/BG3ModManager expectations.
