@@ -68,7 +68,7 @@ ACTIONS:
   meta:sync-parent:
     intent: sync_dependency_moduleshortdesc_from_parent_meta
     inputs:
-      - parent_meta_path
+      - parent_meta_git_url (optional; defaults to upstream)
       - Mods/DnD 5.5e AIO Russian/meta.lsx
     plan:
       - read_parent_moduleinfo_fields

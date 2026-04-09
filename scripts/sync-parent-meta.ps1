@@ -1,23 +1,27 @@
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$ParentMetaPath,
+    [string]$ParentMetaUrl = "https://raw.githubusercontent.com/Yoonmoonsik/dnd55e/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/meta.lsx",
     [string]$TargetMetaPath = "Mods/DnD 5.5e AIO Russian/meta.lsx"
 )
 
 $ErrorActionPreference = "Stop"
 
-$resolvedParentMetaPath = [System.IO.Path]::GetFullPath($ParentMetaPath)
 $resolvedTargetMetaPath = [System.IO.Path]::GetFullPath($TargetMetaPath)
-
-if (-not (Test-Path -LiteralPath $resolvedParentMetaPath)) {
-    throw "Parent meta.lsx was not found: '$resolvedParentMetaPath'."
-}
 
 if (-not (Test-Path -LiteralPath $resolvedTargetMetaPath)) {
     throw "Target meta.lsx was not found: '$resolvedTargetMetaPath'."
 }
 
-$parentRaw = Get-Content -LiteralPath $resolvedParentMetaPath -Raw
+if ([string]::IsNullOrWhiteSpace($ParentMetaUrl)) {
+    throw "ParentMetaUrl must not be empty."
+}
+
+try {
+    $parentResponse = Invoke-WebRequest -Uri $ParentMetaUrl -UseBasicParsing -TimeoutSec 60
+} catch {
+    throw "Failed to download parent meta.lsx from '$ParentMetaUrl': $($_.Exception.Message)"
+}
+
+$parentRaw = $parentResponse.Content
 $targetRaw = Get-Content -LiteralPath $resolvedTargetMetaPath -Raw
 
 [xml]$parentXml = $parentRaw
@@ -25,7 +29,7 @@ $targetRaw = Get-Content -LiteralPath $resolvedTargetMetaPath -Raw
 
 $parentModuleInfo = $parentXml.SelectSingleNode('/save/region/node/children/node[@id="ModuleInfo"]')
 if ($null -eq $parentModuleInfo) {
-    throw "ModuleInfo node was not found in parent meta: '$resolvedParentMetaPath'."
+    throw "ModuleInfo node was not found in parent meta downloaded from '$ParentMetaUrl'."
 }
 
 $requiredFields = @("Folder", "MD5", "Name", "PublishHandle", "UUID", "Version64")
@@ -34,12 +38,12 @@ $sourceValues = @{}
 foreach ($field in $requiredFields) {
     $node = $parentModuleInfo.SelectSingleNode("attribute[@id='$field']")
     if ($null -eq $node) {
-        throw "Required parent ModuleInfo attribute '$field' is missing in '$resolvedParentMetaPath'."
+        throw "Required parent ModuleInfo attribute '$field' is missing in meta downloaded from '$ParentMetaUrl'."
     }
 
     $value = $node.GetAttribute("value")
     if ([string]::IsNullOrWhiteSpace($value)) {
-        throw "Required parent ModuleInfo attribute '$field' has empty value in '$resolvedParentMetaPath'."
+        throw "Required parent ModuleInfo attribute '$field' has empty value in meta downloaded from '$ParentMetaUrl'."
     }
 
     $sourceValues[$field] = $value
