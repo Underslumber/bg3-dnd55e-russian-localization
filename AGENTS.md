@@ -14,6 +14,7 @@
 - Build script (single source of build truth): `scripts/build.ps1`
 - CI workflow: `.gitea/workflows/build.yml`
 - Glossary (primary terminology reference): `glossary/glossary.normalized.json`
+- Action catalog and command playbooks: `ACTIONS.md`
 - Upstream English reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
 
 ## Packaging Invariants (MUST)
