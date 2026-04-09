@@ -39,7 +39,7 @@
 - CI triggers: tag `v*` and manual dispatch; not every push to `main`.
 
 ## Version/Release Rules (MUST)
-- Source of truth for release version: `ModuleInfo/Version64` in `meta.lsx`.
+- Read release version only from `save/region/node[@id="ModuleSettings"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]` via explicit XML parsing.
 - `PublishVersion` must not be changed during release preparation.
 - Release tag must match the source-of-truth version.
 - Decision logic before tagging:

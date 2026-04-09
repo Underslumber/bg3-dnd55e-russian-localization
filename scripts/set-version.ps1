@@ -36,8 +36,16 @@ if (-not (Test-Path -LiteralPath $resolvedMetaPath)) {
 
 $resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag
 $metaContent = Get-Content -LiteralPath $resolvedMetaPath -Raw
+[xml]$metaXml = $metaContent
 
-$moduleInfoVersionPattern = '(?s)(<node id="ModuleInfo">.*?<attribute id="Version64" type="int64" value=")\d+("/>)'
+# Explicitly target ModuleInfo/Version64 via XML path to avoid touching Dependencies/PublishVersion.
+$moduleInfoVersionNode = $metaXml.SelectSingleNode('/save/region/node/children/node[@id="ModuleInfo"]/attribute[@id="Version64" and @type="int64"]')
+if ($null -eq $moduleInfoVersionNode) {
+    throw "ModuleInfo/Version64 attribute was not found in '$resolvedMetaPath'."
+}
+
+# Replace only the Version64 attribute that appears inside ModuleInfo before its <children> block.
+$moduleInfoVersionPattern = '(?s)(<node id="ModuleInfo">\s*(?:(?!<children>).)*?<attribute id="Version64" type="int64" value=")\d+("/>)'
 if ($metaContent -notmatch $moduleInfoVersionPattern) {
     throw "ModuleInfo/Version64 attribute was not found in '$resolvedMetaPath'."
 }
