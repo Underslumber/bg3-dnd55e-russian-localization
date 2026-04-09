@@ -6,6 +6,7 @@
 - Commit/push only after explicit user approval.
 - After approval: commit and push immediately.
 - Branch switch prompt (`fix/*` or `feat/*`): ask at dialogue start; reuse the explicit user decision for all subsequent fix/feature tasks in the same dialogue.
+- Pending clarification/approval question: ask once, in a single short message; do not repeat the same pending question in a separate final message.
 - After finishing work in `fix/*` or `feat/*`: propose either
   1. creating an MR into `main`, or
   2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
