@@ -11,6 +11,8 @@
   2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
 - If push fails: retry up to 2 more times with 3s pause.
 - Never auto-commit/auto-push without explicit user approval.
+- Approval prompts for pending actions: short direct question in imperative form, no soft/opening phrases.
+- If multiple actions or combinations are possible: provide a numbered options list so user can reply with a number.
 
 ### Cleanup (General)
 - Do not leave temporary/debug artifacts in repo.
