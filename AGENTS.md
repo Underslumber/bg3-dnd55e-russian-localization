@@ -3,17 +3,16 @@
 ## General Rules (MUST)
 
 ### Git Collaboration Policy (General)
-- Ask user permission before commit.
+- Commit/push only after explicit user approval.
 - After approval: commit and push immediately.
-- If the change is small and readable: show it to the user before applying it.
 - Branch switch prompt (`fix/*` or `feat/*`): ask once at dialogue start; reuse the explicit user decision for all subsequent fix/feature tasks in the same dialogue.
 - After finishing work in `fix/*` or `feat/*`: propose either
   1. creating an MR into `main`, or
   2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
 - If push fails: retry up to 2 more times with 3s pause.
-- Never auto-commit/auto-push without explicit user approval.
-- Approval prompts for pending actions: short direct question in imperative form, no soft/opening phrases.
-- If multiple actions or combinations are possible: provide a numbered options list so user can reply with a number.
+- Approval prompts for pending actions: short direct phrasing, no soft/opening phrases; response format is mandatory:
+  - binary action: yes/no question.
+  - multiple actions/combinations: numbered options only.
 
 ### Cleanup (General)
 - Do not leave temporary/debug artifacts in repo.
