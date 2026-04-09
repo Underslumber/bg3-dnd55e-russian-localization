@@ -22,7 +22,6 @@
   - `Mods/DnD 5.5e AIO Russian/meta.lsx`
   - `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - Must not leak into `.pak`: `.git`, `.gitea`, `scripts`, `tools`, `.tools`, `build`, staging dirs.
-- Known CI quirk: Divine may produce broken ~48-byte `.pak`; mitigation is in `scripts/build.ps1`.
 - Staging for packaging must be in `%TEMP%`, not in dot-prefixed repo dirs.
 
 ## Build/CI Contract (MUST)

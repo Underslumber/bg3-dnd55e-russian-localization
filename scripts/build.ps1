@@ -113,6 +113,8 @@ if (Test-Path -LiteralPath $tempPackagePath) {
     Remove-Item -LiteralPath $tempPackagePath -Force
 }
 
+# CI quirk: Divine can occasionally emit a broken ~48-byte package for some source roots.
+# Mitigation: try staged/mods/workspace sources and accept only outputs that look valid by size.
 $packageAttempts = @(
     [ordered]@{ Name = "staging-root"; Source = $stagingPath },
     [ordered]@{ Name = "mods-root"; Source = $modsPath },
