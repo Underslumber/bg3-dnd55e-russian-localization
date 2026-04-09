@@ -65,3 +65,21 @@ ACTIONS:
       - no_unverified_claims
     outputs:
       - final_user_report
+  meta:sync-parent:
+    intent: sync_dependency_moduleshortdesc_from_parent_meta
+    inputs:
+      - parent_meta_path
+      - Mods/DnD 5.5e AIO Russian/meta.lsx
+    plan:
+      - read_parent_moduleinfo_fields
+      - validate_required_fields_folder_md5_name_publishhandle_uuid_version64
+      - update_target_dependencies_moduleshortdesc_fields
+      - validate_xml_structure
+      - report_changed_fields
+    checks:
+      - xml_valid
+      - required_parent_fields_present
+      - only_dependencies_moduleshortdesc_changed
+    outputs:
+      - Mods/DnD 5.5e AIO Russian/meta.lsx
+
