@@ -51,13 +51,14 @@ try {
         return
     }
 
-    $effectiveEditsPath = $EditsPath
-    if ([string]::IsNullOrWhiteSpace($effectiveEditsPath)) {
-        $effectiveEditsPath = Join-Path $resolvedOutputDir "candidates.json"
+    if ([string]::IsNullOrWhiteSpace($EditsPath)) {
+        Write-Host "[update-translation.ps1] Найдены изменения перевода. Подготовьте правки в '$([System.IO.Path]::GetFullPath((Join-Path $resolvedOutputDir "candidates.json")))' и затем запустите повторно с '-EditsPath'."
+        return
     }
 
+    $effectiveEditsPath = [System.IO.Path]::GetFullPath($EditsPath)
     if (-not (Test-Path -LiteralPath $effectiveEditsPath)) {
-        throw "Translation changes were found. Prepare edits in '$([System.IO.Path]::GetFullPath((Join-Path $resolvedOutputDir "candidates.json")))' and rerun update with '-EditsPath'."
+        throw "Prepared edits file was not found: '$effectiveEditsPath'."
     }
 
     & $applyScriptPath -RussianPath $RussianPath -EditsPath $effectiveEditsPath

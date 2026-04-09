@@ -51,6 +51,21 @@ function Get-ContentNodeMap {
     return $map
 }
 
+function Assert-UniqueEditContentUid {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Collections.Generic.HashSet[string]]$Seen,
+        [Parameter(Mandatory = $true)]
+        [string]$ContentUid,
+        [Parameter(Mandatory = $true)]
+        [string]$Section
+    )
+
+    if (-not $Seen.Add($ContentUid)) {
+        throw "Edits file contains duplicate contentuid '$ContentUid' in '$Section'."
+    }
+}
+
 $russianDocument = Read-XmlDocument -Path $RussianPath
 $temporaryRussianPath = "$($russianDocument.Path).tmp"
 $validateScriptPath = Join-Path $PSScriptRoot "validate-translation-xml.ps1"
@@ -83,6 +98,7 @@ if ($null -eq $contentListNode) {
 $nodeMap = Get-ContentNodeMap -Xml $russianDocument.Xml
 $updatedEntries = New-Object System.Collections.Generic.List[string]
 $addedEntries = New-Object System.Collections.Generic.List[string]
+$seenEditContentUids = [System.Collections.Generic.HashSet[string]]::new()
 
 $updates = @()
 if ($edits.PSObject.Properties.Name -contains "updates" -and $null -ne $edits.updates) {
@@ -95,6 +111,8 @@ foreach ($edit in $updates) {
         throw "Each update entry must contain non-empty 'contentuid'."
     }
 
+    Assert-UniqueEditContentUid -Seen $seenEditContentUids -ContentUid $contentUid -Section "updates"
+
     if (-not $nodeMap.ContainsKey($contentUid)) {
         throw "Target russian.xml does not contain contentuid '$contentUid' for update."
     }
@@ -105,6 +123,9 @@ foreach ($edit in $updates) {
     }
 
     if ($edit.PSObject.Properties.Name -contains "text") {
+        if ([string]::IsNullOrWhiteSpace([string]$edit.text)) {
+            throw "Update entry '$contentUid' must contain non-empty 'text' when provided."
+        }
         $node.InnerText = [string]$edit.text
     }
 
@@ -132,6 +153,8 @@ foreach ($edit in $adds) {
     if ([string]::IsNullOrWhiteSpace($contentUid)) {
         throw "Each add entry must contain non-empty 'contentuid'."
     }
+
+    Assert-UniqueEditContentUid -Seen $seenEditContentUids -ContentUid $contentUid -Section "adds"
 
     if ($nodeMap.ContainsKey($contentUid)) {
         throw "Target russian.xml already contains contentuid '$contentUid'; use 'updates' instead of 'adds'."

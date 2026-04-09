@@ -27,12 +27,21 @@ function Get-LocalizationEntries {
     foreach ($node in $nodes) {
         $contentUid = [string]$node.GetAttribute("contentuid")
         if ([string]::IsNullOrWhiteSpace($contentUid)) {
-            continue
+            throw "Localization XML contains a content node without 'contentuid': '$resolvedPath'."
+        }
+
+        if ($entries.ContainsKey($contentUid)) {
+            throw "Localization XML contains duplicate contentuid '$contentUid': '$resolvedPath'."
+        }
+
+        $version = [string]$node.GetAttribute("version")
+        if ([string]::IsNullOrWhiteSpace($version)) {
+            throw "Localization XML contains contentuid '$contentUid' with empty 'version': '$resolvedPath'."
         }
 
         $entries[$contentUid] = [ordered]@{
             contentuid = $contentUid
-            version = [string]$node.GetAttribute("version")
+            version = $version
             text = [string]$node.InnerText
         }
     }
@@ -45,9 +54,6 @@ New-Item -ItemType Directory -Path $resolvedOutputDir -Force | Out-Null
 
 $englishEntries = Get-LocalizationEntries -Path $EnglishPath
 $russianEntries = Get-LocalizationEntries -Path $RussianPath
-
-$englishKeys = [System.Collections.Generic.HashSet[string]]::new([string[]]$englishEntries.Keys)
-$russianKeys = [System.Collections.Generic.HashSet[string]]::new([string[]]$russianEntries.Keys)
 
 $missingInRussian = New-Object System.Collections.Generic.List[object]
 $versionMismatch = New-Object System.Collections.Generic.List[object]
@@ -156,11 +162,11 @@ if ($isUpToDate) {
     $mdLines += "Перевод уже актуален, дополнительные действия не требуются."
 } else {
     $mdLines += ""
-    $mdLines += "## Local workflow"
-    $mdLines += "1. Update upstream cache: ``scripts/get-upstream-english.ps1``"
-    $mdLines += "2. Refresh diff: ``scripts/compare-translation.ps1``"
-    $mdLines += "3. Edit ``build/translation-diff/candidates.json``"
-    $mdLines += "4. Apply changes: ``scripts/apply-translation-edits.ps1 -EditsPath build/translation-diff/candidates.json``"
+    $mdLines += "## Agent workflow"
+    $mdLines += "1. Refresh upstream cache: ``scripts/get-upstream-english.ps1``"
+    $mdLines += "2. Refresh diff reports: ``scripts/compare-translation.ps1``"
+    $mdLines += "3. Fill translated texts in ``build/translation-diff/candidates.json``"
+    $mdLines += "4. Apply only prepared edits: ``scripts/apply-translation-edits.ps1 -EditsPath build/translation-diff/candidates.json``"
 }
 
 $mdLines += ""
