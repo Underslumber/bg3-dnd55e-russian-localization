@@ -1,6 +1,7 @@
 build/
 build-stage*
 .tools/
+.cache/
 *.pak
 *.tmp
 *.temp
