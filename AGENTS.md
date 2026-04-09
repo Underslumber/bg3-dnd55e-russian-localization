@@ -93,9 +93,11 @@ Do not manually hardcode release versions in the committed `meta.lsx` for each r
 
 Release preparation rule:
 
-- before creating a release tag, run `scripts/set-version.ps1 -VersionTag <tag>` to update repository `Mods/DnD 5.5e AIO Russian/meta.lsx`
+- use `ModuleInfo/Version64` in `meta.lsx` as the source of truth for release tagging
+- if `meta.lsx` version was changed manually (for example via BG3 Toolkit), publish using a tag that matches this exact version
+- if `meta.lsx` version still matches the latest released tag, first bump version in `meta.lsx` (for example via `scripts/set-version.ps1 -VersionTag <tag>`), then commit and only after that create/push the release tag
 - only after that commit the change and create/push the release tag
-- if `meta.lsx` version was changed manually (for example via BG3 Toolkit), publish using a tag that matches that exact version and do not use a different tag
+- `PublishVersion` must not be modified during release preparation
 
 ## info.json Expectations
 

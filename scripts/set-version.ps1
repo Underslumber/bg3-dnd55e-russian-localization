@@ -37,11 +37,17 @@ if (-not (Test-Path -LiteralPath $resolvedMetaPath)) {
 $resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag
 $metaContent = Get-Content -LiteralPath $resolvedMetaPath -Raw
 
-$versionPattern = '(<attribute id="Version64" type="int64" value=")\d+("/>)'
-if ($metaContent -notmatch $versionPattern) {
-    throw "Version64 attributes were not found in '$resolvedMetaPath'."
+$moduleInfoVersionPattern = '(?s)(<node id="ModuleInfo">.*?<attribute id="Version64" type="int64" value=")\d+("/>)'
+if ($metaContent -notmatch $moduleInfoVersionPattern) {
+    throw "ModuleInfo/Version64 attribute was not found in '$resolvedMetaPath'."
 }
-$updatedMeta = $metaContent -replace $versionPattern, "`${1}$resolvedVersion64`${2}"
+
+$updatedMeta = [regex]::Replace(
+    $metaContent,
+    $moduleInfoVersionPattern,
+    "`${1}$resolvedVersion64`${2}",
+    1
+)
 
 $utf8Bom = New-Object System.Text.UTF8Encoding($true)
 [System.IO.File]::WriteAllText($resolvedMetaPath, $updatedMeta, $utf8Bom)
