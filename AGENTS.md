@@ -64,7 +64,7 @@
 - Commit message content: what was done (not what should be done).
 - If push fails: retry up to 2 more times with 3s pause.
 - If changes affect `.pak` contents or build/release flow: propose releasing next version.
-- For released versions in user-facing messages: provide direct archive link when derivable (acceptable immediately after tag push, even before CI finishes).
+- For released versions in user-facing messages: provide direct archive link in Markdown format `[version](url)` when derivable (acceptable immediately after tag push, even before CI finishes).
 - Never auto-commit/auto-push without explicit user approval.
 
 ## Cleanup (MUST)
