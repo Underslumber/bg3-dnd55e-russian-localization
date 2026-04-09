@@ -1,74 +1,67 @@
 # ACTIONS.md
 
-Внутренний ранбук действий для ассистента в этом репозитории.
-Цель: выполнять типовые задачи одинаково, быстро и в рамках `AGENTS.md`.
+VERSION: 2
+MODE: machine-first
+LANG: ru
 
-## Операционный протокол (для любого action)
-1. Проверить ограничения из `AGENTS.md` и подтвердить границы задачи.
-2. Зафиксировать короткий план выполнения (3-7 шагов).
-3. Выполнить изменения минимально и точечно.
-4. Проверить результат по чек-листу action.
-5. Показать пользователю итог и спросить разрешение на commit/push.
+ROUTING:
+  - match_user_request_to_action_id: true
+  - if_match: propose_action
+  - if_no_match: ignore_actions_md
+  - if_no_match_user_message: none
 
-## Шаблон action
-- `Команда`: уникальный идентификатор `section:name`.
-- `Назначение`: какой результат должен быть получен.
-- `Входы`: конкретные файлы/источники.
-- `План`: исполняемые шаги без абстракций.
-- `Проверка`: как подтверждается корректность.
-- `Выход`: какие файлы меняются.
-- `Отчет пользователю`: формат финального сообщения.
+PROPOSE_RULE:
+  - prompt_template: "Приступить к выполнению '{action_id}'?"
+  - require_user_confirmation: true
+  - execute_without_confirmation: false
 
-## Action: создать новый action
-- `Команда`: `action:new`
-- `Назначение`: добавить новый повторяемый сценарий в `ACTIONS.md`.
-- `Входы`: описание задачи от пользователя.
-- `План`:
-  1. Уточнить цель, границы, ожидаемый результат.
-  2. Предложить имя команды `section:name` и согласовать.
-  3. Заполнить все поля шаблона action.
-  4. Проверить уникальность команды в файле.
-  5. Показать пользователю готовый блок перед commit.
-- `Проверка`:
-  - Команда не дублируется.
-  - План выполним в рамках `AGENTS.md`.
-  - Есть явный критерий завершения.
-- `Выход`: обновленный `ACTIONS.md`.
-- `Отчет пользователю`:
-  - Что добавлено.
-  - Какой командой запускать.
-  - Что будет считаться завершением.
+EXECUTION_BASELINE:
+  - enforce_agents_md: true
+  - minimal_non_breaking_changes: true
+  - steps_count_range: [3, 7]
+  - before_commit_push: request_user_approval
 
-## Action: обновление перевода
-- `Команда`: `translation:update`
-- `Назначение`: синхронизировать `russian.xml` с upstream English с сохранением терминологии.
-- `Входы`:
-  - `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
-  - upstream English (ссылка в `AGENTS.md`)
-  - `glossary/glossary.normalized.json`
-- `План`:
-  1. Сопоставить English и Russian по ключам.
-  2. Разделить расхождения на `new`, `changed`, `stale-candidate`.
-  3. Обновить перевод для `new` и `changed` по глоссарию.
-  4. Проверить XML-целостность и служебные атрибуты.
-  5. Подготовить краткий список выполненных изменений.
-- `Проверка`:
-  - XML не поврежден.
-  - Термины согласованы с глоссарием.
-  - Нет изменений за пределами локализации/разрешенных метаданных.
-- `Выход`:
-  - обновленный `russian.xml`
-  - при релизном шаге: согласованные изменения в `meta.lsx` по правилам версии
-- `Отчет пользователю`:
-  - Сколько строк добавлено/обновлено/помечено как `stale-candidate`.
-  - Какие файлы изменены.
-  - Нужен ли следующий релизный шаг.
+REPORT_FORMAT:
+  - done
+  - changed_files
+  - checks
+  - remaining
 
-## Action: отчет по выполнению (внутренний формат)
-- `Команда`: `action:report`
-- `Назначение`: единый короткий формат отчета после любого action.
-- `Шаблон отчета`:
-  1. Что сделано.
-  2. Какие файлы изменены.
-  3. Что проверено.
-  4. Что остается (если есть).
+ACTIONS:
+  translation:update:
+    intent: sync_ru_translation_with_upstream
+    inputs:
+      - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
+      - glossary/glossary.normalized.json
+      - AGENTS.md::Canonical Paths::Upstream English reference
+    plan:
+      - compare_en_vs_ru_by_keys
+      - classify_diff_into_new_changed_stale_candidate
+      - update_ru_for_new_and_changed_using_glossary
+      - validate_xml_structure_and_service_attributes
+      - prepare_delta_summary_counts
+    checks:
+      - xml_valid
+      - glossary_consistency
+      - scope_limited_to_localization_and_allowed_metadata
+    outputs:
+      - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
+      - optional: Mods/DnD 5.5e AIO Russian/meta.lsx (release-only)
+
+  action:report:
+    intent: unified_task_report
+    inputs:
+      - task_context
+      - modified_files
+      - verification_results
+    plan:
+      - summarize_done
+      - list_changed_files
+      - list_checks
+      - list_remaining
+    checks:
+      - concise
+      - factual
+      - no_unverified_claims
+    outputs:
+      - final_user_report
