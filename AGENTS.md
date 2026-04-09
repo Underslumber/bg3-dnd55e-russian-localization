@@ -95,6 +95,7 @@ Release preparation rule:
 
 - before creating a release tag, run `scripts/set-version.ps1 -VersionTag <tag>` to update repository `Mods/DnD 5.5e AIO Russian/meta.lsx`
 - only after that commit the change and create/push the release tag
+- if `meta.lsx` version was changed manually (for example via BG3 Toolkit), publish using a tag that matches that exact version and do not use a different tag
 
 ## info.json Expectations
 
