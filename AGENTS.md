@@ -55,8 +55,10 @@
 ## Git Collaboration Policy (MUST)
 - Ask user permission before commit.
 - After approval: commit and push immediately.
-- Significant work: propose separate `feat/*` or `fix/*` branch.
-- After finishing `feat/*` or `fix/*`: propose merge back to `main`.
+- At the start of each new fix/feature task: propose switching to a dedicated `fix/*` or `feat/*` branch.
+- After finishing work in `fix/*` or `feat/*`: propose either
+  1. creating an MR into `main`, or
+  2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
 - Commit messages and comments: Russian.
 - Commit message content: what was done (not what should be done).
 - If push fails: retry up to 2 more times with 3s pause.
