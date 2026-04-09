@@ -1,13 +1,35 @@
 # AGENTS.md
 
-## Scope (MUST)
+## General Rules (MUST)
+
+### Git Collaboration Policy (General)
+- Ask user permission before commit.
+- After approval: commit and push immediately.
+- At the start of each new fix/feature task: propose switching to a dedicated `fix/*` or `feat/*` branch.
+- After finishing work in `fix/*` or `feat/*`: propose either
+  1. creating an MR into `main`, or
+  2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
+- If push fails: retry up to 2 more times with 3s pause.
+- Never auto-commit/auto-push without explicit user approval.
+
+### Cleanup (General)
+- Do not leave temporary/debug artifacts in repo.
+- Remove additional debug/temp dirs unless user asked to keep them.
+
+### Rules Maintenance (General)
+- For changes to rules files (`AGENTS.md`, `ACTIONS.md`): prefer optimized, compressed edits for AI-agent execution (machine-readable, unambiguous).
+- Keep rule updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
+
+## Project-Specific Rules (MUST)
+
+### Scope
 - Repository purpose: standalone Russian localization mod only.
 - Allowed domain: localization content + packaging/release metadata.
 - Forbidden: gameplay logic, Script Extender content, unrelated assets.
 - Keep repository source-only.
 - Never commit `.pak` or temporary build artifacts.
 
-## Canonical Paths (MUST)
+### Canonical Paths
 - Mod sources: `Mods/DnD 5.5e AIO Russian`
 - Russian localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - Mod metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
@@ -17,7 +39,7 @@
 - Action catalog and command playbooks: `ACTIONS.md`
 - Upstream English reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
 
-## Packaging Invariants (MUST)
+### Packaging Invariants
 - `.pak` must contain only BG3 mod structure under `Mods/...`.
 - Required content in `.pak`:
   - `Mods/DnD 5.5e AIO Russian/meta.lsx`
@@ -25,7 +47,7 @@
 - Must not leak into `.pak`: `.git`, `.gitea`, `scripts`, `tools`, `.tools`, `build`, staging dirs.
 - Staging for packaging must be in `%TEMP%`, not in dot-prefixed repo dirs.
 
-## Build/CI Contract (MUST)
+### Build/CI Contract
 - CI workflow stays thin:
   1. prepare workspace
   2. download Divine
@@ -38,7 +60,7 @@
 - Release ZIP must include only `.pak` + `info.json`.
 - CI triggers: tag `v*` and manual dispatch; not every push to `main`.
 
-## Version/Release Rules (MUST)
+### Version/Release Rules
 - Read release version only from `save/region/node[@id="ModuleSettings"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]` via explicit XML parsing.
 - `PublishVersion` must not be changed during release preparation.
 - Release tag must match the source-of-truth version.
@@ -47,31 +69,17 @@
   2. If `ModuleInfo/Version64` equals latest released version, bump version first (e.g. `scripts/set-version.ps1 -VersionTag <tag>`), commit, then create/push tag.
 - `scripts/build.ps1` derives release `Version64` from tag and writes it to generated `info.json` and staged `meta.lsx`.
 
-## info.json Contract (MUST)
+### info.json Contract
 - Top-level keys: `Mods`, `MD5`.
 - Per-mod keys: `Author`, `Name`, `Folder`, `Version`, `Description`, `UUID`, `Created`, `Dependencies`, `Group`.
 - `Dependencies` is an array of UUIDs.
 - Current dependency UUID: `897914ef-5c96-053c-44af-0be823f895fe`.
 
-## Git Collaboration Policy (MUST)
-- Ask user permission before commit.
-- After approval: commit and push immediately.
-- At the start of each new fix/feature task: propose switching to a dedicated `fix/*` or `feat/*` branch.
-- After finishing work in `fix/*` or `feat/*`: propose either
-  1. creating an MR into `main`, or
-  2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
+### Git Collaboration Policy (Project-Specific)
 - Commit messages and comments: Russian.
 - Commit message content: what was done (not what should be done).
-- If push fails: retry up to 2 more times with 3s pause.
 - If changes affect `.pak` contents or build/release flow: propose releasing next version.
 - For released versions in user-facing messages: provide direct archive link in Markdown format `[version](url)` when derivable (acceptable immediately after tag push, even before CI finishes).
-- Never auto-commit/auto-push without explicit user approval.
 
-## Cleanup (MUST)
-- Do not leave temporary/debug artifacts in repo.
+### Cleanup (Project-Specific)
 - Ignored/temp patterns include: `build/`, `build-stage*`, `.tools/`, `*.pak`.
-- Remove additional debug/temp dirs unless user asked to keep them.
-
-## Rules Maintenance (MUST)
-- For changes to rules files (`AGENTS.md`, `ACTIONS.md`): prefer optimized, compressed edits for AI-agent execution (machine-readable, unambiguous).
-- Keep rule updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
