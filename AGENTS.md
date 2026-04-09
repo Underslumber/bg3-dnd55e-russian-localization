@@ -71,3 +71,7 @@
 - Do not leave temporary/debug artifacts in repo.
 - Ignored/temp patterns include: `build/`, `build-stage*`, `.tools/`, `*.pak`.
 - Remove additional debug/temp dirs unless user asked to keep them.
+
+## Rules Maintenance (MUST)
+- For changes to rules files (`AGENTS.md`, `ACTIONS.md`): prefer optimized, compressed edits for AI-agent execution (machine-readable, unambiguous).
+- Keep rule updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
