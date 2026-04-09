@@ -5,7 +5,8 @@
 ### Git Collaboration Policy (General)
 - Ask user permission before commit.
 - After approval: commit and push immediately.
-- At the start of each new fix/feature task: pause task execution, propose switching to a dedicated `fix/*` or `feat/*` branch, and continue only after explicit user decision on branch change necessity.
+- If the change is small and readable: show it to the user before applying it.
+- Branch switch prompt (`fix/*` or `feat/*`): ask once at dialogue start; reuse the explicit user decision for all subsequent fix/feature tasks in the same dialogue.
 - After finishing work in `fix/*` or `feat/*`: propose either
   1. creating an MR into `main`, or
   2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
