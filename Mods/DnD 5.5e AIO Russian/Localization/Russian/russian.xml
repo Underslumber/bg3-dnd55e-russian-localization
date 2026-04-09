@@ -1492,9 +1492,9 @@
   <content contentuid="h112e5aabgae68g5b63g8e95g3c2e5fd8ebb8" version="1">Телекинетическое перемещение</content>
   <content contentuid="h789e4f7cgbbfdgd136g7526g0cb392afcf9d" version="1">Вы можете перемещать объект или существо силой разума. В качестве Магического действия выберите видимую вами цель в пределах 30 футов; ей должен быть незакреплённый объект Большого размера или меньше, либо добровольное существо, кроме вас. Вы перемещаете цель на расстояние до 30 футов в видимое вами свободное пространство. В качестве альтернативы, если цель — Крошечный объект, вы можете переместить его в руку или из неё.</content>
   <content contentuid="hb9f6e95bg1ecbg4d70g2b47g004a19f989d8" version="1">7-й уровень: Псионический скачок</content>
-  <content contentuid="h53a46d69g6181g8c48g7c48g569803d1df00" version="1">В качестве Бонусного действия вы получаете Скорость полета, равную удвоенной вашей Скорости, до конца текущего хода. После использования этого Бонусного действия вы не сможете использовать его снова, пока не завершите Короткий или Длинный отдых, если только не потратите Кость псионической энергии (действие не требуется) для восстановления возможности его использования.</content>
+  <content contentuid="h53a46d69g6181g8c48g7c48g569803d1df00" version="2">Бонусным действием вы можете перелететь в выбранную точку, затратив всего 10 футов перемещения. Использовав это бонусное действие, вы не сможете сделать это снова, пока не завершите короткий или длительный отдых, если только не потратите Кость псионической энергии (действие не требуется), чтобы восстановить его использование.</content>
   <content contentuid="h82e5f786g25beg91b9g6a62g3f5142f4ec41" version="1">Псионический скачок</content>
-  <content contentuid="ha42816f3g2b46g7a69gebb9g476dfa5e4f31" version="1">В качестве Бонусного действия вы получаете Скорость полета, равную удвоенной вашей Скорости, до конца текущего хода. После использования этого Бонусного действия вы не сможете использовать его снова, пока не завершите Короткий или Длинный отдых, если только не потратите Кость псионической энергии (действие не требуется) для восстановления возможности его использования.</content>
+  <content contentuid="ha42816f3g2b46g7a69gebb9g476dfa5e4f31" version="2">Бонусным действием вы можете перелететь в выбранную точку, затратив всего 10 футов перемещения. Использовав это бонусное действие, вы не сможете сделать это снова, пока не завершите короткий или длительный отдых, если только не потратите Кость псионической энергии (действие не требуется), чтобы восстановить его использование.</content>
   <content contentuid="h890ef36dga451ge5acgb49dg6c441e309f11" version="1">7-й уровень: Телекинетический толчок (Сбить с ног)</content>
   <content contentuid="h9fa30afdgf4e2g7e74ga57fgdbedd4b1e363" version="1">Когда вы наносите урон цели своим Пси-ударом, вы можете заставить цель совершить спасбросок Силы (Сл 8 + модификатор Интеллекта + бонус мастерства). При провале вы можете наложить на цель состояние «Сбит с ног» или переместить её горизонтально на расстояние до 10 футов.</content>
   <content contentuid="heae343e1g10f2g46fcgb78cgffc541e0c708" version="1">7-й уровень: Телекинетический толчок (Оттолкнуть)</content>
@@ -2580,9 +2580,46 @@
   <content contentuid="hffd4abcage782g546dgaeacgc8fe055bd42e" version="2">Бонусным действием вы получаете силу великанов на 1 минуту. Вы становитесь Большим, получаете преимущество на проверки Силы и спасброски Силы, а ваши атаки оружием или безоружные атаки наносят при попадании дополнительный урон 1к6.</content>
   <content contentuid="hffe0a439g2edag0f4bg85dbg933db0b1a8b0" version="1">Рунический щит</content>
   <content contentuid="h4d43ff27g7af4g7c74gd48dg5f5bf9706659" version="1">1</content>
+  <content contentuid="h1479e906gc7dag1d98gf6d0g21845e6cae8e" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h23312037g140dg2713g1d14gd9b396f2c1e0" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h2d9c047cg3532g702ege224g72b70a01e316" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h2fa825ceg9a28g20c8g48d0g40216361a33e" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h30b03151g5293g0f58g25ecg192e954a1d18" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h368dfb6eg54d1g9117gae02g8877cb540a10" version="1">Уровень 6: Чародейский стрелок</content>
+  <content contentuid="h3b7d345ag5345g49ffg6c00g90a138a19f95" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="h3d2a0062g8a04g4942g776fg8389d4b68f1b" version="1">Примите облик белого медведя, который может &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Shout_GoadingRoar_Bear_Summon&quot;&gt;Провоцировать&lt;/LSTag&gt; врагов атаковать его.</content>
+  <content contentuid="h4afbde24g3b4ag6245gdfc5gf40fbb6dd7b9" version="1">Уровень 3: Бах! И ты труп!</content>
+  <content contentuid="h4b3edb5dg700eg11d2gb46eg867808ec1738" version="2">Ваш опыт борьбы с заклинателями даёт вам следующие преимущества.&lt;br&gt;&lt;br&gt;Разрушитель концентрации. Каждый раз, когда вы совершаете дальнобойный бросок атаки, вы нарушаете защитную магию, действующую на цель, и прерываете её концентрацию.
+
+Антимагический выстрел. Когда вы совершаете критическое попадание по цели под действием вашей особенности «Выстрел в живот», вы также подавляете её способность накладывать заклинания. Пока снаряд остаётся в цели, она не может накладывать заклинания или выполнять действие «Магия».
+
+Закалённый магией. Когда вы проваливаете спасбросок против заклинания или магического эффекта, вы можете Реакцией бросить 1d6 и добавить результат к броску, потенциально превращая провал в успех.</content>
+  <content contentuid="h5ef73b58ga233g8fccg4389gcd443dd5c7d7" version="1">Закалённый магией</content>
+  <content contentuid="h672e82feg2734g7895ga227gd76ffbfded41" version="1">Примите облик гигантского барсука, который может &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Target_Burrow_GiantBadger&quot;&gt;Зарываться&lt;/LSTag&gt; в землю.</content>
+  <content contentuid="h6827c922gd910gca98gee99gdbd9b0f178b1" version="1">Примите облик глубинного ротэ, который может накладывать &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Target_DancingLights&quot;&gt;Пляшущие огоньки&lt;/LSTag&gt; и &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Rush_Rush_DeepRothe&quot;&gt;Таранить&lt;/LSTag&gt; врагов.</content>
+  <content contentuid="h6c004994g2426gc2fbg7e1eg48891af8e993" version="1">Примите облик зловещей вороны, которая может оставаться незаметной и &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Target_RendVision_Raven_Summon&quot;&gt;Ослеплять&lt;/LSTag&gt; врагов.</content>
+  <content contentuid="h6c75a711gccb2g34c5g5489gfbaf6012200e" version="2">Оружие пакта: урон некротической энергией</content>
+  <content contentuid="h8697b53cg246dg4397g9db8gc35b4035bc5b" version="1">Связать оружие пакта (урон излучением)</content>
+  <content contentuid="h93c42699gb5efg50eeg700ag91b482874bb9" version="1">Связать оружие пакта (урон некротической энергией)</content>
+  <content contentuid="h9f0fbf45g41d6gb607g5104g558e4732b4de" version="1">Примите облик гигантского паука, который может &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Target_Web_Spider&quot;&gt;Опутывать паутиной&lt;/LSTag&gt; врагов.</content>
+  <content contentuid="ha2a934dbg1420gf4c4g7431gcf508603657a" version="2">Оружие пакта: урон излучением</content>
+  <content contentuid="ha7014351gc454g307agb356g37500f5752d7" version="1">Уровень 10: Антимаг</content>
+  <content contentuid="hbe8ae593g19c8gc31cg51cdg845945c5b41b" version="1">Связать оружие пакта (урон психической энергией)</content>
+  <content contentuid="hc4d3f811g2a89g0e6dg5219gcf3bfa3167c3" version="1">Примите облик зловещего волка, который может &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Shout_PackHowl_Wolf_Dire&quot;&gt;Воодушевлять&lt;/LSTag&gt; союзников и &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Target_Bite_Wolf_Dire_Wildshape&quot;&gt;Отвлекать&lt;/LSTag&gt; врагов.</content>
+  <content contentuid="hcb4e031eg6175g6174g6466gcc87b839601d" version="1">Когда вы попадаете атакой «Пальцы-пистолеты» по цели, вы можете потратить одну Кость риска и добавить её к броску урона.</content>
+  <content contentuid="hcd88f337g7b53g35deg791bgf37bf6314ed5" version="2">Оружие пакта: урон психической энергией</content>
+  <content contentuid="hcdf4a03bg59c5gb1b2g3204g37cf5a2339c0" version="1">Мистический выстрел</content>
+  <content contentuid="hd3836cebg50efg96d2g4884gc1006821d8ef" version="1">Когда в свой ход вы совершаете действие «Атака», вы можете заменить одну из атак накладыванием одного из ваших фокусов волшебника со временем накладывания в одно действие.</content>
+  <content contentuid="hd771ba94g1544ge8bage691g562f72e6c038" version="1">Когда вы проваливаете спасбросок против заклинания или магического эффекта, вы можете Реакцией бросить 1d6 и добавить выпавшее значение к броску, потенциально превращая провал в успех.</content>
+  <content contentuid="he8e15200g5d16g3cfag9fd3g57eec75fb43b" version="1">Примите облик кота, который может оставаться незаметным и &lt;LSTag Type=&quot;Spell&quot; Tooltip=&quot;Shout_Distract_Cat_Summon&quot;&gt;Мяукать&lt;/LSTag&gt;, отвлекая врагов.</content>
+  <content contentuid="he97ec05ag27f2gdd59g1ebag5d02ea37d3df" version="1">Не может накладывать заклинания или выполнять действие «Магия»</content>
+  <content contentuid="hec2215cegc8c3g171bg67cdg7de02f56bba6" version="1">Находясь в зверином облике, вы не можете говорить и накладывать заклинания. Вы принимаете характеристики своей звериной формы, за исключением значений &lt;LSTag Tooltip=&quot;Intelligence&quot;&gt;Интеллекта&lt;/LSTag&gt;, &lt;LSTag Tooltip=&quot;Wisdom&quot;&gt;Мудрости&lt;/LSTag&gt; и &lt;LSTag Tooltip=&quot;Charisma&quot;&gt;Харизмы&lt;/LSTag&gt;.</content>
+  <content contentuid="hf051b82fgb193ga37bg540ege6200dcbd93e" version="1">Вы можете использовать магию вместо огнестрельного оружия.
+
+Пальцы-пистолеты. Вы изучаете фокус «Пальцы-пистолеты».
+
+Мистический выстрел. Когда вы попадаете атакой «Пальцы-пистолеты» по цели, вы можете потратить одну Кость риска и добавить её к броску урона.</content>
+  <content contentuid="hf3b2ff84g1b07ga3eag2125ge551077a6e4d" version="1">Оружие пакта</content>
+  <content contentuid="hfee38a66g5042g2c16g753dg9b88aa769f46" version="1">Антимагический выстрел</content>
 </contentList>
-
-
-
-
 
