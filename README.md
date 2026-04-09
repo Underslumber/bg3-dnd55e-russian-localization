@@ -1,12 +1,11 @@
 # DnD 5.5e All-in-One BEYOND Russian Localization
 
-Русский перевод мода **DnD 5.5e All-in-One BEYOND** для **Baldur's Gate 3**.
+Русская локализация [**DnD 5.5e All-in-One BEYOND**](https://github.com/Yoonmoonsik/dnd55e) для **Baldur's Gate 3**.
 
-Оригинальный репозиторий:
-[Yoonmoonsik/dnd55e](https://github.com/Yoonmoonsik/dnd55e)
+Публикация на [mod.io](https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization).
 
 ## О моде
 
-**DnD 5.5e All-in-One BEYOND** переносит в Baldur's Gate 3 контент и механики, вдохновлённые Dungeons & Dragons 5.5e. Мод расширяет игру новыми и переработанными элементами, включая классы, предыстории, таланты, расы, заклинания и другие связанные системы.
+Русский перевод мода **DnD 5.5e All-in-One BEYOND**, который переносит в **Baldur's Gate 3** широкий пласт контента и правил **D&D 5.5e / PHB 2024**.
 
-Этот проект предназначен для русской локализации оригинального мода и его текстового контента.
+Локализация поддерживается в темпе с апстримом, который сейчас развивается в сторону более полного охвата классов, рас, предысторий, фитов и заклинаний.
