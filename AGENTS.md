@@ -5,7 +5,7 @@
 ### Git Collaboration Policy (General)
 - Commit/push only after explicit user approval.
 - After approval: commit and push immediately.
-- Branch switch prompt (`fix/*` or `feat/*`): ask once at dialogue start; reuse the explicit user decision for all subsequent fix/feature tasks in the same dialogue.
+- Branch switch prompt (`fix/*` or `feat/*`): ask at dialogue start; reuse the explicit user decision for all subsequent fix/feature tasks in the same dialogue.
 - After finishing work in `fix/*` or `feat/*`: propose either
   1. creating an MR into `main`, or
   2. merging to `main` immediately and deleting the `fix/*`/`feat/*` branch.
@@ -21,6 +21,9 @@
 ### Rules Maintenance (General)
 - For changes to rules files (`AGENTS.md`, `ACTIONS.md`): prefer optimized, compressed edits for AI-agent execution (machine-readable, unambiguous).
 - Keep rule updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
+
+### Communication (General)
+- Project file links in user-facing Markdown: relative paths, `/` separators, spaces encoded as `%20`.
 
 ## Project-Specific Rules (MUST)
 
