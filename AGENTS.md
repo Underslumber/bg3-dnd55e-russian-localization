@@ -1,164 +1,71 @@
 # AGENTS.md
 
-## Project Overview
+## Scope (MUST)
+- Repository purpose: standalone Russian localization mod only.
+- Allowed domain: localization content + packaging/release metadata.
+- Forbidden: gameplay logic, Script Extender content, unrelated assets.
+- Keep repository source-only.
+- Never commit `.pak` or temporary build artifacts.
 
-This repository contains a standalone Russian localization mod for **Baldur's Gate 3**:
-
-- Mod name: `DnD 5.5e All-in-One BEYOND Russian Localization`
-- Mod folder: `Mods/DnD 5.5e AIO Russian`
-- Base/original mod dependency: `DnD 5.5e All-in-One BEYOND`
-- Original mod repository: `https://github.com/Yoonmoonsik/dnd55e`
-- Original dependency UUID: `897914ef-5c96-053c-44af-0be823f895fe`
-
-This repository is for the localization mod only. It must not gain gameplay logic, Script Extender files, or unrelated assets.
-
-## Repository Rules
-
-- Keep the repository source-only.
-- Do not commit `.pak` artifacts.
-- Do not commit temporary build outputs.
-- Do not add gameplay or script content unrelated to localization/release packaging.
-- Keep the localization folder and metadata consistent with the packaged mod.
-
-## Current Important Paths
-
+## Canonical Paths (MUST)
 - Mod sources: `Mods/DnD 5.5e AIO Russian`
-- Localization XML: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
-- Original English localization reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
-- Translation glossary reference: `glossary/glossary.normalized.json` — use this as the primary terminology reference when translating
+- Russian localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - Mod metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
+- Build script (single source of build truth): `scripts/build.ps1`
 - CI workflow: `.gitea/workflows/build.yml`
-- Main build script: `scripts/build.ps1`
+- Glossary (primary terminology reference): `glossary/glossary.normalized.json`
+- Upstream English reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
 
-## Build And Release Model
+## Packaging Invariants (MUST)
+- `.pak` must contain only BG3 mod structure under `Mods/...`.
+- Required content in `.pak`:
+  - `Mods/DnD 5.5e AIO Russian/meta.lsx`
+  - `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
+- Must not leak into `.pak`: `.git`, `.gitea`, `scripts`, `tools`, `.tools`, `build`, staging dirs.
+- Known CI quirk: Divine may produce broken ~48-byte `.pak`; mitigation is in `scripts/build.ps1`.
+- Staging for packaging must be in `%TEMP%`, not in dot-prefixed repo dirs.
 
-The authoritative build logic lives in:
+## Build/CI Contract (MUST)
+- CI workflow stays thin:
+  1. prepare workspace
+  2. download Divine
+  3. call `scripts/build.ps1`
+  4. publish tag archive
+- Expected build outputs:
+  - `build/DnD 5.5e AIO Russian.pak`
+  - `build/info.json`
+  - `build/DnD 5.5e AIO Russian <tag>.zip` (for tag builds)
+- Release ZIP must include only `.pak` + `info.json`.
+- CI triggers: tag `v*` and manual dispatch; not every push to `main`.
 
-- `scripts/build.ps1`
+## Version/Release Rules (MUST)
+- Source of truth for release version: `ModuleInfo/Version64` in `meta.lsx`.
+- `PublishVersion` must not be changed during release preparation.
+- Release tag must match the source-of-truth version.
+- Decision logic before tagging:
+  1. If `ModuleInfo/Version64` was manually changed (e.g. BG3 Toolkit), use matching tag and release.
+  2. If `ModuleInfo/Version64` equals latest released version, bump version first (e.g. `scripts/set-version.ps1 -VersionTag <tag>`), commit, then create/push tag.
+- `scripts/build.ps1` derives release `Version64` from tag and writes it to generated `info.json` and staged `meta.lsx`.
 
-The Gitea workflow should stay thin and only:
+## info.json Contract (MUST)
+- Top-level keys: `Mods`, `MD5`.
+- Per-mod keys: `Author`, `Name`, `Folder`, `Version`, `Description`, `UUID`, `Created`, `Dependencies`, `Group`.
+- `Dependencies` is an array of UUIDs.
+- Current dependency UUID: `897914ef-5c96-053c-44af-0be823f895fe`.
 
-1. prepare the workspace
-2. download `Divine`
-3. call `scripts/build.ps1`
-4. publish the release zip for tag builds
+## Git Collaboration Policy (MUST)
+- Ask user permission before commit.
+- After approval: commit and push immediately.
+- Significant work: propose separate `feat/*` or `fix/*` branch.
+- After finishing `feat/*` or `fix/*`: propose merge back to `main`.
+- Commit messages and comments: Russian.
+- Commit message content: what was done (not what should be done).
+- If push fails: retry up to 2 more times with 3s pause.
+- If changes affect `.pak` contents or build/release flow: propose releasing next version.
+- For released versions in user-facing messages: provide direct archive link when derivable (acceptable immediately after tag push, even before CI finishes).
+- Never auto-commit/auto-push without explicit user approval.
 
-### Current Build Outputs
-
-The build script produces:
-
-- `build/DnD 5.5e AIO Russian.pak`
-- `build/info.json`
-- `build/DnD 5.5e AIO Russian <tag>.zip` for tagged builds
-
-The release zip is expected to contain:
-
-- the built `.pak`
-- `info.json`
-
-## Packaging Notes
-
-The package must contain only the BG3 mod structure under `Mods/...`.
-
-Verified expected extracted `.pak` structure:
-
-- `Mods/DnD 5.5e AIO Russian/meta.lsx`
-- `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
-
-Do not allow `.git`, `.gitea`, `scripts`, `tools`, `.tools`, `build`, or staging directories into the `.pak`.
-
-## Important Packaging Behavior
-
-There is a runner-specific packaging quirk:
-
-- `Divine` can produce a broken 48-byte `.pak` on the CI runner depending on the source path.
-- Current mitigation is implemented in `scripts/build.ps1`.
-- The script uses staged sources and fallback packaging attempts.
-- Staging is performed in `%TEMP%`, not in a dot-prefixed directory inside the repo.
-
-If packaging breaks again, debug the source path and unpack the resulting `.pak` locally to verify actual contents.
-
-## Versioning
-
-Version displayed by BG3ModManager should be derived from the release tag.
-
-Current behavior:
-
-- `scripts/build.ps1` derives `Version64` from tags like `v0.1.0`
-- the computed version is written into:
-  - generated `info.json`
-  - staged `meta.lsx` before packaging
-
-Do not manually hardcode release versions in the committed `meta.lsx` for each release if CI can derive them from tags.
-
-Release preparation rule:
-
-- use `ModuleInfo/Version64` in `meta.lsx` as the source of truth for release tagging
-- if `meta.lsx` version was changed manually (for example via BG3 Toolkit), publish using a tag that matches this exact version
-- if `meta.lsx` version still matches the latest released tag, first bump version in `meta.lsx` (for example via `scripts/set-version.ps1 -VersionTag <tag>`), then commit and only after that create/push the release tag
-- only after that commit the change and create/push the release tag
-- `PublishVersion` must not be modified during release preparation
-
-## info.json Expectations
-
-`info.json` is generated during build and should remain aligned with BG3/BG3ModManager expectations.
-
-Current expected shape:
-
-- top-level `Mods`
-- top-level `MD5`
-- per-mod fields:
-  - `Author`
-  - `Name`
-  - `Folder`
-  - `Version`
-  - `Description`
-  - `UUID`
-  - `Created`
-  - `Dependencies`
-  - `Group`
-
-Current dependency model:
-
-- `Dependencies` is an array of dependency UUIDs
-- current dependency UUID:
-  - `897914ef-5c96-053c-44af-0be823f895fe`
-
-## CI Trigger Policy
-
-Current workflow policy:
-
-- run on tags `v*`
-- run on manual dispatch
-- do not run on every push to `main`
-
-## Git / Collaboration Preferences
-
-User preference:
-
-- after making changes, ask for permission before committing
-- if the user approves, commit and push immediately
-- for significant changes, propose moving work into a separate branch
-- feature/fix branches must use the prefix `feat/` or `fix/`
-- after finishing work in a `feat/` or `fix/` branch, propose merging it back into `main`
-- comments and commit messages should be written in Russian
-- commit messages should describe what was done, not what should be done
-- if changes affect files that go into the final `.pak`, or change the build/release process, propose releasing the next version
-- if push fails, retry up to two more times with a 3-second pause between attempts
-- when referring to a released version in user-facing messages, format the version as a direct link to the release archive whenever the archive URL can be derived
-- it is acceptable to provide that archive link immediately after publishing the tag, even if the build is still running and the link may become valid a bit later
-
-Do not auto-commit or auto-push without explicit user approval.
-
-## Cleanup Expectations
-
-Temporary directories and debug artifacts should not remain in the repository.
-
-Ignored paths currently include:
-
-- `build/`
-- `build-stage*`
-- `.tools/`
-- `*.pak`
-
-If local debugging creates additional temporary folders, remove them when done unless the user explicitly wants to keep them.
+## Cleanup (MUST)
+- Do not leave temporary/debug artifacts in repo.
+- Ignored/temp patterns include: `build/`, `build-stage*`, `.tools/`, `*.pak`.
+- Remove additional debug/temp dirs unless user asked to keep them.
