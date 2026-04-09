@@ -47,6 +47,9 @@ ACTIONS:
     outputs:
       - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
       - optional: Mods/DnD 5.5e AIO Russian/meta.lsx (release-only)
+    after_success:
+      - suggest_action: meta:sync-parent
+        reason: "Обновить версию зависимости из родительского мода (актуальный Version64 и связанные поля зависимости)."
 
   action:report:
     intent: unified_task_report
