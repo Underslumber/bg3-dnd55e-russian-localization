@@ -7,7 +7,7 @@ param(
     [string]$ArchiveBaseName = "DnD 5.5e AIO Russian",
     [string]$ModName = "DnD 5.5e All-in-One BEYOND Russian Localization",
     [string]$ModUuid = "6401e84d-daf2-416d-adeb-99c03a2487a6",
-    [string]$ModAuthor = "MikhailRaw",
+    [string]$ModAuthor = "Underslumber Team",
     [string]$ModDescription = "Русская локализация мода, который добавляет и обновляет контент в соответствии с правилами DnD 5.5e и другими источниками, включая предыстории, классы, таланты, расы, заклинания и многое другое. Это отдельный мод локализации и он требует установленный оригинальный мод.",
     [string]$ModVersion64 = "36028797018963968",
     [string]$ModGroup = "6401e84d-daf2-416d-adeb-99c03a2487a6",
@@ -101,10 +101,10 @@ if (-not (Test-Path -LiteralPath $stagedMetaPath)) {
     throw "Staged meta.lsx was not found: '$stagedMetaPath'."
 }
 
-$stagedMetaContent = Get-Content -LiteralPath $stagedMetaPath -Raw
+$utf8Encoding = [System.Text.UTF8Encoding]::new($false)
+$stagedMetaContent = [System.IO.File]::ReadAllText($stagedMetaPath, $utf8Encoding)
 $stagedMetaContent = $stagedMetaContent -replace '(<attribute id="Version64" type="int64" value=")\d+("/>)', "`${1}$resolvedVersion64`${2}"
-$utf8Bom = New-Object System.Text.UTF8Encoding($true)
-[System.IO.File]::WriteAllText($stagedMetaPath, $stagedMetaContent, $utf8Bom)
+[System.IO.File]::WriteAllText($stagedMetaPath, $stagedMetaContent, $utf8Encoding)
 
 Write-Host "[build.ps1] Staged source tree:"
 Get-ChildItem -Recurse $stagingPath | Select-Object FullName, Length | Format-Table -AutoSize

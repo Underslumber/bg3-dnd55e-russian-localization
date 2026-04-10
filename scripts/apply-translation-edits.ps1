@@ -53,6 +53,7 @@ function Get-ContentNodeMap {
 
 function Assert-UniqueEditContentUid {
     param(
+        [AllowEmptyCollection()]
         [Parameter(Mandatory = $true)]
         [System.Collections.Generic.HashSet[string]]$Seen,
         [Parameter(Mandatory = $true)]
