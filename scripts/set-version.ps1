@@ -35,7 +35,8 @@ if (-not (Test-Path -LiteralPath $resolvedMetaPath)) {
 }
 
 $resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag
-$metaContent = Get-Content -LiteralPath $resolvedMetaPath -Raw
+$utf8Encoding = [System.Text.UTF8Encoding]::new($false)
+$metaContent = [System.IO.File]::ReadAllText($resolvedMetaPath, $utf8Encoding)
 [xml]$metaXml = $metaContent
 
 # Explicitly target ModuleInfo/Version64 via XML path to avoid touching Dependencies/PublishVersion.
@@ -57,7 +58,6 @@ $updatedMeta = [regex]::Replace(
     1
 )
 
-$utf8Bom = New-Object System.Text.UTF8Encoding($true)
-[System.IO.File]::WriteAllText($resolvedMetaPath, $updatedMeta, $utf8Bom)
+[System.IO.File]::WriteAllText($resolvedMetaPath, $updatedMeta, $utf8Encoding)
 
 Write-Host "[set-version.ps1] Updated '$resolvedMetaPath' to Version64=$resolvedVersion64 (from tag '$VersionTag')."
