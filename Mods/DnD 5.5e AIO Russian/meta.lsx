@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <save>
     <version major="4" minor="8" revision="0" build="500"/>
     <region id="Config">
@@ -20,7 +20,7 @@
                 <node id="ModuleInfo">
                     <attribute id="Author" type="LSString" value="MikhailRaw"/>
                     <attribute id="CharacterCreationLevelName" type="FixedString" value=""/>
-                    <attribute id="Description" type="LSString" value="Русский перевод мода DnD 5.5e All-in-One BEYOND. Перевод ещё в разработке: AI помогает быстро обновлять тексты, а финальные правки и качество мы проверяем вручную."/>
+                    <attribute id="Description" type="LSString" value="Р СѓСЃСЃРєРёР№ РїРµСЂРµРІРѕРґ РјРѕРґР° DnD 5.5e All-in-One BEYOND. РџРµСЂРµРІРѕРґ РµС‰С‘ РІ СЂР°Р·СЂР°Р±РѕС‚РєРµ: AI РїРѕРјРѕРіР°РµС‚ Р±С‹СЃС‚СЂРѕ РѕР±РЅРѕРІР»СЏС‚СЊ С‚РµРєСЃС‚С‹, Р° С„РёРЅР°Р»СЊРЅС‹Рµ РїСЂР°РІРєРё Рё РєР°С‡РµСЃС‚РІРѕ РјС‹ РїСЂРѕРІРµСЂСЏРµРј РІСЂСѓС‡РЅСѓСЋ."/>
                     <attribute id="FileSize" type="uint64" value="2488095"/>
                     <attribute id="Folder" type="LSString" value="DnD 5.5e AIO Russian"/>
                     <attribute id="LobbyLevelName" type="FixedString" value=""/>
@@ -32,7 +32,7 @@
                     <attribute id="PublishHandle" type="uint64" value="5965149"/>
                     <attribute id="StartupLevelName" type="FixedString" value=""/>
                     <attribute id="UUID" type="FixedString" value="6401e84d-daf2-416d-adeb-99c03a2487a6"/>
-                    <attribute id="Version64" type="int64" value="281481419161600"/>
+                    <attribute id="Version64" type="int64" value="281483566645248"/>
                     <children>
                         <node id="PublishVersion">
                             <attribute id="Version64" type="int64" value="281477124194304"/>
