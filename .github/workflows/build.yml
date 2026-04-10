@@ -1,0 +1,117 @@
+name: Build Mod Package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare workspace
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          if (-not (Test-Path -LiteralPath "Mods\\DnD 5.5e AIO Russian\\Localization\\Russian\\russian.xml")) {
+              throw "Repository sources are not available in the runner workspace."
+          }
+
+          New-Item -ItemType Directory -Path ".tools\\lslib" -Force | Out-Null
+          New-Item -ItemType Directory -Path "build" -Force | Out-Null
+
+      - name: Resolve version tag
+        id: vars
+        run: |
+          $ErrorActionPreference = "Stop"
+          $versionTag = ""
+          if ($env:GITHUB_REF -like "refs/tags/v*") {
+              $versionTag = $env:GITHUB_REF_NAME
+          }
+          "version_tag=$versionTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Download latest LSLib release
+        run: |
+          $ErrorActionPreference = "Stop"
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/Norbyte/lslib/releases/latest"
+          $asset = $release.assets | Where-Object { $_.name -match '\.zip$' } | Select-Object -First 1
+
+          if (-not $asset) {
+              throw "Could not find a downloadable LSLib zip asset in the latest release."
+          }
+
+          Invoke-WebRequest -UseBasicParsing -Uri $asset.browser_download_url -OutFile ".tools/lslib/lslib.zip"
+          Expand-Archive -LiteralPath ".tools/lslib/lslib.zip" -DestinationPath ".tools/lslib" -Force
+
+      - name: Build .pak
+        run: |
+          $ErrorActionPreference = "Stop"
+          $divine = Get-ChildItem -Path ".tools\\lslib" -Recurse -File |
+            Where-Object { $_.Name -ieq "Divine.exe" } |
+            Select-Object -First 1
+
+          if (-not $divine) {
+              throw "Divine.exe was not found in the downloaded LSLib release."
+          }
+
+          & ".\\scripts\\build.ps1" -DivinePath $divine.FullName -Workspace "${{ github.workspace }}" -VersionTag "${{ steps.vars.outputs.version_tag }}"
+
+      - name: Show build result
+        run: |
+          $ErrorActionPreference = "Stop"
+          $archiveBaseName = "DnD 5.5e AIO Russian"
+          if ($env:GITHUB_REF -like "refs/tags/v*") {
+              $archiveBaseName = "DnD 5.5e AIO Russian $env:GITHUB_REF_NAME"
+          }
+          $zipPath = [System.IO.Path]::GetFullPath((Join-Path "${{ github.workspace }}" "build/$archiveBaseName.zip"))
+
+          Get-ChildItem "build/DnD 5.5e AIO Russian.pak", "build/info.json", $zipPath |
+            Select-Object FullName, Length, LastWriteTime
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bg3-dnd55e-russian-localization-${{ github.run_number }}
+          path: build/*
+          if-no-files-found: error
+
+      - name: Create or update GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tagName = "${{ github.ref_name }}"
+          $zipPath = Join-Path $env:GITHUB_WORKSPACE "build\\DnD 5.5e AIO Russian $tagName.zip"
+
+          if (-not (Test-Path -LiteralPath $zipPath)) {
+              throw "Release archive was not found at '$zipPath'."
+          }
+
+          gh release view $tagName --repo "${{ github.repository }}" *> $null
+
+          if ($LASTEXITCODE -ne 0) {
+              gh release create $tagName $zipPath `
+                --repo "${{ github.repository }}" `
+                --title $tagName `
+                --notes ""
+          }
+          else {
+              gh release upload $tagName $zipPath `
+                --repo "${{ github.repository }}" `
+                --clobber
+          }
