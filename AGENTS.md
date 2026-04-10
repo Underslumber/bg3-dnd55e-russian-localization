@@ -30,6 +30,7 @@ Approval/clarification:
 - Never commit/push without explicit user approval.
 - After approval → commit + push immediately.
 - Commit messages: Russian, factual (what was done).
+- Branch (`fix/*` or `feat/*`): ask once at dialogue start; reuse decision for all subsequent tasks in same dialogue.
 
 After work in `fix/*` or `feat/*`:
 1. MR → main
@@ -37,6 +38,9 @@ After work in `fix/*` or `feat/*`:
 
 Push failure:
 - retry ≤2 times, 3s delay
+
+Release link:
+- provide `[version](url)` immediately after tag push, without waiting for CI
 
 ---
 
@@ -61,10 +65,11 @@ Forbidden:
 - Mod: `Mods/DnD 5.5e AIO Russian`
 - Localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - Metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
-- Build: `scripts/build.ps1`
+- Build: `scripts/build.ps1` _(single source of build truth)_
 - CI: `.gitea/workflows/build.yml`
-- Glossary: `glossary/glossary.normalized.json`
+- Glossary: `glossary/glossary.normalized.json` _(primary terminology reference)_
 - Actions: `ACTIONS.md`
+- Upstream EN reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
 
 ---
 
@@ -109,7 +114,8 @@ Triggers:
 
 ## Versioning (CRITICAL)
 Source of truth:
-`ModuleInfo/Version64`
+`ModuleInfo/Version64` — read via explicit XML parsing:
+`save/region[@id="Config"]/node[@id="root"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]`
 
 Rules:
 - do not change `PublishVersion`
@@ -146,6 +152,7 @@ Before commit:
 - scope valid (localization/metadata only)
 - no forbidden content
 - no build artifacts (`.pak`, `build/`, staging)
+- no temp/debug artifacts; ignored patterns: `build/`, `build-stage*`, `.tools/`, `*.pak`
 - packaging invariants intact
 - version consistent (if applicable)
 
@@ -202,3 +209,9 @@ Release message:
 Do not:
 - invent changes
 - include internal noise
+
+---
+
+## Rules Maintenance (MUST)
+- Changes to `AGENTS.md` / `ACTIONS.md`: prefer compressed, machine-readable edits.
+- Keep updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
