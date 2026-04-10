@@ -22,7 +22,8 @@ Approval/clarification:
 - binary → yes/no
 - multiple → numbered options + brief context
 
-- File links: relative paths, `/`, spaces as `%20`.
+- File links in repo docs/checklists: relative paths, `/`, spaces as `%20`.
+- In assistant UI responses, use the link format required by the execution environment; include relative path text when possible.
 
 ---
 
@@ -30,7 +31,7 @@ Approval/clarification:
 - Never commit/push without explicit user approval.
 - After approval → commit + push immediately.
 - Commit messages: Russian, factual (what was done).
-- Branch (`fix/*` or `feat/*`): ask once at dialogue start; reuse decision for all subsequent tasks in same dialogue.
+- Branch (`fix/*` or `feat/*`): ask once before the first file-changing task that may lead to commit; reuse decision for all subsequent tasks in same dialogue.
 
 After work in `fix/*` or `feat/*`:
 1. MR → main
@@ -107,8 +108,9 @@ Release ZIP:
 - only `.pak` + `info.json`
 
 Triggers:
-- tag `v*`
-- manual only
+- automatic: push tag `v*`
+- manual: workflow_dispatch
+- branch pushes without tag MUST NOT publish release artifacts
 
 ---
 
@@ -129,6 +131,11 @@ Before tag:
 `build.ps1`:
 - derives version from tag
 - writes to `info.json` + staged `meta.lsx`
+
+Conflict resolution (MUST):
+- before release, `Version64` in `meta.lsx` MUST equal target tag version
+- if mismatch, run `scripts/set-version.ps1 -VersionTag <tag>` and re-check
+- if still mismatch, release is blocked
 
 ---
 
@@ -152,7 +159,7 @@ Before commit:
 - scope valid (localization/metadata only)
 - no forbidden content
 - no build artifacts (`.pak`, `build/`, staging)
-- no temp/debug artifacts; ignored patterns: `build/`, `build-stage*`, `.tools/`, `*.pak`
+- no temp/debug artifacts; ignored patterns MUST be present in `.gitignore`: `build/`, `build-stage*`, `.tools/`, `*.pak`
 - packaging invariants intact
 - version consistent (if applicable)
 
@@ -200,6 +207,10 @@ If no visible changes:
 Before release:
 - generate changelog draft
 - ask for approval
+
+Approval gates:
+- Gate A: explicit approval for commit/push (code/content changes)
+- Gate B: explicit approval for release publish (after changelog draft)
 
 Release message:
 - version
