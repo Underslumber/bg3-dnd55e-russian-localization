@@ -86,7 +86,7 @@ if (-not (Test-Path -LiteralPath $resolvedEditsPath)) {
     throw "Edits file was not found: '$resolvedEditsPath'."
 }
 
-$edits = Get-Content -LiteralPath $resolvedEditsPath -Raw | ConvertFrom-Json -Depth 10
+$edits = Get-Content -LiteralPath $resolvedEditsPath -Raw | ConvertFrom-Json
 if ($null -eq $edits) {
     throw "Edits file is empty or invalid JSON: '$resolvedEditsPath'."
 }
