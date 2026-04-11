@@ -57,13 +57,13 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         continue-on-error: true
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         run: |
           $ErrorActionPreference = "Stop"
           $target = if ("${{ steps.vars.outputs.version_tag }}") { "${{ steps.vars.outputs.version_tag }}" } else { "${{ github.ref_name }}" }
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           $text = "⏳ <b>Старт сборки релиза</b>`n<b>Репозиторий:</b> <code>${{ github.repository }}</code>`n<b>Тег:</b> <code>$target</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Download latest LSLib release
         run: |
@@ -167,20 +167,20 @@ jobs:
         if: success() && startsWith(github.ref, 'refs/tags/v')
         continue-on-error: true
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         run: |
           $ErrorActionPreference = "Stop"
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
           $text = "🏁 <b>Релиз собран успешно</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$releaseUrl`">Открыть готовый релиз</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Notify Telegram about build failure
         if: failure() && startsWith(github.ref, 'refs/tags/v')
         continue-on-error: true
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           $text = "❌ <b>Сборка релиза завершилась ошибкой</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text

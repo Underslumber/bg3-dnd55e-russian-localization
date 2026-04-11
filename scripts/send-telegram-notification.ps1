@@ -17,41 +17,6 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-function Import-DotEnvFile {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path
-    )
-
-    if (-not (Test-Path -LiteralPath $Path)) {
-        return
-    }
-
-    foreach ($line in [System.IO.File]::ReadAllLines($Path)) {
-        $trimmedLine = $line.Trim()
-        if (-not $trimmedLine -or $trimmedLine.StartsWith("#")) {
-            continue
-        }
-
-        $separatorIndex = $trimmedLine.IndexOf("=")
-        if ($separatorIndex -lt 1) {
-            continue
-        }
-
-        $name = $trimmedLine.Substring(0, $separatorIndex).Trim()
-        $value = $trimmedLine.Substring($separatorIndex + 1).Trim()
-
-        if (
-            ($value.StartsWith('"') -and $value.EndsWith('"')) -or
-            ($value.StartsWith("'") -and $value.EndsWith("'"))
-        ) {
-            $value = $value.Substring(1, $value.Length - 2)
-        }
-
-        [System.Environment]::SetEnvironmentVariable($name, $value, "Process")
-    }
-}
-
 function Resolve-Setting {
     param(
         [string]$ExplicitValue,
@@ -70,25 +35,23 @@ function Resolve-Setting {
 
     return $null
 }
-
-$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
-$localEnvPath = Join-Path $repoRoot ".env.local"
-Import-DotEnvFile -Path $localEnvPath
-
-$BotToken = Resolve-Setting -ExplicitValue $BotToken -EnvName "BOT_TOKEN"
+$BotToken = Resolve-Setting -ExplicitValue $BotToken -EnvName "TG_BOT_TOKEN"
+if ([string]::IsNullOrWhiteSpace($BotToken)) {
+    $BotToken = Resolve-Setting -ExplicitValue $null -EnvName "BOT_TOKEN"
+}
 $ChatId = Resolve-Setting -ExplicitValue $ChatId -EnvName "TG_CHAT_ID"
 $ThreadId = Resolve-Setting -ExplicitValue $ThreadId -EnvName "TG_THREAD_ID"
 
 if ([string]::IsNullOrWhiteSpace($BotToken)) {
-    throw "Telegram bot token is required. Pass -BotToken or set BOT_TOKEN in .env.local."
+    throw "Telegram bot token is required. Pass -BotToken or set TG_BOT_TOKEN in the environment."
 }
 
 if ([string]::IsNullOrWhiteSpace($ChatId)) {
-    throw "Telegram chat id is required. Pass -ChatId or set TG_CHAT_ID in .env.local."
+    throw "Telegram chat id is required. Pass -ChatId or set TG_CHAT_ID in the environment."
 }
 
 if ([string]::IsNullOrWhiteSpace($ThreadId)) {
-    throw "Telegram thread id is required. Pass -ThreadId or set TG_THREAD_ID in .env.local."
+    throw "Telegram thread id is required. Pass -ThreadId or set TG_THREAD_ID in the environment."
 }
 
 $normalizedText = $Text.
