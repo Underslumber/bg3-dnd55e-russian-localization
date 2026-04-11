@@ -25,6 +25,7 @@ Approval/clarification:
 
 - File links in repo docs/checklists: relative paths, `/`, spaces as `%20`.
 - In assistant UI responses, use the link format required by the execution environment; include relative path text when possible.
+- External links in assistant UI responses: use markdown links with a clear label, not bare URLs.
 
 ---
 
