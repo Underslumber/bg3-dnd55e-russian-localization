@@ -16,6 +16,7 @@
 - Answer first, then request approval if needed.
 - Concise, meaningful, no filler.
 - Do not end response with only procedural choice.
+- In scenarios where local configuration, secrets, or notification settings may be needed, automatically check and use `.env.local` when it exists and is relevant; if it is missing but clearly required, state that once, use `.env.example` as the schema when available, and name the required keys without inventing values; never commit `.env.local` or print secret values.
 
 Approval/clarification:
 - ask once, no repetition
