@@ -34,8 +34,8 @@ Approval/clarification:
 - Branch (`fix/*` or `feat/*`): ask once before the first file-changing task that may lead to commit; reuse decision for all subsequent tasks in same dialogue.
 
 After work in `fix/*` or `feat/*`:
-1. MR → main
-2. merge → main + delete branch
+1. merge changes directly into `main` and delete the source branch
+2. create PR/MR targeting `main`
 
 Push failure:
 - retry ≤2 times, 3s delay
