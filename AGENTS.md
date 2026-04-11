@@ -122,6 +122,12 @@ Source of truth:
 Rules:
 - do not change `PublishVersion`
 - tag MUST match version
+- tag formats:
+  - stable: `vX.Y.Z` -> `Version64 = X.Y.Z.0`
+  - suffixed: `vX.Y.Z-suffix` -> `Version64 = X.Y.Z.N`
+- for suffixed tags, suffix affects tag/release channel only and is NOT encoded in `Version64`
+- for suffixed tags on the same base version `X.Y.Z`, increment `build` (`N`) by counting prior released tags `vX.Y.Z-*`; current release uses the next value starting from `1`
+- stable tag without suffix always uses `build = 0`, even if suffixed releases for the same base version already existed
 
 Before tag:
 1. if version already changed → use it

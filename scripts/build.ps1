@@ -20,7 +20,8 @@ $ErrorActionPreference = "Stop"
 function Convert-VersionTagToVersion64 {
     param(
         [string]$Tag,
-        [string]$FallbackVersion64
+        [string]$FallbackVersion64,
+        [string]$RepoPath
     )
 
     if (-not $Tag) {
@@ -32,14 +33,29 @@ function Convert-VersionTagToVersion64 {
         $normalized = $normalized.Substring(1)
     }
 
-    if ($normalized -notmatch '^\d+(\.\d+){0,3}$') {
-        return [int64]$FallbackVersion64
+    if ($normalized -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-(?<suffix>[0-9A-Za-z][0-9A-Za-z.-]*))?$') {
+        throw "Version tag '$Tag' is invalid. Expected format: vX.Y.Z or vX.Y.Z-suffix"
     }
 
-    $parts = $normalized.Split(".")
+    $baseVersion = $Matches.base
+    $suffix = $Matches.suffix
+    $parts = $baseVersion.Split(".")
     $numbers = @(0, 0, 0, 0)
     for ($i = 0; $i -lt $parts.Length; $i++) {
         $numbers[$i] = [int]$parts[$i]
+    }
+
+    if ($suffix) {
+        $resolvedRepoPath = [System.IO.Path]::GetFullPath($RepoPath)
+        $matchingTags = @()
+
+        try {
+            $matchingTags = @(git -C $resolvedRepoPath tag --list "v$baseVersion-*" 2>$null | Where-Object { $_ -and $_ -ne $Tag })
+        } catch {
+            $matchingTags = @()
+        }
+
+        $numbers[3] = $matchingTags.Count + 1
     }
 
     return ([int64]$numbers[0] -shl 55) -bor ([int64]$numbers[1] -shl 47) -bor ([int64]$numbers[2] -shl 31) -bor [int64]$numbers[3]
@@ -59,7 +75,7 @@ if ($VersionTag) {
 }
 $zipPath = Join-Path $buildPath "$archiveName.zip"
 $infoJsonPath = Join-Path $buildPath "info.json"
-$resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag -FallbackVersion64 $ModVersion64
+$resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag -FallbackVersion64 $ModVersion64 -RepoPath $workspacePath
 
 if (-not (Test-Path -LiteralPath $DivinePath)) {
     $resolvedCommand = Get-Command $DivinePath -ErrorAction SilentlyContinue

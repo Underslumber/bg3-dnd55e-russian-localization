@@ -43,10 +43,15 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $versionTag = ""
+          $isPrerelease = "false"
           if ($env:GITHUB_REF -like "refs/tags/v*") {
               $versionTag = $env:GITHUB_REF_NAME
+              if ($versionTag -match '^v\d+\.\d+\.\d+-') {
+                  $isPrerelease = "true"
+              }
           }
           "version_tag=$versionTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "is_prerelease=$isPrerelease" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Notify Telegram about build start
         if: startsWith(github.ref, 'refs/tags/v')
@@ -113,6 +118,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $tagName = "${{ github.ref_name }}"
           $zipPath = Join-Path $env:GITHUB_WORKSPACE "build\\DnD 5.5e AIO Russian $tagName.zip"
+          $isPrerelease = "${{ steps.vars.outputs.is_prerelease }}" -eq "true"
 
           if (-not (Test-Path -LiteralPath $zipPath)) {
               throw "Release archive was not found at '$zipPath'."
@@ -121,15 +127,40 @@ jobs:
           gh release view $tagName --repo "${{ github.repository }}" *> $null
 
           if ($LASTEXITCODE -ne 0) {
-              gh release create $tagName $zipPath `
-                --repo "${{ github.repository }}" `
-                --title $tagName `
-                --notes ""
+              $args = @(
+                "release", "create", $tagName, $zipPath,
+                "--repo", "${{ github.repository }}",
+                "--title", $tagName,
+                "--notes", ""
+              )
+
+              if ($isPrerelease) {
+                  $args += "--prerelease"
+              }
+
+              gh @args
           }
           else {
               gh release upload $tagName $zipPath `
                 --repo "${{ github.repository }}" `
                 --clobber
+
+              $releaseId = gh release view $tagName `
+                --repo "${{ github.repository }}" `
+                --json id `
+                --jq ".id"
+
+              $releaseBodyPath = Join-Path $env:RUNNER_TEMP "release-body.json"
+              @{
+                name = $tagName
+                prerelease = $isPrerelease
+              } | ConvertTo-Json -Compress | Set-Content -LiteralPath $releaseBodyPath -Encoding utf8
+
+              gh api `
+                --method PATCH `
+                -H "Accept: application/vnd.github+json" `
+                "/repos/${{ github.repository }}/releases/$releaseId" `
+                --input $releaseBodyPath
           }
 
       - name: Notify Telegram about build success

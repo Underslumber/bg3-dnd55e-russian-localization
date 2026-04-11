@@ -40,6 +40,7 @@ jobs:
           }
 
           git -c "http.extraHeader=Authorization: Basic $authBasic" fetch --depth 1 origin $repoRef
+          git -c "http.extraHeader=Authorization: Basic $authBasic" fetch --force --tags origin
           git checkout --force FETCH_HEAD
 
           if (-not (Test-Path -LiteralPath "Mods\\DnD 5.5e AIO Russian\\Localization\\Russian\\russian.xml")) {
@@ -109,6 +110,7 @@ jobs:
               throw "Release archive was not found at '$zipPath'."
           }
 
+          $isPrerelease = $tagName -match '^v\d+\.\d+\.\d+-'
           $owner = $repoParts[0]
           $repo = $repoParts[1]
           $apiBase = "$serverUrl/api/v1/repos/$owner/$repo"
@@ -137,10 +139,19 @@ jobs:
                   name = $tagName
                   target_commitish = "${{ gitea.sha }}"
                   draft = $false
-                  prerelease = $false
+                  prerelease = $isPrerelease
               } | ConvertTo-Json
 
               $release = Invoke-RestMethod -Method Post -Uri "$apiBase/releases" -Headers $headers -ContentType "application/json" -Body $releaseBody
+          } elseif ($release.prerelease -ne $isPrerelease) {
+              $releaseBody = @{
+                  tag_name = $tagName
+                  target_commitish = "${{ gitea.sha }}"
+                  draft = $false
+                  prerelease = $isPrerelease
+              } | ConvertTo-Json
+
+              $release = Invoke-RestMethod -Method Patch -Uri "$apiBase/releases/$($release.id)" -Headers $headers -ContentType "application/json" -Body $releaseBody
           }
 
           $existingAsset = $null

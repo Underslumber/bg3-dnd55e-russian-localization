@@ -1,14 +1,16 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$VersionTag,
-    [string]$MetaPath = "Mods/DnD 5.5e AIO Russian/meta.lsx"
+    [string]$MetaPath = "Mods/DnD 5.5e AIO Russian/meta.lsx",
+    [string]$RepositoryPath = "."
 )
 
 $ErrorActionPreference = "Stop"
 
-function Convert-VersionTagToVersion64 {
+function Get-ReleaseVersionParts {
     param(
-        [string]$Tag
+        [string]$Tag,
+        [string]$RepoPath
     )
 
     $normalized = $Tag
@@ -16,17 +18,36 @@ function Convert-VersionTagToVersion64 {
         $normalized = $normalized.Substring(1)
     }
 
-    if ($normalized -notmatch '^\d+(\.\d+){0,3}$') {
-        throw "Version tag '$Tag' is invalid. Expected format: vX.Y.Z or X.Y.Z"
+    if ($normalized -notmatch '^(?<base>\d+\.\d+\.\d+)(?:-(?<suffix>[0-9A-Za-z][0-9A-Za-z.-]*))?$') {
+        throw "Version tag '$Tag' is invalid. Expected format: vX.Y.Z or vX.Y.Z-suffix"
     }
 
-    $parts = $normalized.Split(".")
+    $baseVersion = $Matches.base
+    $suffix = $Matches.suffix
+    $parts = $baseVersion.Split(".")
     $numbers = @(0, 0, 0, 0)
     for ($i = 0; $i -lt $parts.Length; $i++) {
         $numbers[$i] = [int]$parts[$i]
     }
 
-    return ([int64]$numbers[0] -shl 55) -bor ([int64]$numbers[1] -shl 47) -bor ([int64]$numbers[2] -shl 31) -bor [int64]$numbers[3]
+    if ($suffix) {
+        $resolvedRepoPath = [System.IO.Path]::GetFullPath($RepoPath)
+        $matchingTags = @()
+
+        try {
+            $matchingTags = @(git -C $resolvedRepoPath tag --list "v$baseVersion-*" 2>$null | Where-Object { $_ -and $_ -ne $Tag })
+        } catch {
+            $matchingTags = @()
+        }
+
+        $numbers[3] = $matchingTags.Count + 1
+    }
+
+    return [pscustomobject]@{
+        BaseVersion = $baseVersion
+        Suffix = $suffix
+        Version64 = ([int64]$numbers[0] -shl 55) -bor ([int64]$numbers[1] -shl 47) -bor ([int64]$numbers[2] -shl 31) -bor [int64]$numbers[3]
+    }
 }
 
 $resolvedMetaPath = [System.IO.Path]::GetFullPath($MetaPath)
@@ -34,7 +55,8 @@ if (-not (Test-Path -LiteralPath $resolvedMetaPath)) {
     throw "meta.lsx was not found: '$resolvedMetaPath'."
 }
 
-$resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag
+$releaseVersion = Get-ReleaseVersionParts -Tag $VersionTag -RepoPath $RepositoryPath
+$resolvedVersion64 = $releaseVersion.Version64
 $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
 $metaContent = [System.IO.File]::ReadAllText($resolvedMetaPath, $utf8Encoding)
 [xml]$metaXml = $metaContent
@@ -60,4 +82,4 @@ $updatedMeta = [regex]::Replace(
 
 [System.IO.File]::WriteAllText($resolvedMetaPath, $updatedMeta, $utf8Encoding)
 
-Write-Host "[set-version.ps1] Updated '$resolvedMetaPath' to Version64=$resolvedVersion64 (from tag '$VersionTag')."
+Write-Host "[set-version.ps1] Updated '$resolvedMetaPath' to Version64=$resolvedVersion64 (from tag '$VersionTag', base '$($releaseVersion.BaseVersion)')."
