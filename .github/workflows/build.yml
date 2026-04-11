@@ -12,10 +12,10 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
-    environment: TgBot
+    environment: Configure TgBot
     env:
-      TG_CHAT_ID: -1003975565934
-      TG_THREAD_ID: 2
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
 
     defaults:
       run:

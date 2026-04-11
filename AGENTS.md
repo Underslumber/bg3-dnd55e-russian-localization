@@ -34,8 +34,8 @@ Approval/clarification:
 - Branch (`fix/*` or `feat/*`): ask once before the first file-changing task that may lead to commit; reuse decision for all subsequent tasks in same dialogue.
 
 After work in `fix/*` or `feat/*`:
-1. merge changes directly into `main` and delete the source branch
-2. create PR/MR targeting `main`
+1. create PR/MR targeting `main`
+2. merge changes into `main` and delete the source branch
 
 Push failure:
 - retry ≤2 times, 3s delay
@@ -70,6 +70,8 @@ Forbidden:
 - CI: `.gitea/workflows/build.yml`
 - Glossary: `glossary/glossary.normalized.json` _(primary terminology reference)_
 - Actions: `ACTIONS.md`
+- Local env template: `.env.example`
+- Local env file: `.env.local`
 - Upstream EN reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
 
 ---

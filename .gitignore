@@ -2,6 +2,10 @@ build/
 build-stage*
 .tools/
 .cache/
+.env
+.env.local
+.env.*
+!.env.example
 *.pak
 *.tmp
 *.temp
