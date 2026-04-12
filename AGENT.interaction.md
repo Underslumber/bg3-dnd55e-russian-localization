@@ -76,7 +76,7 @@ step_1 → step_2 → ... → CONFIRMATION
 
 ### Step completion
 
-Step is complete when: input is valid AND value is parsed.  
+Step is complete when: input is valid AND value is parsed.
 Otherwise: stay on same step.
 
 ### Confirmation (mandatory final step)
@@ -99,6 +99,33 @@ Input format: `key=N key=N ...`
 - Valid fields: apply, skip their steps
 - Invalid N for a field: reject that field, ask its step normally
 - All fields valid: skip to CONFIRMATION
+
+---
+
+## EXECUTION SILENCE
+
+After receiving valid input, the model MUST execute silently.
+
+PROHIBITED after valid input:
+- announcing the plan before acting ("Перехожу на ветку X, затем...")
+- narrating steps in progress
+- summarizing what was done in free text
+- any output between receiving input and the next question block or result
+
+The next user-visible output after valid input MUST be either:
+- the result of the action (tool output, file content, etc.), OR
+- the next question block in the flow
+
+PROHIBITED pattern:
+```
+✗ "Перехожу на релизную ветку feat/release-v0.2.9, затем подготовлю версию 0.2.9..."
+```
+
+REQUIRED pattern:
+```
+[executes silently]
+→ next question block or action result
+```
 
 ---
 
@@ -190,7 +217,7 @@ Internal reasoning MUST NOT appear in output.
 
 ## VIOLATION HANDLING
 
-Non-compliant output: system discards and regenerates.  
+Non-compliant output: system discards and regenerates.
 Model is not notified of regeneration.
 
 ---

@@ -246,6 +246,17 @@ Do not:
 
 ---
 
+## Release Verification (MUST)
+- verification_order: `workflow_status -> release_presence -> assets_presence -> asset_name`
+- source_of_truth: `workflow/release API data`; exact asset filename only if read from build/workflow output
+- wait_cycle_max: `30s`
+- passive_wait_total_max: `120s` unless user explicitly requested a longer wait
+- after_each_wait_cycle: emit user-visible status
+- asset_name_mismatch: stop waiting; report actual asset name
+- workflow_success_missing_asset: stop waiting; report `release_url`, `workflow_url`, `asset_list`
+
+---
+
 ## Rules Maintenance (MUST)
 - Changes to `AGENTS.md`, `ACTIONS.md`, or referenced reusable rule files: prefer compressed, machine-readable edits.
 - Keep updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
