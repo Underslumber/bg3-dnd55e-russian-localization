@@ -163,10 +163,10 @@ if ($isUpToDate) {
 } else {
     $mdLines += ""
     $mdLines += "## Agent workflow"
-    $mdLines += "1. Refresh upstream cache: ``scripts/get-upstream-english.ps1``"
-    $mdLines += "2. Refresh diff reports: ``scripts/compare-translation.ps1``"
+    $mdLines += "1. Refresh upstream cache: ``python scripts/get-upstream-english.py``"
+    $mdLines += "2. Refresh diff reports: ``python scripts/compare-translation.py``"
     $mdLines += "3. Fill translated texts in ``build/translation-diff/candidates.json``"
-    $mdLines += "4. Apply only prepared edits: ``scripts/apply-translation-edits.ps1 -EditsPath build/translation-diff/candidates.json``"
+    $mdLines += "4. Apply only prepared edits: ``python scripts/apply-translation-edits.py -EditsPath build/translation-diff/candidates.json``"
 }
 
 $mdLines += ""

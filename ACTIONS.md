@@ -35,8 +35,8 @@ ACTIONS:
       - AGENTS.md::Canonical Paths::Upstream English reference
       - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
     plan:
-      - run_scripts/get-upstream-english.ps1_and_wait_until_output_exists
-      - run_scripts/compare-translation.ps1_after_upstream_download_only
+      - run_python_scripts/get-upstream-english.py_and_wait_until_output_exists
+      - run_python_scripts/compare-translation.py_after_upstream_download_only
       - classify_diff_into_missing_changed_stale
       - write_machine_readable_and_markdown_reports_for_local_review
     checks:

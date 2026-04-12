@@ -7,9 +7,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$getUpstreamScriptPath = Join-Path $PSScriptRoot "get-upstream-english.ps1"
-$compareScriptPath = Join-Path $PSScriptRoot "compare-translation.ps1"
-$applyScriptPath = Join-Path $PSScriptRoot "apply-translation-edits.ps1"
+$getUpstreamScriptPath = Join-Path $PSScriptRoot "get-upstream-english.py"
+$compareScriptPath = Join-Path $PSScriptRoot "compare-translation.py"
+$applyScriptPath = Join-Path $PSScriptRoot "apply-translation-edits.py"
 
 foreach ($scriptPath in @($getUpstreamScriptPath, $compareScriptPath, $applyScriptPath)) {
     if (-not (Test-Path -LiteralPath $scriptPath)) {
@@ -26,8 +26,8 @@ $workingDiffDir = Join-Path $env:TEMP ("bg3-translation-update-" + [guid]::NewGu
 New-Item -ItemType Directory -Path $workingDiffDir -Force | Out-Null
 
 try {
-    & $getUpstreamScriptPath -OutputPath $EnglishPath -Force
-    & $compareScriptPath -EnglishPath $EnglishPath -RussianPath $RussianPath -OutputDir $workingDiffDir
+    python $getUpstreamScriptPath -OutputPath $EnglishPath -Force
+    python $compareScriptPath -EnglishPath $EnglishPath -RussianPath $RussianPath -OutputDir $workingDiffDir
 
     New-Item -ItemType Directory -Path $resolvedOutputDir -Force | Out-Null
     Get-ChildItem -LiteralPath $workingDiffDir | ForEach-Object {
@@ -61,7 +61,7 @@ try {
         throw "Prepared edits file was not found: '$effectiveEditsPath'."
     }
 
-    & $applyScriptPath -RussianPath $RussianPath -EditsPath $effectiveEditsPath
+    python $applyScriptPath -RussianPath $RussianPath -EditsPath $effectiveEditsPath
 
     Write-Host "[update-translation.ps1] Обновление перевода завершено. Результат записан в '$([System.IO.Path]::GetFullPath($RussianPath))'."
 } finally {

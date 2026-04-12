@@ -69,7 +69,7 @@ function Assert-UniqueEditContentUid {
 
 $russianDocument = Read-XmlDocument -Path $RussianPath
 $temporaryRussianPath = "$($russianDocument.Path).tmp"
-$validateScriptPath = Join-Path $PSScriptRoot "validate-translation-xml.ps1"
+$validateScriptPath = Join-Path $PSScriptRoot "validate-translation-xml.py"
 
 if (-not (Test-Path -LiteralPath $validateScriptPath)) {
     throw "Validation script was not found: '$validateScriptPath'."
@@ -193,7 +193,7 @@ try {
 }
 
 try {
-    & $validateScriptPath -XmlPath $temporaryRussianPath
+    python $validateScriptPath -XmlPath $temporaryRussianPath
     Move-Item -LiteralPath $temporaryRussianPath -Destination $RussianPath -Force
 } finally {
     if (Test-Path -LiteralPath $temporaryRussianPath) {
