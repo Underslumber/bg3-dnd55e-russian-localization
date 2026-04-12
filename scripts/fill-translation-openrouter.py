@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import os
+import re
 import sys
 import time
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 from urllib import error, request
@@ -31,6 +34,12 @@ SYSTEM_PROMPT = (
     '- Do not include the original English text in the output.\n'
     "- Use the glossary as a strict source of truth.\n"
     "- If a glossary term appears, use its glossary translation exactly.\n"
+    "- Follow the existing Russian localization style used by this mod.\n"
+    "- Translate names, features, classes, and subclass titles as polished in-game UI text, not as literal dictionary glosses.\n"
+    '- If the source starts with "Level N:", the result must start with "Уровень N:".\n'
+    "- Translate text inside tags too; do not leave words like Checks untranslated.\n"
+    "- Do not leave English terms untranslated unless they are placeholders or tag attributes.\n"
+    "- Prefer established BG3-style terminology such as спасбросок, атака по возможности, бонус мастерства, владение, очки здоровья.\n"
     "- Preserve placeholders, numbers, variables, XML/HTML tags, LSTag tags, bracketed values like [1], and line breaks.\n"
     "- Keep terminology consistent.\n"
     "- Return only valid JSON.\n\n"
@@ -55,6 +64,27 @@ def parse_args() -> argparse.Namespace:
         help="Path to glossary JSON dictionary.",
     )
     parser.add_argument(
+        "-EnglishPath",
+        "--english-path",
+        default=".cache/upstream/english.xml",
+        dest="english_path",
+        help="Path to upstream English localization XML used for exact-match translation memory.",
+    )
+    parser.add_argument(
+        "-RussianPath",
+        "--russian-path",
+        default="Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml",
+        dest="russian_path",
+        help="Path to current Russian localization XML used for exact-match translation memory.",
+    )
+    parser.add_argument(
+        "-ReferenceRussianPath",
+        "--reference-russian-path",
+        default="",
+        dest="reference_russian_path",
+        help="Optional path to a reference Russian XML whose matching contentuid values should be reused directly.",
+    )
+    parser.add_argument(
         "-OutputPath",
         "--output-path",
         default="",
@@ -67,7 +97,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=DEFAULT_BATCH_SIZE,
         dest="batch_size",
-        help="Maximum number of strings per API request.",
+        help="Maximum number of representative strings per API request.",
     )
     parser.add_argument(
         "-MaxBatchChars",
@@ -131,6 +161,62 @@ def normalize_multiline_text(value: Any) -> str:
     return str(value or "").replace("\r\n", "\n").replace("\r", "\n")
 
 
+def read_localization_entries(path: Path) -> dict[str, dict[str, str]]:
+    resolved_path = path.resolve()
+    if not resolved_path.exists():
+        raise FileNotFoundError(f"Localization XML was not found: '{resolved_path}'.")
+
+    root = ET.fromstring(resolved_path.read_text(encoding="utf-8-sig"))
+    if root.tag != "contentList":
+        raise ValueError(f"Localization XML does not contain '/contentList': '{resolved_path}'.")
+
+    entries: dict[str, dict[str, str]] = {}
+    for node in root.findall("./content"):
+        content_uid = str(node.get("contentuid", "")).strip()
+        if not content_uid:
+            continue
+
+        entries[content_uid] = {
+            "contentuid": content_uid,
+            "version": str(node.get("version", "") or ""),
+            "text": normalize_multiline_text(node.text or ""),
+        }
+    return entries
+
+
+def build_exact_translation_memory(english_path: Path, russian_path: Path) -> dict[str, str]:
+    english_entries = read_localization_entries(english_path)
+    russian_entries = read_localization_entries(russian_path)
+    variants_by_english: dict[str, set[str]] = collections.defaultdict(set)
+
+    for content_uid, english_entry in english_entries.items():
+        russian_entry = russian_entries.get(content_uid)
+        if russian_entry is None:
+            continue
+
+        english_text = normalize_multiline_text(english_entry["text"]).strip()
+        russian_text = normalize_multiline_text(russian_entry["text"]).strip()
+        if not english_text or not russian_text:
+            continue
+
+        variants_by_english[english_text].add(russian_text)
+
+    translation_memory: dict[str, str] = {}
+    for english_text, variants in variants_by_english.items():
+        if len(variants) == 1:
+            translation_memory[english_text] = next(iter(variants))
+    return translation_memory
+
+
+def build_reference_translation_map(reference_russian_path: Path) -> dict[str, str]:
+    reference_entries = read_localization_entries(reference_russian_path)
+    return {
+        content_uid: entry["text"]
+        for content_uid, entry in reference_entries.items()
+        if normalize_multiline_text(entry["text"]).strip()
+    }
+
+
 def select_relevant_glossary(glossary: dict[str, str], texts: list[str]) -> dict[str, str]:
     lowered_texts = [text.lower() for text in texts if text]
     if not lowered_texts:
@@ -144,10 +230,79 @@ def select_relevant_glossary(glossary: dict[str, str], texts: list[str]) -> dict
     return relevant
 
 
-def build_jobs(
-    candidates: dict[str, Any],
-    include_existing: bool,
-) -> list[dict[str, Any]]:
+def get_relevant_glossary_terms(glossary: dict[str, str], english_text: str) -> dict[str, str]:
+    return select_relevant_glossary(glossary, [english_text])
+
+
+def replace_visible_glossary_terms(translated_text: str, relevant_glossary: dict[str, str]) -> str:
+    parts = re.split(r"(<[^>]+>)", translated_text)
+    ordered_terms = sorted(relevant_glossary.items(), key=lambda item: len(item[0]), reverse=True)
+
+    for index, part in enumerate(parts):
+        if not part or (part.startswith("<") and part.endswith(">")):
+            continue
+
+        for source_term, target_term in ordered_terms:
+            part = part.replace(source_term, target_term)
+        parts[index] = part
+
+    repaired_text = "".join(parts)
+    repaired_text = repaired_text.replace(
+        '<LSTag Tooltip="AbilityCheck">Checks</LSTag>',
+        '<LSTag Tooltip="AbilityCheck">проверках</LSTag>',
+    )
+    return repaired_text
+
+
+def normalize_translation_output(english_text: str, translated_text: str) -> str:
+    normalized = normalize_multiline_text(translated_text).strip()
+
+    if "\n" in normalized:
+        paragraphs = re.split(r"\n{2,}", normalized)
+        normalized = "<br><br>".join(part.replace("\n", "<br>") for part in paragraphs)
+
+    level_match = re.match(r"^Level\s+(\d+):", english_text)
+    if level_match:
+        expected_prefix = f"Уровень {level_match.group(1)}:"
+        prefix_match = re.match(r"^[^:]{1,40}:", normalized)
+        if prefix_match:
+            normalized = expected_prefix + normalized[prefix_match.end() :]
+        elif not normalized.startswith(expected_prefix):
+            normalized = f"{expected_prefix} {normalized}".strip()
+
+    return normalized
+
+
+def assert_translation_quality(
+    item_id: str,
+    english_text: str,
+    translated_text: str,
+    relevant_glossary: dict[str, str],
+) -> None:
+    if normalize_multiline_text(english_text).strip() == normalize_multiline_text(translated_text).strip():
+        raise ValueError(f"Translation for id '{item_id}' matches the original English text.")
+
+    visible_text = re.sub(r"<[^>]+>", " ", translated_text)
+    for source_term, target_term in relevant_glossary.items():
+        if source_term and source_term in visible_text and target_term not in visible_text:
+            raise ValueError(
+                f"Translation for id '{item_id}' still contains glossary source term '{source_term}'."
+            )
+
+    stripped_text = visible_text
+    stripped_text = re.sub(r"\[[^\]]+\]", " ", stripped_text)
+    suspicious_words = re.findall(r"\b[A-Za-z][A-Za-z'/-]{3,}\b", stripped_text)
+    suspicious_words = [
+        word for word in suspicious_words if word not in {"LSTag", "Tooltip"} and not word.lower().startswith("h")
+    ]
+    if suspicious_words:
+        raise ValueError(
+            f"Translation for id '{item_id}' contains suspicious untranslated words: "
+            f"{', '.join(sorted(set(suspicious_words))[:5])}."
+        )
+
+
+def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[str, Any]]:
     jobs: list[dict[str, Any]] = []
 
     for section_name in ("updates", "adds"):
@@ -168,6 +323,7 @@ def build_jobs(
                 raise ValueError(f"Candidates section '{section_name}' contains empty 'contentuid'.")
             if not english_text.strip():
                 raise ValueError(f"Candidates entry '{content_uid}' is missing non-empty 'englishText'.")
+
             if not include_existing:
                 if section_name == "adds" and current_text.strip():
                     continue
@@ -183,6 +339,38 @@ def build_jobs(
             )
 
     return jobs
+
+
+def prefill_jobs(
+    jobs: list[dict[str, Any]],
+    exact_translation_memory: dict[str, str],
+    reference_translation_by_uid: dict[str, str],
+) -> tuple[dict[str, str], dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    prefilled_translations: dict[str, str] = {}
+    grouped_jobs_by_english: dict[str, list[dict[str, Any]]] = collections.OrderedDict()
+
+    for job in jobs:
+        content_uid = job["contentuid"]
+        english_text = job["englishText"]
+
+        if content_uid in reference_translation_by_uid:
+            prefilled_translations[content_uid] = normalize_translation_output(
+                english_text=english_text,
+                translated_text=reference_translation_by_uid[content_uid],
+            )
+            continue
+
+        if english_text in exact_translation_memory:
+            prefilled_translations[content_uid] = normalize_translation_output(
+                english_text=english_text,
+                translated_text=exact_translation_memory[english_text],
+            )
+            continue
+
+        grouped_jobs_by_english.setdefault(english_text, []).append(job)
+
+    representative_jobs = [job_group[0] for job_group in grouped_jobs_by_english.values()]
+    return prefilled_translations, grouped_jobs_by_english, representative_jobs
 
 
 def build_batches(jobs: list[dict[str, Any]], batch_size: int, max_batch_chars: int) -> list[list[dict[str, Any]]]:
@@ -267,6 +455,7 @@ def parse_translation_response(raw_text: str, expected_ids: list[str]) -> dict[s
     for item in data:
         if not isinstance(item, dict):
             raise ValueError("Each model response item must be an object.")
+
         item_id = str(item.get("id", "")).strip()
         item_ru = normalize_multiline_text(item.get("ru", ""))
         if not item_id:
@@ -285,15 +474,37 @@ def parse_translation_response(raw_text: str, expected_ids: list[str]) -> dict[s
     return result
 
 
-def post_openrouter(model: str, api_key: str, system_prompt: str, user_prompt: str) -> dict[str, Any]:
+def post_openrouter(
+    model: str,
+    api_key: str,
+    messages: list[dict[str, str]],
+    use_json_schema: bool,
+) -> dict[str, Any]:
     payload = {
         "model": model,
-        "temperature": 0.1,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
+        "temperature": 0,
+        "messages": messages,
     }
+    if use_json_schema:
+        payload["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "translation_batch",
+                "strict": True,
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": False,
+                        "required": ["id", "ru"],
+                        "properties": {
+                            "id": {"type": "string"},
+                            "ru": {"type": "string"},
+                        },
+                    },
+                },
+            },
+        }
 
     req = request.Request(
         OPENROUTER_URL,
@@ -320,17 +531,63 @@ def translate_batch(
     relevant_glossary = select_relevant_glossary(glossary, [job["englishText"] for job in batch])
     user_prompt = build_user_prompt(items, relevant_glossary)
     expected_ids = [item["id"] for item in items]
+    retry_feedback = ""
+    use_json_schema = True
 
     for attempt in range(1, retries + 1):
         try:
-            response_payload = post_openrouter(model=model, api_key=api_key, system_prompt=SYSTEM_PROMPT, user_prompt=user_prompt)
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ]
+            if retry_feedback:
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            "Previous output failed validation.\n"
+                            f"Issue: {retry_feedback}\n"
+                            "Return a corrected JSON array for the same input. "
+                            "Do not leave English words untranslated unless they are preserved tags or placeholders."
+                        ),
+                    }
+                )
+
+            response_payload = post_openrouter(
+                model=model,
+                api_key=api_key,
+                messages=messages,
+                use_json_schema=use_json_schema,
+            )
             response_text = extract_message_text(response_payload)
-            return parse_translation_response(response_text, expected_ids)
+            translations = parse_translation_response(response_text, expected_ids)
+
+            for item in items:
+                item_id = item["id"]
+                relevant_terms = get_relevant_glossary_terms(glossary, item["english"])
+                normalized_translation = normalize_translation_output(
+                    english_text=item["english"],
+                    translated_text=translations[item_id],
+                )
+                normalized_translation = replace_visible_glossary_terms(
+                    translated_text=normalized_translation,
+                    relevant_glossary=relevant_terms,
+                )
+                assert_translation_quality(
+                    item_id=item_id,
+                    english_text=item["english"],
+                    translated_text=normalized_translation,
+                    relevant_glossary=relevant_terms,
+                )
+                translations[item_id] = normalized_translation
+
+            return translations
         except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
+            retry_feedback = str(exc)
+            if "response content is empty or unsupported" in retry_feedback.lower():
+                use_json_schema = False
             if attempt >= retries:
-                raise RuntimeError(
-                    f"OpenRouter batch failed after {retries} attempts: {exc}"
-                ) from exc
+                raise RuntimeError(f"OpenRouter batch failed after {retries} attempts: {exc}") from exc
             time.sleep(min(2 * attempt, 6))
 
     raise RuntimeError("OpenRouter batch failed unexpectedly.")
@@ -344,12 +601,14 @@ def apply_translations(candidates: dict[str, Any], translations: dict[str, str])
         section_entries = candidates.get(section_name) or []
         for entry in section_entries:
             content_uid = str(entry.get("contentuid", "")).strip()
-            if content_uid in translations:
-                entry["text"] = translations[content_uid]
-                if section_name == "updates":
-                    translated_updates += 1
-                else:
-                    translated_adds += 1
+            if content_uid not in translations:
+                continue
+
+            entry["text"] = translations[content_uid]
+            if section_name == "updates":
+                translated_updates += 1
+            else:
+                translated_adds += 1
 
     return translated_updates, translated_adds
 
@@ -365,6 +624,9 @@ def main() -> int:
         candidates_path = Path(args.candidates_path).resolve()
         output_path = Path(args.output_path).resolve() if args.output_path.strip() else candidates_path
         glossary_path = Path(args.glossary_path).resolve()
+        english_path = Path(args.english_path).resolve()
+        russian_path = Path(args.russian_path).resolve()
+        reference_russian_path = Path(args.reference_russian_path).resolve() if args.reference_russian_path.strip() else None
 
         candidates = read_json(candidates_path)
         glossary = read_json(glossary_path)
@@ -378,22 +640,50 @@ def main() -> int:
             print("[fill-translation-openrouter.py] No translation jobs found. Nothing to do.")
             return 0
 
-        batches = build_batches(jobs=jobs, batch_size=args.batch_size, max_batch_chars=args.max_batch_chars)
-        collected_translations: dict[str, str] = {}
+        exact_translation_memory: dict[str, str] = {}
+        if english_path.exists() and russian_path.exists():
+            exact_translation_memory = build_exact_translation_memory(
+                english_path=english_path,
+                russian_path=russian_path,
+            )
 
-        for index, batch in enumerate(batches, start=1):
-            batch_translations = translate_batch(
-                batch=batch,
-                glossary=glossary,
-                model=model,
-                api_key=api_key,
-                retries=args.retries,
+        reference_translation_by_uid = (
+            build_reference_translation_map(reference_russian_path) if reference_russian_path is not None else {}
+        )
+
+        collected_translations, grouped_jobs_by_english, representative_jobs = prefill_jobs(
+            jobs=jobs,
+            exact_translation_memory=exact_translation_memory,
+            reference_translation_by_uid=reference_translation_by_uid,
+        )
+        prefilled_count = len(collected_translations)
+
+        if representative_jobs:
+            batches = build_batches(
+                jobs=representative_jobs,
+                batch_size=args.batch_size,
+                max_batch_chars=args.max_batch_chars,
             )
-            collected_translations.update(batch_translations)
-            print(
-                "[fill-translation-openrouter.py] "
-                f"Translated batch {index}/{len(batches)}. Entries={len(batch)}."
-            )
+
+            for index, batch in enumerate(batches, start=1):
+                batch_translations = translate_batch(
+                    batch=batch,
+                    glossary=glossary,
+                    model=model,
+                    api_key=api_key,
+                    retries=args.retries,
+                )
+
+                for representative_job in batch:
+                    representative_uid = representative_job["contentuid"]
+                    translated_text = batch_translations[representative_uid]
+                    for grouped_job in grouped_jobs_by_english[representative_job["englishText"]]:
+                        collected_translations[grouped_job["contentuid"]] = translated_text
+
+                print(
+                    "[fill-translation-openrouter.py] "
+                    f"Translated batch {index}/{len(batches)}. RepresentativeEntries={len(batch)}."
+                )
 
         translated_updates, translated_adds = apply_translations(candidates, collected_translations)
         write_json(output_path, candidates)
@@ -403,7 +693,7 @@ def main() -> int:
 
     print(
         "[fill-translation-openrouter.py] Filled translation candidates successfully. "
-        f"Updates={translated_updates}; Adds={translated_adds}; Output='{output_path}'."
+        f"Prefilled={prefilled_count}; Updates={translated_updates}; Adds={translated_adds}; Output='{output_path}'."
     )
     return 0
 

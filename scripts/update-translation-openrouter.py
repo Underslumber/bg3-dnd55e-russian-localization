@@ -26,6 +26,13 @@ def parse_args() -> argparse.Namespace:
         default="glossary/glossary.normalized.json",
         dest="glossary_path",
     )
+    parser.add_argument(
+        "-ReferenceRussianPath",
+        "--reference-russian-path",
+        default="",
+        dest="reference_russian_path",
+        help="Optional path to a reference Russian XML whose matching contentuid values should be reused directly.",
+    )
     parser.add_argument("-BatchSize", "--batch-size", type=int, default=20, dest="batch_size")
     parser.add_argument("-MaxBatchChars", "--max-batch-chars", type=int, default=6000, dest="max_batch_chars")
     parser.add_argument("-Retries", "--retries", type=int, default=3, dest="retries")
@@ -127,6 +134,10 @@ def main() -> int:
                 str(working_candidates_path),
                 "--glossary-path",
                 args.glossary_path,
+                "--english-path",
+                args.english_path,
+                "--russian-path",
+                args.russian_path,
                 "--output-path",
                 str(working_candidates_path),
                 "--batch-size",
@@ -136,6 +147,8 @@ def main() -> int:
                 "--retries",
                 str(args.retries),
             ]
+            if args.reference_russian_path.strip():
+                fill_args.extend(["--reference-russian-path", args.reference_russian_path])
             if args.include_existing:
                 fill_args.append("--include-existing")
 
@@ -143,6 +156,17 @@ def main() -> int:
             run_python_script(
                 apply_script_path,
                 ["--russian-path", args.russian_path, "--edits-path", str(working_candidates_path)],
+            )
+            run_python_script(
+                compare_script_path,
+                [
+                    "--english-path",
+                    args.english_path,
+                    "--russian-path",
+                    args.russian_path,
+                    "--output-dir",
+                    str(working_diff_dir),
+                ],
             )
 
             copy_directory_contents(working_diff_dir, resolved_output_dir)
