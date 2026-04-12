@@ -2,30 +2,16 @@
 
 ## Execution Model (MUST)
 - Read this file first; treat as system-level constraints.
+- Reusable general rules (MUST read and apply): [AGENT.common.md](AGENT.common.md)
+- Reusable structured interaction rules (read and apply only when structured interaction mode is explicitly activated; do not activate implicitly because the file exists): [AGENT.interaction.md](AGENT.interaction.md)
 - Priority:
   1. User instructions
   2. AGENTS.md
-  3. Existing code/style
-  4. Best practices
+  3. Applicable referenced reusable rule files
+  4. Existing code/style
+  5. Best practices
 - Prefer minimal, non-breaking changes.
 - Do not introduce unnecessary abstractions.
-
----
-
-## Communication (MUST)
-- Answer first, then request approval if needed.
-- Concise, meaningful, no filler.
-- Do not end response with only procedural choice.
-- In scenarios where local configuration, secrets, or notification settings may be needed, automatically check and use `.env.local` when it exists and is relevant; if it is missing but clearly required, state that once, use `.env.example` as the schema when available, and name the required keys without inventing values; never commit `.env.local` or print secret values.
-
-Approval/clarification:
-- ask once, no repetition
-- binary → yes/no
-- multiple → numbered options + brief context
-
-- File links in repo docs/checklists: relative paths, `/`, spaces as `%20`.
-- In assistant UI responses, use the link format required by the execution environment; include relative path text when possible.
-- External links in assistant UI responses: use markdown links with a clear label, not bare URLs.
 
 ---
 
@@ -34,6 +20,8 @@ Approval/clarification:
 - After approval → commit + push immediately.
 - Commit messages: Russian, factual (what was done).
 - Branch (`fix/*` or `feat/*`): ask once before the first file-changing task that may lead to commit; reuse decision for all subsequent tasks in same dialogue.
+- If branch selection is required, ask for it in a separate message before any follow-up question about running scripts, applying changes, or other operational actions.
+- Do not combine branch choice with script/action approval in one message.
 
 After work in `fix/*` or `feat/*`:
 1. create PR/MR targeting `main`
@@ -64,7 +52,9 @@ Forbidden:
 
 ---
 
-## Paths (MUST)
+## Project Structure (MUST)
+
+Canonical paths:
 - Mod: `Mods/DnD 5.5e AIO Russian`
 - Localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - Metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
@@ -74,7 +64,29 @@ Forbidden:
 - Actions: `ACTIONS.md`
 - Local env template: `.env.example`
 - Local env file: `.env.local`
-- Upstream EN reference: `https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml`
+
+Top-level repository layout:
+- `.cache/` → local cache/workdir data; never package
+- `.git/` → local VCS metadata; never package
+- `.gitea/` → CI and release workflows
+- `.github/` → GitHub metadata/workflows when present
+- `.tools/` → local tooling; never package
+- `build/` → generated outputs only; never commit release artifacts
+- `glossary/` → terminology reference
+- `Mods/` → mod sources only
+- `scripts/` → build/release/support scripts
+- `.env.example` → local env schema
+- `.env.local` → local machine config/secrets; never commit
+- `.gitignore` → ignore policy
+- `ACTIONS.md` → project actions/checklists
+- `AGENT.common.md` → reusable general agent rules
+- `AGENT.interaction.md` → reusable structured interaction rules
+- `AGENTS.md` → project-specific agent contract
+- `LICENSE` → license metadata
+- `README.md` → project overview
+
+Upstream EN reference:
+- [english.xml](https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml)
 
 ---
 
@@ -136,7 +148,7 @@ Rules:
 Before tag:
 1. if version already changed → use it
 2. if same as last → bump:
-   `scripts/set-version.ps1 -VersionTag <tag>`
+   `python scripts/set-version.py -VersionTag <tag>`
 
 `build.ps1`:
 - derives version from tag
@@ -144,7 +156,7 @@ Before tag:
 
 Conflict resolution (MUST):
 - before release, `Version64` in `meta.lsx` MUST equal target tag version
-- if mismatch, run `scripts/set-version.ps1 -VersionTag <tag>` and re-check
+- if mismatch, run `python scripts/set-version.py -VersionTag <tag>` and re-check
 - if still mismatch, release is blocked
 
 ---
@@ -234,5 +246,5 @@ Do not:
 ---
 
 ## Rules Maintenance (MUST)
-- Changes to `AGENTS.md` / `ACTIONS.md`: prefer compressed, machine-readable edits.
+- Changes to `AGENTS.md`, `ACTIONS.md`, or referenced reusable rule files: prefer compressed, machine-readable edits.
 - Keep updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
