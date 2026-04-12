@@ -145,9 +145,8 @@ jobs:
                 --repo "${{ github.repository }}" `
                 --clobber
 
-              $releaseId = gh release view $tagName `
-                --repo "${{ github.repository }}" `
-                --json id `
+              $releaseId = gh api `
+                "/repos/${{ github.repository }}/releases/tags/$tagName" `
                 --jq ".id"
 
               $releaseBodyPath = Join-Path $env:RUNNER_TEMP "release-body.json"
