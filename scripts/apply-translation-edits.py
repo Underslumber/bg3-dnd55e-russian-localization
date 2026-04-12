@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 
 def parse_args() -> argparse.Namespace:
@@ -21,15 +23,26 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def read_xml_document(path: Path) -> ET.ElementTree:
+def read_xml_document(path: Path) -> tuple[ET.ElementTree, str, str]:
     resolved_path = path.resolve()
     if not resolved_path.exists():
         raise FileNotFoundError(f"XML file was not found: '{resolved_path}'.")
 
-    root = ET.fromstring(resolved_path.read_text(encoding="utf-8-sig"))
+    raw_text = resolved_path.read_text(encoding="utf-8-sig")
+    xml_declaration = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
+    declaration_match = re.match(r"\s*(<\?xml[^>]+\?>)", raw_text)
+    if declaration_match:
+        xml_declaration = declaration_match.group(1)
+
+    opening_tag_match = re.search(r"<contentList\b[^>]*>", raw_text)
+    if not opening_tag_match:
+        raise ValueError(f"XML file does not contain opening '<contentList>' tag: '{resolved_path}'.")
+    content_list_opening_tag = opening_tag_match.group(0)
+
+    root = ET.fromstring(raw_text)
     if root.tag != "contentList":
         raise ValueError(f"XML file does not contain '/contentList': '{resolved_path}'.")
-    return ET.ElementTree(root)
+    return ET.ElementTree(root), xml_declaration, content_list_opening_tag
 
 
 def get_content_node_map(xml_tree: ET.ElementTree) -> dict[str, ET.Element]:
@@ -63,10 +76,18 @@ def indent_xml(element: ET.Element, level: int = 0) -> None:
         element.tail = indent
 
 
-def write_xml(path: Path, xml_tree: ET.ElementTree) -> None:
+def serialize_content_node(node: ET.Element) -> str:
+    content_uid = node.get("contentuid", "")
+    version = node.get("version", "")
+    text = escape(node.text or "")
+    return f'  <content contentuid="{escape(content_uid)}" version="{escape(version)}">{text}</content>'
+
+
+def write_xml(path: Path, xml_tree: ET.ElementTree, xml_declaration: str, content_list_opening_tag: str) -> None:
     indent_xml(xml_tree.getroot())
-    xml_bytes = ET.tostring(xml_tree.getroot(), encoding="utf-8", xml_declaration=True, short_empty_elements=True)
-    path.write_bytes(b"\xef\xbb\xbf" + xml_bytes)
+    content_lines = [serialize_content_node(node) for node in xml_tree.getroot().findall("./content")]
+    xml_text = "\n".join([xml_declaration, content_list_opening_tag, *content_lines, "</contentList>", ""])
+    path.write_bytes(b"\xef\xbb\xbf" + xml_text.encode("utf-8"))
 
 
 def run_validation(xml_path: Path) -> None:
@@ -93,11 +114,11 @@ def main() -> int:
     edits_path = Path(args.edits_path).resolve()
 
     try:
-        russian_document = read_xml_document(russian_path)
+        russian_document, xml_declaration, content_list_opening_tag = read_xml_document(russian_path)
         if temporary_russian_path.exists():
             temporary_russian_path.unlink()
         temporary_russian_path.write_bytes(russian_path.read_bytes())
-        russian_document = read_xml_document(temporary_russian_path)
+        russian_document, xml_declaration, content_list_opening_tag = read_xml_document(temporary_russian_path)
 
         if not edits_path.exists():
             raise FileNotFoundError(f"Edits file was not found: '{edits_path}'.")
@@ -164,7 +185,7 @@ def main() -> int:
             node_map[content_uid] = new_node
             added_entries.append(content_uid)
 
-        write_xml(temporary_russian_path, russian_document)
+        write_xml(temporary_russian_path, russian_document, xml_declaration, content_list_opening_tag)
         run_validation(temporary_russian_path)
         russian_path.write_bytes(temporary_russian_path.read_bytes())
     except Exception as exc:
