@@ -12,6 +12,9 @@ Approval/clarification:
 - ask once, no repetition
 - binary -> yes/no
 - multiple -> numbered options + brief context
+- ask dependent questions sequentially, not in one message
+- if one decision changes or gates the next step, ask the prerequisite decision first and wait for the answer before asking the next one
+- do not combine branch selection with operational approval in the same message
 
 Formatting:
 - File links in repo docs/checklists: relative paths, `/`, spaces as `%20`.

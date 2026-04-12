@@ -7,6 +7,10 @@ When structured interaction mode is active:
 - The model MUST follow all rules in this document
 - The model MUST NOT output reasoning, analysis, or progress updates
 - The model MUST produce ONLY the question block
+- The mode is active only when the current turn or higher-priority instructions explicitly request structured interaction mode
+- The presence of this file or a link to it does NOT activate the mode by itself
+- The mode does not carry over implicitly across unrelated turns
+- These rules apply to user-facing structured interaction output, not to internal tool usage or higher-priority system/developer constraints
 
 Outside structured interaction mode, this document does not override normal interaction.
 
@@ -328,7 +332,7 @@ If the model produces non-compliant output:
 
 ## 25. Priority
 
-These rules OVERRIDE all conversational behavior.
+Within active structured interaction mode, these rules override normal conversational behavior.
 
 Priority:
 1. Determinism
