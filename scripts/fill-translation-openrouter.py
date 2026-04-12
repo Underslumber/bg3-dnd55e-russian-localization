@@ -9,14 +9,19 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
+from urllib import parse
 from urllib import error, request
 
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
+OPENROUTER_GENERATION_URL = "https://openrouter.ai/api/v1/generation"
 DEFAULT_CANDIDATES_PATH = "build/translation-diff/candidates.json"
 DEFAULT_GLOSSARY_PATH = "glossary/glossary.normalized.json"
+DEFAULT_USAGE_REPORT_PATH = "build/translation-diff/openrouter-usage.json"
 DEFAULT_BATCH_SIZE = 20
 DEFAULT_MAX_BATCH_CHARS = 6000
 DEFAULT_RETRIES = 3
@@ -43,6 +48,9 @@ SYSTEM_PROMPT = (
     "- Preserve placeholders, numbers, variables, XML/HTML tags, LSTag tags, bracketed values like [1], and line breaks.\n"
     "- Keep terminology consistent.\n"
     "- Return only valid JSON.\n\n"
+    "Glossary format:\n"
+    "- Plain text lines in the form `English => Russian`.\n"
+    "- Use each rule as an exact terminology mapping when the English source term appears.\n\n"
     'Output format:\n[{"id":"...","ru":"..."}]'
 )
 
@@ -90,6 +98,13 @@ def parse_args() -> argparse.Namespace:
         default="",
         dest="output_path",
         help="Where to write the filled candidates JSON. Defaults to in-place update.",
+    )
+    parser.add_argument(
+        "-UsageReportPath",
+        "--usage-report-path",
+        default=DEFAULT_USAGE_REPORT_PATH,
+        dest="usage_report_path",
+        help="Where to write the OpenRouter usage/cost JSON report.",
     )
     parser.add_argument(
         "-BatchSize",
@@ -154,11 +169,76 @@ def read_json(path: Path) -> Any:
 
 
 def write_json(path: Path, payload: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def format_usd(value: Decimal) -> str:
+    return f"{value.quantize(Decimal('0.000001'))} USD"
+
+
+def parse_decimal(value: Any) -> Decimal:
+    if value in (None, ""):
+        return Decimal("0")
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, ValueError, TypeError):
+        return Decimal("0")
+
+
+def openrouter_request(
+    url: str,
+    *,
+    method: str,
+    api_key: str,
+    payload: Any | None = None,
+) -> dict[str, Any]:
+    request_data = None
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "bg3-dnd55e-russian-localization/1.0",
+    }
+    if payload is not None:
+        request_data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+    req = request.Request(
+        url,
+        data=request_data,
+        headers=headers,
+        method=method,
+    )
+
+    with request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+        return json.loads(response.read().decode("utf-8"))
 
 
 def normalize_multiline_text(value: Any) -> str:
     return str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+
+
+def glossary_term_matches_text(source_term: str, text: str) -> bool:
+    if not source_term or not text:
+        return False
+
+    escaped_term = re.escape(source_term)
+    if re.search(r"[A-Za-z]", source_term):
+        pattern = rf"(?<![A-Za-z]){escaped_term}(?![A-Za-z])"
+        return re.search(pattern, text, flags=re.IGNORECASE) is not None
+
+    return source_term.lower() in text.lower()
+
+
+def glossary_term_match_spans(source_term: str, text: str) -> list[tuple[int, int]]:
+    if not source_term or not text:
+        return []
+
+    escaped_term = re.escape(source_term)
+    if re.search(r"[A-Za-z]", source_term):
+        pattern = rf"(?<![A-Za-z]){escaped_term}(?![A-Za-z])"
+        return [(match.start(), match.end()) for match in re.finditer(pattern, text, flags=re.IGNORECASE)]
+
+    return [(match.start(), match.end()) for match in re.finditer(escaped_term, text, flags=re.IGNORECASE)]
 
 
 def read_localization_entries(path: Path) -> dict[str, dict[str, str]]:
@@ -218,15 +298,39 @@ def build_reference_translation_map(reference_russian_path: Path) -> dict[str, s
 
 
 def select_relevant_glossary(glossary: dict[str, str], texts: list[str]) -> dict[str, str]:
-    lowered_texts = [text.lower() for text in texts if text]
-    if not lowered_texts:
+    normalized_texts = [normalize_multiline_text(text) for text in texts if text]
+    if not normalized_texts:
         return {}
 
+    selected_terms: set[str] = set()
+    sorted_terms = sorted(glossary.keys(), key=len, reverse=True)
+
+    for text in normalized_texts:
+        matched_terms: list[tuple[str, list[tuple[int, int]]]] = []
+        for source_term in sorted_terms:
+            spans = glossary_term_match_spans(source_term, text)
+            if spans:
+                matched_terms.append((source_term, spans))
+
+        chosen_terms: list[tuple[str, list[tuple[int, int]]]] = []
+        for source_term, spans in matched_terms:
+            fully_covered = True
+            for start, end in spans:
+                if not any(
+                    chosen_start <= start and end <= chosen_end
+                    for _, chosen_spans in chosen_terms
+                    for chosen_start, chosen_end in chosen_spans
+                ):
+                    fully_covered = False
+                    break
+
+            if not fully_covered:
+                chosen_terms.append((source_term, spans))
+                selected_terms.add(source_term)
+
     relevant: dict[str, str] = {}
-    for source, target in sorted(glossary.items(), key=lambda item: len(item[0]), reverse=True):
-        source_lower = source.lower()
-        if any(source_lower in text for text in lowered_texts):
-            relevant[source] = target
+    for source_term in sorted(selected_terms, key=lambda value: (-len(value), value.lower(), value)):
+        relevant[source_term] = glossary[source_term]
     return relevant
 
 
@@ -403,9 +507,17 @@ def build_batches(jobs: list[dict[str, Any]], batch_size: int, max_batch_chars: 
 
 
 def build_user_prompt(items: list[dict[str, str]], glossary: dict[str, str]) -> str:
-    glossary_json = json.dumps(glossary, ensure_ascii=False, separators=(",", ":"))
     items_json = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
-    return f"Glossary (JSON dictionary):\n{glossary_json}\n\nInput:\n{items_json}"
+    glossary_text = build_compact_glossary_text(glossary)
+    return f"Glossary:\n{glossary_text}\n\nInput:\n{items_json}"
+
+
+def build_compact_glossary_text(glossary: dict[str, str]) -> str:
+    lines = [
+        f"{source_term} => {target_term}"
+        for source_term, target_term in sorted(glossary.items(), key=lambda item: (-len(item[0]), item[0].lower(), item[0]))
+    ]
+    return "\n".join(lines)
 
 
 def extract_message_text(payload: dict[str, Any]) -> str:
@@ -474,6 +586,93 @@ def parse_translation_response(raw_text: str, expected_ids: list[str]) -> dict[s
     return result
 
 
+def extract_usage(payload: dict[str, Any]) -> dict[str, int]:
+    usage = payload.get("usage")
+    if not isinstance(usage, dict):
+        return {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+            "total_tokens": 0,
+        }
+
+    prompt_tokens = int(usage.get("prompt_tokens") or 0)
+    completion_tokens = int(usage.get("completion_tokens") or 0)
+    reasoning_tokens = int(usage.get("reasoning_tokens") or 0)
+    total_tokens = int(usage.get("total_tokens") or (prompt_tokens + completion_tokens + reasoning_tokens))
+    return {
+        "prompt_tokens": prompt_tokens,
+        "completion_tokens": completion_tokens,
+        "reasoning_tokens": reasoning_tokens,
+        "total_tokens": total_tokens,
+    }
+
+
+def fetch_model_pricing(model: str, api_key: str) -> dict[str, Decimal]:
+    payload = openrouter_request(
+        OPENROUTER_MODELS_URL,
+        method="GET",
+        api_key=api_key,
+    )
+    models = payload.get("data")
+    if not isinstance(models, list):
+        raise ValueError("OpenRouter models response does not contain 'data'.")
+
+    for item in models:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("id", "")).strip() != model:
+            continue
+
+        pricing = item.get("pricing")
+        if not isinstance(pricing, dict):
+            raise ValueError(f"OpenRouter model '{model}' does not contain pricing information.")
+
+        return {
+            "prompt": parse_decimal(pricing.get("prompt")),
+            "completion": parse_decimal(pricing.get("completion")),
+            "request": parse_decimal(pricing.get("request")),
+            "internal_reasoning": parse_decimal(pricing.get("internal_reasoning")),
+        }
+
+    raise ValueError(f"OpenRouter model '{model}' was not found in /models response.")
+
+
+def estimate_cost_from_usage(
+    usage: dict[str, int],
+    pricing: dict[str, Decimal],
+) -> Decimal:
+    estimated_cost = Decimal("0")
+    estimated_cost += Decimal(usage.get("prompt_tokens", 0)) * pricing.get("prompt", Decimal("0"))
+    estimated_cost += Decimal(usage.get("completion_tokens", 0)) * pricing.get("completion", Decimal("0"))
+    estimated_cost += Decimal(usage.get("reasoning_tokens", 0)) * pricing.get("internal_reasoning", Decimal("0"))
+    estimated_cost += pricing.get("request", Decimal("0"))
+    return estimated_cost
+
+
+def fetch_generation_stats(generation_id: str, api_key: str) -> dict[str, Any]:
+    last_error: Exception | None = None
+    for attempt in range(1, 6):
+        try:
+            payload = openrouter_request(
+                f"{OPENROUTER_GENERATION_URL}?id={parse.quote(generation_id, safe='')}",
+                method="GET",
+                api_key=api_key,
+            )
+            data = payload.get("data")
+            if not isinstance(data, dict):
+                raise ValueError("OpenRouter generation response does not contain 'data'.")
+            return data
+        except error.HTTPError as exc:
+            last_error = exc
+            if exc.code != 404 or attempt >= 5:
+                raise
+            time.sleep(min(attempt * 2, 8))
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f"Failed to fetch generation stats for '{generation_id}'.")
+
+
 def post_openrouter(
     model: str,
     api_key: str,
@@ -506,18 +705,12 @@ def post_openrouter(
             },
         }
 
-    req = request.Request(
+    return openrouter_request(
         OPENROUTER_URL,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
         method="POST",
+        api_key=api_key,
+        payload=payload,
     )
-
-    with request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
-        return json.loads(response.read().decode("utf-8"))
 
 
 def translate_batch(
@@ -526,7 +719,8 @@ def translate_batch(
     model: str,
     api_key: str,
     retries: int,
-) -> dict[str, str]:
+    model_pricing: dict[str, Decimal],
+) -> tuple[dict[str, str], dict[str, Any]]:
     items = [{"id": job["contentuid"], "english": job["englishText"]} for job in batch]
     relevant_glossary = select_relevant_glossary(glossary, [job["englishText"] for job in batch])
     user_prompt = build_user_prompt(items, relevant_glossary)
@@ -561,6 +755,14 @@ def translate_batch(
             )
             response_text = extract_message_text(response_payload)
             translations = parse_translation_response(response_text, expected_ids)
+            usage = extract_usage(response_payload)
+            generation_id = str(response_payload.get("id", "")).strip()
+            generation_stats: dict[str, Any] = {}
+            if generation_id:
+                try:
+                    generation_stats = fetch_generation_stats(generation_id, api_key)
+                except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError):
+                    generation_stats = {}
 
             for item in items:
                 item_id = item["id"]
@@ -581,7 +783,31 @@ def translate_batch(
                 )
                 translations[item_id] = normalized_translation
 
-            return translations
+            actual_cost = parse_decimal(generation_stats.get("total_cost"))
+            native_prompt_tokens = int(generation_stats.get("native_tokens_prompt") or 0)
+            native_completion_tokens = int(generation_stats.get("native_tokens_completion") or 0)
+            native_reasoning_tokens = int(generation_stats.get("native_tokens_reasoning") or 0)
+            estimated_cost = estimate_cost_from_usage(
+                usage={
+                    "prompt_tokens": native_prompt_tokens or usage["prompt_tokens"],
+                    "completion_tokens": native_completion_tokens or usage["completion_tokens"],
+                    "reasoning_tokens": native_reasoning_tokens or usage["reasoning_tokens"],
+                },
+                pricing=model_pricing,
+            )
+
+            batch_stats = {
+                "generation_id": generation_id,
+                "provider_name": str(generation_stats.get("provider_name") or ""),
+                "usage": usage,
+                "native_prompt_tokens": native_prompt_tokens,
+                "native_completion_tokens": native_completion_tokens,
+                "native_reasoning_tokens": native_reasoning_tokens,
+                "actual_cost_usd": actual_cost,
+                "actual_cost_known": "total_cost" in generation_stats,
+                "estimated_cost_usd": estimated_cost,
+            }
+            return translations, batch_stats
         except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
             retry_feedback = str(exc)
             if "response content is empty or unsupported" in retry_feedback.lower():
@@ -623,6 +849,7 @@ def main() -> int:
 
         candidates_path = Path(args.candidates_path).resolve()
         output_path = Path(args.output_path).resolve() if args.output_path.strip() else candidates_path
+        usage_report_path = Path(args.usage_report_path).resolve()
         glossary_path = Path(args.glossary_path).resolve()
         english_path = Path(args.english_path).resolve()
         russian_path = Path(args.russian_path).resolve()
@@ -639,6 +866,8 @@ def main() -> int:
         if not jobs:
             print("[fill-translation-openrouter.py] No translation jobs found. Nothing to do.")
             return 0
+
+        model_pricing = fetch_model_pricing(model, api_key)
 
         exact_translation_memory: dict[str, str] = {}
         if english_path.exists() and russian_path.exists():
@@ -657,6 +886,21 @@ def main() -> int:
             reference_translation_by_uid=reference_translation_by_uid,
         )
         prefilled_count = len(collected_translations)
+        total_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+            "total_tokens": 0,
+        }
+        total_native_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "reasoning_tokens": 0,
+        }
+        total_actual_cost = Decimal("0")
+        total_estimated_cost = Decimal("0")
+        actual_cost_available = False
+        batch_reports: list[dict[str, Any]] = []
 
         if representative_jobs:
             batches = build_batches(
@@ -672,28 +916,117 @@ def main() -> int:
                     model=model,
                     api_key=api_key,
                     retries=args.retries,
+                    model_pricing=model_pricing,
                 )
+                translated_batch, batch_stats = batch_translations
 
                 for representative_job in batch:
                     representative_uid = representative_job["contentuid"]
-                    translated_text = batch_translations[representative_uid]
+                    translated_text = translated_batch[representative_uid]
                     for grouped_job in grouped_jobs_by_english[representative_job["englishText"]]:
                         collected_translations[grouped_job["contentuid"]] = translated_text
 
+                usage = batch_stats["usage"]
+                total_usage["prompt_tokens"] += usage["prompt_tokens"]
+                total_usage["completion_tokens"] += usage["completion_tokens"]
+                total_usage["reasoning_tokens"] += usage["reasoning_tokens"]
+                total_usage["total_tokens"] += usage["total_tokens"]
+                total_native_usage["prompt_tokens"] += int(batch_stats["native_prompt_tokens"])
+                total_native_usage["completion_tokens"] += int(batch_stats["native_completion_tokens"])
+                total_native_usage["reasoning_tokens"] += int(batch_stats["native_reasoning_tokens"])
+                total_estimated_cost += batch_stats["estimated_cost_usd"]
+                if batch_stats["actual_cost_known"]:
+                    total_actual_cost += batch_stats["actual_cost_usd"]
+                    actual_cost_available = True
+                batch_reports.append(
+                    {
+                        "batchIndex": index,
+                        "batchCount": len(batches),
+                        "representativeEntries": len(batch),
+                        "providerName": batch_stats["provider_name"] or None,
+                        "generationId": batch_stats["generation_id"] or None,
+                        "usage": {
+                            "promptTokens": usage["prompt_tokens"],
+                            "completionTokens": usage["completion_tokens"],
+                            "reasoningTokens": usage["reasoning_tokens"],
+                            "totalTokens": usage["total_tokens"],
+                        },
+                        "nativeUsage": {
+                            "promptTokens": int(batch_stats["native_prompt_tokens"]),
+                            "completionTokens": int(batch_stats["native_completion_tokens"]),
+                            "reasoningTokens": int(batch_stats["native_reasoning_tokens"]),
+                        },
+                        "cost": {
+                            "estimatedUsd": str(batch_stats["estimated_cost_usd"]),
+                            "actualUsd": str(batch_stats["actual_cost_usd"]),
+                            "actualKnown": bool(batch_stats["actual_cost_known"]),
+                        },
+                    }
+                )
+
                 print(
                     "[fill-translation-openrouter.py] "
-                    f"Translated batch {index}/{len(batches)}. RepresentativeEntries={len(batch)}."
+                    f"Translated batch {index}/{len(batches)}. RepresentativeEntries={len(batch)}; "
+                    f"PromptTokens={usage['prompt_tokens']}; CompletionTokens={usage['completion_tokens']}; "
+                    f"ReasoningTokens={usage['reasoning_tokens']}; "
+                    f"EstimatedCost={format_usd(batch_stats['estimated_cost_usd'])}; "
+                    f"ActualCost={format_usd(batch_stats['actual_cost_usd'])}; "
+                    f"Provider='{batch_stats['provider_name'] or 'unknown'}'."
                 )
 
         translated_updates, translated_adds = apply_translations(candidates, collected_translations)
         write_json(output_path, candidates)
+        usage_report = {
+            "model": model,
+            "pricing": {
+                "promptPerTokenUsd": str(model_pricing["prompt"]),
+                "completionPerTokenUsd": str(model_pricing["completion"]),
+                "reasoningPerTokenUsd": str(model_pricing["internal_reasoning"]),
+                "requestUsd": str(model_pricing["request"]),
+                "promptPerMillionUsd": str(model_pricing["prompt"] * Decimal("1000000")),
+                "completionPerMillionUsd": str(model_pricing["completion"] * Decimal("1000000")),
+                "reasoningPerMillionUsd": str(model_pricing["internal_reasoning"] * Decimal("1000000")),
+            },
+            "summary": {
+                "prefilled": prefilled_count,
+                "translatedUpdates": translated_updates,
+                "translatedAdds": translated_adds,
+                "promptTokens": total_usage["prompt_tokens"],
+                "completionTokens": total_usage["completion_tokens"],
+                "reasoningTokens": total_usage["reasoning_tokens"],
+                "totalTokens": total_usage["total_tokens"],
+                "nativePromptTokens": total_native_usage["prompt_tokens"],
+                "nativeCompletionTokens": total_native_usage["completion_tokens"],
+                "nativeReasoningTokens": total_native_usage["reasoning_tokens"],
+                "estimatedCostUsd": str(total_estimated_cost),
+                "actualCostUsd": str(total_actual_cost),
+                "actualCostKnown": actual_cost_available,
+            },
+            "batches": batch_reports,
+        }
+        write_json(usage_report_path, usage_report)
     except Exception as exc:
         print(exc, file=sys.stderr)
         return 1
 
     print(
         "[fill-translation-openrouter.py] Filled translation candidates successfully. "
-        f"Prefilled={prefilled_count}; Updates={translated_updates}; Adds={translated_adds}; Output='{output_path}'."
+        f"Prefilled={prefilled_count}; Updates={translated_updates}; Adds={translated_adds}; "
+        f"Output='{output_path}'; UsageReport='{usage_report_path}'."
+    )
+    print(
+        "[fill-translation-openrouter.py] Usage summary: "
+        f"Model='{model}'; PromptTokens={total_usage['prompt_tokens']}; "
+        f"CompletionTokens={total_usage['completion_tokens']}; ReasoningTokens={total_usage['reasoning_tokens']}; "
+        f"TotalTokens={total_usage['total_tokens']}; NativePromptTokens={total_native_usage['prompt_tokens']}; "
+        f"NativeCompletionTokens={total_native_usage['completion_tokens']}; "
+        f"NativeReasoningTokens={total_native_usage['reasoning_tokens']}; "
+        f"EstimatedCost={format_usd(total_estimated_cost)}; "
+        f"ActualCost={format_usd(total_actual_cost) if actual_cost_available else 'n/a'}; "
+        f"PricingPerM=prompt:{format_usd(model_pricing['prompt'] * Decimal('1000000'))}, "
+        f"completion:{format_usd(model_pricing['completion'] * Decimal('1000000'))}, "
+        f"reasoning:{format_usd(model_pricing['internal_reasoning'] * Decimal('1000000'))}, "
+        f"request:{format_usd(model_pricing['request'])}."
     )
     return 0
 
