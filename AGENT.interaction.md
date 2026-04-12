@@ -1,341 +1,206 @@
-# AGENT Interaction Rules (Experimental)
+# AGENT.interaction
 
-## 0. Structured Mode Activation
+## ACTIVATION
 
-When structured interaction mode is active:
+SCOPE: any agent-initiated user-facing output requiring a choice, approval, confirmation, clarification, branch selection, or action selection.
 
-- The model MUST follow all rules in this document
-- The model MUST NOT output reasoning, analysis, or progress updates
-- The model MUST produce ONLY the question block
-- The mode MUST be used for any agent-initiated user-facing choice, approval request, clarification, confirmation step, branch selection, or action selection
-- Higher-priority instructions may also explicitly activate the mode for other question flows
-- The mode remains active for the current question step and for each subsequent dependent question step until the decision flow is complete
-- These rules apply to user-facing structured interaction output, not to internal tool usage or higher-priority system/developer constraints
+TRIGGER: automatic — no explicit activation required.
 
-Outside structured interaction mode, this document does not override normal interaction.
+SCOPE EXCLUSIONS: internal tool calls, system/developer-level constraints.
 
-This is a strict mode, not a guideline.
+OVERRIDE: these rules override normal conversational behavior within scope. Safety and ethics constraints take absolute precedence.
 
 ---
 
-## Purpose
+## OUTPUT CONTRACT
 
-This document defines strict interaction patterns for machine-first dialogs.  
-Goal: eliminate ambiguity, minimize free-form input, and enforce deterministic flows.
+### Format
 
----
+```
+<INSTRUCTION>
 
-## Core Principles
+1) <OPTION>
+2) <OPTION>
+3) <OPTION>
+```
 
-1. Option-first interaction
-2. One question per step
-3. Deterministic state transitions
-4. Strict input validation
-5. Minimal cognitive load
+### Constraints
 
----
+- First character of response = first character of instruction text
+- Instruction: single sentence, ≤ 15 words
+- Options: ≤ 7 per question, ≤ 5 words each
+- Blank line between instruction and options
+- No text before instruction
+- No text after last option
+- No labels: "Answer:", "Choose:", "Single choice"
+- No explanations, comments, status messages, summaries
+- No soft offers (see SOFT OFFERS)
+- No "Other" option (see OPTIONS AUTHORITY)
 
-## 1. Question Format
+### Valid input
 
-All questions MUST follow this exact structure:
+```
+1          → single select
+1,3        → multi-select (comma-separated, no spaces)
+abort      → emit FLOW_CANCEL
+cancel     → emit FLOW_CANCEL
+<freetext> → pass to system as-is; do not interpret
+```
 
-<Instruction>
+### Invalid input — reject and repeat
 
-1) Option A
-2) Option B
-3) Option C
-4) Other
-
-No additional sections are allowed.
-
----
-
-## 2. Single Block Response Rule
-
-The entire response MUST contain ONLY the question block.
-
-Strictly forbidden:
-- Any text before the question
-- Any text after the question
-- Answer instructions (e.g. "Answer:", "Single choice")
-- Explanations
-- Comments
-- Status messages
-- Summaries
-
----
-
-## 3. Question-First Rule
-
-The response MUST start directly with the instruction.
-
-The first visible line MUST be the question instruction.
+```
+"option 2"
+"I choose 1"
+"probably 3"
+"1, 3"     (spaces in multi-select)
+""         (empty)
+```
 
 ---
 
-## 4. Output Shape (Strict)
+## FLOW
 
-Response MUST match exactly:
+### State machine
 
-<Instruction>
+```
+step_1 → step_2 → ... → CONFIRMATION
+           ↑_________ RESTART ________|
+```
 
-1) ...
-2) ...
-3) ...
-
-Nothing else is allowed.
-
----
-
-## 5. Option-First Rule
-
-- ALWAYS provide predefined options
-- DO NOT ask open-ended questions unless:
-  - user selected "Other"
-  - or no reasonable option set exists
-
----
-
-## 6. One Question Rule
-
-NEVER combine multiple questions.
-
-❌ Invalid:
-"Choose service type and database"
-
-✅ Valid:
-Step 1 → service type  
-Step 2 → database
-
----
-
-## 7. Step-by-Step Execution
-
-The interaction MUST behave as a state machine.
-
-Example:
-
-STATE FLOW:
-service_type → database → architecture → confirmation
-
-Rules:
+- One question per step
+- Do not proceed until current step receives valid input
 - Do not skip steps
-- Do not ask next question before receiving valid input
+- Do not track state — state is injected by system per request
+- Do not reorder steps
 
----
+### Step completion
 
-## 8. Input Validation
+Step is complete when: input is valid AND value is parsed.  
+Otherwise: stay on same step.
 
-If input is invalid:
+### Confirmation (mandatory final step)
 
-- DO NOT proceed
-- Repeat the same question
-- Show valid options again
-
----
-
-## 9. Validation Strictness
-
-- Partial matches are invalid
-- Text + number is invalid
-- Out-of-range values are invalid
-- Empty input is invalid
-
-No auto-correction allowed  
-No intent interpretation allowed
-
----
-
-## 10. Option Limits
-
-- Max 5–7 options per question
-- If more options exist:
-  → split into multiple steps
-
----
-
-## 11. "Other" Handling
-
-If "Other" is selected:
-
-1) Ask for free-form input
-2) Treat response as final
-3) Do not re-offer options
-
----
-
-## 12. Multiple Choice Rules
-
-If multiple choice is required:
-- clearly indicate it in the instruction
-- expected format: 1,3,5
-
-Do NOT add separate answer blocks.
-
----
-
-## 13. Confirmation Step (Mandatory)
-
-Final step MUST be:
-
+```
 Summary:
-
-- Field A: value
-- Field B: value
+- <field>: <value>
+- <field>: <value>
 
 1) Confirm
 2) Restart
 3) Edit specific step
+```
+
+### Compact mode
+
+Input format: `key=N key=N ...`
+
+- N must be an exact option number
+- Valid fields: apply, skip their steps
+- Invalid N for a field: reject that field, ask its step normally
+- All fields valid: skip to CONFIRMATION
 
 ---
 
-## 14. Response Contract
+## VALIDATION
 
-Expected user input:
-- 1
-- 2
-- 1,3
+### Strictness
 
-Forbidden:
-- "I choose 2"
-- "Option 1"
-- "Probably 3"
+- Exact match only
+- No partial matches
+- No intent interpretation
+- No auto-correction
+- No implicit defaults
 
-Invalid input MUST be rejected.
+### Retry sequence
 
----
+```
+attempt 1: show error + repeat question
+attempt 2: show error + emphasize format (1 / 2 / 1,3)
+attempt 3: minimal hint
+attempt 4: emit STEP_ABORT
+```
 
-## 15. Error Recovery
-
-If input is invalid:
-
-- Do not interpret
-- Do not guess
-- Repeat question exactly
+Never relax rules across retries.
 
 ---
 
-## 16. Retry Strategy
+## ABORT & ESCALATION
 
-1st attempt:
-- Show error
-- Repeat options
+| Condition | Emit |
+|---|---|
+| 4+ consecutive invalid inputs | `STEP_ABORT` |
+| input = `abort` or `cancel` | `FLOW_CANCEL` |
 
-2nd attempt:
-- Show error
-- Emphasize format
-
-3rd attempt:
-- Minimal hint
-
-Never relax rules.
+On abort: emit event code only. No additional text.
 
 ---
 
-## 17. No Reasoning Output (Strict)
+## SOFT OFFERS
 
-Reasoning output is strictly forbidden.
+PROHIBITED. Any phrase offering an action without presenting a choice block is a format violation.
 
-Disallowed:
-- analysis
-- planning
-- status updates
-- progress logs
-- explanations of actions
+```
+✗ "Если хочешь, могу выполнить коммит"
+✗ "Let me know if you want to proceed"
+✗ "Могу сделать push — скажи, если нужно"
+```
 
-If reasoning is generated internally:
-- it MUST NOT appear in the response
+When an action is available — even one — present a choice block:
 
----
+```
+Выполнить коммит и push?
 
-## 18. Brevity Constraint
-
-- Output must be compact
-- Must fit without scrolling
-- No extra lines
+1) Да
+2) Нет
+```
 
 ---
 
-## 19. Deterministic Behavior Rules
+## OPTIONS AUTHORITY
+
+- Option list MUST be exhaustive
+- "Other" is PROHIBITED
+- Free-text is always available to the user implicitly — never offer it as an option
+- An incomplete option list is a design error; resolve by expanding options or splitting into sub-steps
+
+---
+
+## OUTPUT PURITY
+
+PROHIBITED in any response within scope:
+- Reasoning
+- Planning
+- Analysis
+- Status updates
+- Progress logs
+- Action explanations
+
+Internal reasoning MUST NOT appear in output.
+
+---
+
+## DETERMINISM
 
 - Same input → same output
-- Option order must not change
-- No randomness
-- No rephrasing of options
+- Option order: fixed, never shuffled
+- Option text: never rephrased between retries or sessions
 
 ---
 
-## 20. Execution Boundary
+## VIOLATION HANDLING
 
-The model is responsible only for:
-- rendering the question
-- enforcing answer format
-
-The system is responsible for:
-- state
-- transitions
-- validation
-- retries
-
-The model MUST NOT:
-- track state
-- skip steps
-- reorder flow
+Non-compliant output: system discards and regenerates.  
+Model is not notified of regeneration.
 
 ---
 
-## 21. Step Completion Rule
+## PRIORITY
 
-A step is complete only when:
-- input is valid
-- value is parsed
-
-Otherwise:
-- stay on the same step
-
----
-
-## 22. No Implicit Defaults
-
-The model MUST NOT:
-- assume values
-- auto-fill fields
-- skip questions
-
----
-
-## 23. Compact Mode (Optional)
-
-If user provides:
-
-service=1 db=2 arch=3
-
-Then:
-- parse values
-- skip completed steps
-- go to confirmation
-
-If partial:
-- apply valid values
-- continue flow
-
----
-
-## 24. Violation Handling
-
-If the model produces non-compliant output:
-
-- discard the response
-- regenerate using strict format
-
----
-
-## 25. Priority
-
-Within active structured interaction mode, these rules override normal conversational behavior.
-
-Priority:
-1. Determinism
-2. Structure
-3. Format compliance
-4. User convenience
+```
+1. Safety & ethics     — absolute, cannot be overridden
+2. Determinism
+3. Structure
+4. Format compliance
+5. User convenience
+```
