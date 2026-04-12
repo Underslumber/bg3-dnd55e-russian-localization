@@ -51,7 +51,7 @@ SYSTEM_PROMPT = (
     "Glossary format:\n"
     "- Plain text lines in the form `English => Russian`.\n"
     "- Use each rule as an exact terminology mapping when the English source term appears.\n\n"
-    'Output format:\n[{"id":"...","ru":"..."}]'
+    'Output format:\n{"translations":[{"id":"...","ru":"..."}]}'
 )
 
 
@@ -548,15 +548,22 @@ def extract_message_text(payload: dict[str, Any]) -> str:
 def parse_translation_response(raw_text: str, expected_ids: list[str]) -> dict[str, str]:
     candidate_text = raw_text.strip()
     if "```" in candidate_text:
-        start = candidate_text.find("[")
-        end = candidate_text.rfind("]")
-        if start == -1 or end == -1 or end < start:
-            raise ValueError("Model response did not contain a JSON array.")
-        candidate_text = candidate_text[start : end + 1]
+        object_start = candidate_text.find("{")
+        object_end = candidate_text.rfind("}")
+        array_start = candidate_text.find("[")
+        array_end = candidate_text.rfind("]")
+        if object_start != -1 and object_end != -1 and object_end > object_start:
+            candidate_text = candidate_text[object_start : object_end + 1]
+        elif array_start != -1 and array_end != -1 and array_end > array_start:
+            candidate_text = candidate_text[array_start : array_end + 1]
+        else:
+            raise ValueError("Model response did not contain valid JSON.")
 
     data = json.loads(candidate_text)
+    if isinstance(data, dict):
+        data = data.get("translations")
     if not isinstance(data, list):
-        raise ValueError("Model response JSON must be an array.")
+        raise ValueError("Model response JSON must be an array or an object with 'translations'.")
     if len(data) != len(expected_ids):
         raise ValueError(
             f"Model response item count mismatch: expected {len(expected_ids)}, got {len(data)}."
@@ -691,14 +698,21 @@ def post_openrouter(
                 "name": "translation_batch",
                 "strict": True,
                 "schema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "additionalProperties": False,
-                        "required": ["id", "ru"],
-                        "properties": {
-                            "id": {"type": "string"},
-                            "ru": {"type": "string"},
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["translations"],
+                    "properties": {
+                        "translations": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": False,
+                                "required": ["id", "ru"],
+                                "properties": {
+                                    "id": {"type": "string"},
+                                    "ru": {"type": "string"},
+                                },
+                            },
                         },
                     },
                 },
