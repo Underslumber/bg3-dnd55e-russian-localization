@@ -3,7 +3,7 @@
 ## Execution Model (MUST)
 - Read this file first; treat as system-level constraints.
 - Reusable general rules (MUST read and apply): [AGENT.common.md](AGENT.common.md)
-- Reusable structured interaction rules (read and apply only when structured interaction mode is explicitly activated; do not activate implicitly because the file exists): [AGENT.interaction.md](AGENT.interaction.md)
+- Reusable structured interaction rules (MUST read and apply for agent-initiated user-facing questions, approvals, clarifications, confirmations, and branch/action choices): [AGENT.interaction.md](AGENT.interaction.md)
 - Priority:
   1. User instructions
   2. AGENTS.md
@@ -20,6 +20,7 @@
 - After approval → commit + push immediately.
 - Commit messages: Russian, factual (what was done).
 - Branch (`fix/*` or `feat/*`): ask once before the first file-changing task that may lead to commit; reuse decision for all subsequent tasks in same dialogue.
+- Branch selection question MUST use `AGENT.interaction.md` format.
 - If branch selection is required, ask for it in a separate message before any follow-up question about running scripts, applying changes, or other operational actions.
 - Do not combine branch choice with script/action approval in one message.
 

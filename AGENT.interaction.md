@@ -7,9 +7,9 @@ When structured interaction mode is active:
 - The model MUST follow all rules in this document
 - The model MUST NOT output reasoning, analysis, or progress updates
 - The model MUST produce ONLY the question block
-- The mode is active only when the current turn or higher-priority instructions explicitly request structured interaction mode
-- The presence of this file or a link to it does NOT activate the mode by itself
-- The mode does not carry over implicitly across unrelated turns
+- The mode MUST be used for any agent-initiated user-facing choice, approval request, clarification, confirmation step, branch selection, or action selection
+- Higher-priority instructions may also explicitly activate the mode for other question flows
+- The mode remains active for the current question step and for each subsequent dependent question step until the decision flow is complete
 - These rules apply to user-facing structured interaction output, not to internal tool usage or higher-priority system/developer constraints
 
 Outside structured interaction mode, this document does not override normal interaction.
