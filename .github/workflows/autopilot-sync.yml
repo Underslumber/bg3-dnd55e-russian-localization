@@ -516,7 +516,32 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($cost)) {
             $cost = "0"
           }
-          $costDisplay = '$' + $cost
+          $costDisplay = '$' + $cost + "🇺🇸"
+          try {
+            $usdCost = [decimal]::Parse($cost, [System.Globalization.CultureInfo]::InvariantCulture)
+          }
+          catch {
+            $usdCost = [decimal]::Zero
+          }
+          try {
+            $cbrResponse = Invoke-WebRequest -UseBasicParsing -Uri "https://www.cbr.ru/scripts/XML_daily.asp" -TimeoutSec 10
+            [xml]$cbrXml = $cbrResponse.Content
+            $usdNode = $cbrXml.ValCurs.Valute | Where-Object { $_.CharCode -eq "USD" } | Select-Object -First 1
+            if ($null -ne $usdNode) {
+              $nominalText = if ($null -ne $usdNode.Nominal) { $usdNode.Nominal.ToString() } else { "1" }
+              $valueRaw = if ($null -ne $usdNode.Value) { $usdNode.Value.ToString() } else { "0" }
+              $nominal = [decimal]::Parse($nominalText, [System.Globalization.CultureInfo]::InvariantCulture)
+              $rateText = $valueRaw.Replace(',', '.')
+              $marketRate = [decimal]::Parse($rateText, [System.Globalization.CultureInfo]::InvariantCulture)
+              if ($nominal -gt 0) {
+                $rubCost = [decimal]::Round(($usdCost * ($marketRate / $nominal) * [decimal]"1.2"), 4, [System.MidpointRounding]::AwayFromZero)
+                $rubText = $rubCost.ToString("0.####", [System.Globalization.CultureInfo]::InvariantCulture)
+                $costDisplay += "| ₽$rubText🇷🇺"
+              }
+            }
+          }
+          catch {
+          }
           $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.effective_mode }}")
           $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
           $commitCreated = if ("${{ needs.run_sync.outputs.commit_created }}" -eq "true") { "да" } else { "нет" }
