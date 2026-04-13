@@ -469,9 +469,11 @@ jobs:
 
       - name: Fail workflow on autopilot error
         if: always() && steps.report.outputs.status == 'error'
+        env:
+          AUTOPILOT_ERROR_MESSAGE: ${{ steps.report.outputs.error_message }}
         run: |
           $ErrorActionPreference = "Stop"
-          throw "${{ steps.report.outputs.error_message }}"
+          throw $env:AUTOPILOT_ERROR_MESSAGE
 
   notify_finish:
     runs-on: windows-latest
