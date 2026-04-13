@@ -4,8 +4,16 @@ from __future__ import annotations
 import argparse
 import json
 import os
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import urlopen
+import xml.etree.ElementTree as ET
 from typing import Any
+
+USD_RUB_RATE_URL = "https://www.cbr.ru/scripts/XML_daily.asp"
+USD_MARKUP_MULTIPLIER = Decimal("1.2")
+RUB_PRECISION = Decimal("0.0001")
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,12 +38,62 @@ def as_bool(value: str) -> bool:
     return value.strip().lower() == "true"
 
 
+def parse_decimal(value: Any) -> Decimal:
+    try:
+        return Decimal(str(value or "0"))
+    except (InvalidOperation, TypeError, ValueError):
+        return Decimal("0")
+
+
+def format_decimal(value: Decimal) -> str:
+    text = format(value, "f")
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text or "0"
+
+
+def format_decimal_max(value: Decimal, precision: Decimal) -> str:
+    return format_decimal(value.quantize(precision, rounding=ROUND_HALF_UP))
+
+
+def fetch_usd_rub_market_rate() -> Decimal | None:
+    try:
+        with urlopen(USD_RUB_RATE_URL, timeout=10) as response:
+            payload = response.read()
+    except (URLError, TimeoutError, OSError):
+        return None
+
+    root = ET.fromstring(payload)
+    for valute in root.findall("Valute"):
+        char_code = (valute.findtext("CharCode") or "").strip()
+        if char_code != "USD":
+            continue
+
+        nominal_text = (valute.findtext("Nominal") or "1").strip()
+        value_text = (valute.findtext("Value") or "0").strip().replace(",", ".")
+        nominal = parse_decimal(nominal_text)
+        value = parse_decimal(value_text)
+        if nominal == 0:
+            return None
+        return value / nominal
+
+    return None
+
+
 def format_cost(usage: dict[str, Any]) -> str:
+    usd_cost = Decimal("0")
     if bool(usage.get("actualCostKnown")):
-        return f"${usage.get('actualCostUsd') or '0'}"
-    if bool(usage.get("available")):
-        return f"${usage.get('estimatedCostUsd') or '0'}"
-    return "$0"
+        usd_cost = parse_decimal(usage.get("actualCostUsd"))
+    elif bool(usage.get("available")):
+        usd_cost = parse_decimal(usage.get("estimatedCostUsd"))
+
+    usd_part = f"${format_decimal(usd_cost)}🇺🇸"
+    market_rate = fetch_usd_rub_market_rate()
+    if market_rate is None:
+        return usd_part
+
+    rub_cost = (usd_cost * market_rate * USD_MARKUP_MULTIPLIER).quantize(RUB_PRECISION, rounding=ROUND_HALF_UP)
+    return f"{usd_part}| ₽{format_decimal_max(rub_cost, RUB_PRECISION)}🇷🇺"
 
 
 def main() -> int:
