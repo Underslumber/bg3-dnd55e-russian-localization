@@ -512,23 +512,54 @@ jobs:
           $costDisplay = '$' + $cost
           $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.effective_mode }}")
           $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
+          $commitCreated = if ("${{ needs.run_sync.outputs.commit_created }}" -eq "true") { "да" } else { "нет" }
+          $tagCreated = if ("${{ needs.run_sync.outputs.tag_created }}" -eq "true") { "да" } else { "нет" }
+          $encodedCommitCreated = [System.Net.WebUtility]::HtmlEncode($commitCreated)
+          $encodedTagCreated = [System.Net.WebUtility]::HtmlEncode($tagCreated)
+          $textLines = [System.Collections.Generic.List[string]]::new()
+          $textLines.Add("🏁 <b>Автопилот перевода завершён</b>")
+          $textLines.Add("<b>Статус:</b> <code>$encodedStatus</code>")
+          $textLines.Add("<b>Режим:</b> <code>$encodedMode</code>")
+          $textLines.Add("<b>Переведено записей:</b> <code>${{ needs.run_sync.outputs.translated_total }}</code>")
+          $textLines.Add("<b>Потрачено:</b> <code>$costDisplay</code>")
+          $textLines.Add("<b>Missing in Russian:</b> <code>${{ needs.run_sync.outputs.missing_count }}</code>")
+          $textLines.Add("<b>Version mismatches:</b> <code>${{ needs.run_sync.outputs.version_mismatch_count }}</code>")
+          $textLines.Add("<b>Stale only in Russian:</b> <code>${{ needs.run_sync.outputs.stale_count }}</code>")
+          $textLines.Add("<b>Коммит создан:</b> <code>$encodedCommitCreated</code>")
+          $textLines.Add("<b>Тег создан:</b> <code>$encodedTagCreated</code>")
 
           $tagLine = if ("${{ needs.run_sync.outputs.tag_created }}" -eq "true" -and "${{ needs.run_sync.outputs.tag_name }}") {
             $encodedTag = [System.Net.WebUtility]::HtmlEncode("${{ needs.run_sync.outputs.tag_name }}")
-            "<b>Тег:</b> <code>$encodedTag</code>`n"
+            "<b>Тег:</b> <code>$encodedTag</code>"
           }
           else {
             ""
+          }
+          if ($tagLine) {
+            $textLines.Add($tagLine)
           }
 
           $errorLine = if ("${{ needs.run_sync.outputs.status }}" -ne "success" -and "${{ needs.run_sync.outputs.error_message }}") {
             $encodedError = [System.Net.WebUtility]::HtmlEncode("${{ needs.run_sync.outputs.error_message }}")
-            "<b>Ошибка:</b> <code>$encodedError</code>`n"
+            "<b>Ошибка:</b> <code>$encodedError</code>"
           }
           else {
             ""
           }
+          if ($errorLine) {
+            $textLines.Add($errorLine)
+          }
 
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "🏁 <b>Автопилот перевода завершён</b>`n<b>Статус:</b> <code>$encodedStatus</code>`n<b>Режим:</b> <code>$encodedMode</code>`n<b>Переведено записей:</b> <code>${{ needs.run_sync.outputs.translated_total }}</code>`n<b>Потрачено:</b> <code>$costDisplay</code>`n<b>Missing in Russian:</b> <code>${{ needs.run_sync.outputs.missing_count }}</code>`n<b>Version mismatches:</b> <code>${{ needs.run_sync.outputs.version_mismatch_count }}</code>`n<b>Stale only in Russian:</b> <code>${{ needs.run_sync.outputs.stale_count }}</code>`n<b>Коммит создан:</b> <code>$(if ("${{ needs.run_sync.outputs.commit_created }}" -eq "true") { 'да' } else { 'нет' })</code>`n<b>Тег создан:</b> <code>$(if ("${{ needs.run_sync.outputs.tag_created }}" -eq "true") { 'да' } else { 'нет' })</code>`n$tagLine$errorLine<a href=`"$runUrl`">Открыть лог запуска</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
+          $textLines.Add("<a href=`"$runUrl`">Открыть лог запуска</a>")
+          $text = [string]::Join("`n", $textLines)
+          Write-Host "===== notify_finish telegram payload ====="
+          Write-Host $text
+          try {
+            .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
+          }
+          catch {
+            Write-Host "===== notify_finish telegram error ====="
+            Write-Host $_.Exception.Message
+            throw
+          }
