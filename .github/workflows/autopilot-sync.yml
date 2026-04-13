@@ -353,6 +353,21 @@ jobs:
           "stale_count=$($summary.staleOnlyInRussianCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "error_message=$errorMessage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+      - name: Print run report
+        if: always()
+        run: |
+          $ErrorActionPreference = "Stop"
+          Write-Host "===== build/autopilot/run-report.json ====="
+          Get-Content -Raw "build/autopilot/run-report.json"
+          if (Test-Path "build/translation-diff/summary.json") {
+            Write-Host "===== build/translation-diff/summary.json ====="
+            Get-Content -Raw "build/translation-diff/summary.json"
+          }
+          if (Test-Path "build/translation-diff/openrouter-usage.json") {
+            Write-Host "===== build/translation-diff/openrouter-usage.json ====="
+            Get-Content -Raw "build/translation-diff/openrouter-usage.json"
+          }
+
       - name: Configure git author
         if: steps.report.outputs.status == 'success' && (steps.report.outputs.commit_required == 'true' || steps.report.outputs.tag_required == 'true')
         run: |

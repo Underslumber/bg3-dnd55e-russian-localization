@@ -156,7 +156,14 @@ def run_command(args: list[str], repository_path: Path, description: str) -> sub
     if result.stderr:
         print(result.stderr, end="", file=sys.stderr)
     if result.returncode != 0:
-        raise RuntimeError(f"{description} завершилось с кодом {result.returncode}.")
+        details: list[str] = [f"{description} завершилось с кодом {result.returncode}."]
+        stdout_text = (result.stdout or "").strip()
+        stderr_text = (result.stderr or "").strip()
+        if stderr_text:
+            details.append(f"stderr: {stderr_text}")
+        elif stdout_text:
+            details.append(f"stdout: {stdout_text}")
+        raise RuntimeError(" ".join(details))
     return result
 
 
