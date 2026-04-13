@@ -338,6 +338,7 @@ jobs:
           if ($null -ne $report.error) {
             $errorMessage = [string]$report.error.message
           }
+          $errorMessageSingleLine = $errorMessage.Replace("`r", " ").Replace("`n", " ").Trim()
 
           "status=$($report.status)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "process_requested=$($actions.processRequested.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -351,7 +352,7 @@ jobs:
           "missing_count=$($summary.missingInRussianCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "version_mismatch_count=$($summary.versionMismatchCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "stale_count=$($summary.staleOnlyInRussianCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "error_message=$errorMessage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "error_message=$errorMessageSingleLine" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Print run report
         if: always()
