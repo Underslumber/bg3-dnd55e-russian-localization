@@ -14,6 +14,14 @@ Workflow `.github/workflows/autopilot-sync.yml`:
 
 Если hash не изменился и не включён `force_check` или `force_release`, workflow завершится без коммита, тега и Telegram-уведомлений.
 
+## Требуемые environments
+
+Workflow использует три GitHub environment:
+
+- `AUTOPILOT_MODE` — переменные режима и git-автора
+- `MedvedeBear - AI` — `OPENROUTER_API_KEY` и `OPENROUTER_MODEL`
+- `TgBot` — Telegram secrets
+
 ## Требуемые secrets
 
 - `OPENROUTER_API_KEY` — обязателен для автоперевода через OpenRouter

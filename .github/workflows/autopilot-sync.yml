@@ -57,19 +57,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
+  preflight:
     runs-on: windows-latest
-    environment: TgBot
-    env:
-      AUTOPILOT_MODE: ${{ vars.AUTOPILOT_MODE }}
-      AUTOPILOT_GIT_AUTHOR_NAME: ${{ vars.AUTOPILOT_GIT_AUTHOR_NAME }}
-      AUTOPILOT_GIT_AUTHOR_EMAIL: ${{ vars.AUTOPILOT_GIT_AUTHOR_EMAIL }}
-      AUTOPILOT_DEFAULT_RELEASE_CHANNEL: ${{ vars.AUTOPILOT_DEFAULT_RELEASE_CHANNEL }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
-      TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-      TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+    environment: AUTOPILOT_MODE
+    outputs:
+      effective_mode: ${{ steps.preflight.outputs.effective_mode }}
+      mode_source: ${{ steps.preflight.outputs.mode_source }}
+      mode_override: ${{ steps.preflight.outputs.mode_override }}
+      force_check: ${{ steps.preflight.outputs.force_check }}
+      force_release: ${{ steps.preflight.outputs.force_release }}
+      include_existing: ${{ steps.preflight.outputs.include_existing }}
+      release_channel: ${{ steps.preflight.outputs.release_channel }}
+      custom_tag: ${{ steps.preflight.outputs.custom_tag }}
+      reason: ${{ steps.preflight.outputs.reason }}
+      upstream_changed: ${{ steps.preflight.outputs.upstream_changed }}
+      previous_sha256: ${{ steps.preflight.outputs.previous_sha256 }}
+      current_sha256: ${{ steps.preflight.outputs.current_sha256 }}
+      should_process: ${{ steps.preflight.outputs.should_process }}
+      run_trigger: ${{ steps.preflight.outputs.run_trigger }}
+      git_author_name: ${{ steps.preflight.outputs.git_author_name }}
+      git_author_email: ${{ steps.preflight.outputs.git_author_email }}
 
     defaults:
       run:
@@ -90,7 +97,6 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           New-Item -ItemType Directory -Path "build/autopilot" -Force | Out-Null
-          New-Item -ItemType Directory -Path "build/translation-diff" -Force | Out-Null
           New-Item -ItemType Directory -Path ".cache/upstream" -Force | Out-Null
 
       - name: Check upstream english.xml
@@ -113,6 +119,10 @@ jobs:
       - name: Resolve preflight
         id: preflight
         env:
+          AUTOPILOT_MODE: ${{ vars.AUTOPILOT_MODE }}
+          AUTOPILOT_GIT_AUTHOR_NAME: ${{ vars.AUTOPILOT_GIT_AUTHOR_NAME }}
+          AUTOPILOT_GIT_AUTHOR_EMAIL: ${{ vars.AUTOPILOT_GIT_AUTHOR_EMAIL }}
+          AUTOPILOT_DEFAULT_RELEASE_CHANNEL: ${{ vars.AUTOPILOT_DEFAULT_RELEASE_CHANNEL }}
           INPUT_MODE_OVERRIDE: ${{ github.event.inputs.mode_override || 'inherit' }}
           INPUT_FORCE_CHECK: ${{ github.event.inputs.force_check || 'false' }}
           INPUT_FORCE_RELEASE: ${{ github.event.inputs.force_release || 'false' }}
@@ -139,7 +149,7 @@ jobs:
             $effectiveMode = "off"
           }
 
-          $modeSource = if ($modeOverride -ne "inherit") { "override" } else { "variable" }
+          $modeSource = if ($modeOverride -ne "inherit") { "override" } else { "environment" }
           $forceCheck = (($env:INPUT_FORCE_CHECK ?? "false").Trim().ToLowerInvariant() -eq "true")
           $forceRelease = (($env:INPUT_FORCE_RELEASE ?? "false").Trim().ToLowerInvariant() -eq "true")
           $includeExisting = (($env:INPUT_INCLUDE_EXISTING ?? "false").Trim().ToLowerInvariant() -eq "true")
@@ -155,6 +165,16 @@ jobs:
           $shouldProcess = $effectiveMode -ne "off" -and ($upstreamChanged -or $forceCheck -or $forceRelease)
           $runTrigger = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "manual" } else { "${{ github.event_name }}" }
 
+          $gitAuthorName = ($env:AUTOPILOT_GIT_AUTHOR_NAME ?? "").Trim()
+          if ([string]::IsNullOrWhiteSpace($gitAuthorName)) {
+            $gitAuthorName = "bg3-dnd55e autopilot"
+          }
+
+          $gitAuthorEmail = ($env:AUTOPILOT_GIT_AUTHOR_EMAIL ?? "").Trim()
+          if ([string]::IsNullOrWhiteSpace($gitAuthorEmail)) {
+            $gitAuthorEmail = "autopilot@users.noreply.github.com"
+          }
+
           "effective_mode=$effectiveMode" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "mode_source=$modeSource" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "mode_override=$modeOverride" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -169,28 +189,107 @@ jobs:
           "current_sha256=$($report.currentSha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "should_process=$($shouldProcess.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "run_trigger=$runTrigger" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "git_author_name=$gitAuthorName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "git_author_email=$gitAuthorEmail" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload upstream check artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: autopilot-preflight-${{ github.run_id }}
+          path: build/autopilot/upstream-check.json
+          if-no-files-found: error
+
+  notify_start:
+    runs-on: windows-latest
+    needs: preflight
+    if: needs.preflight.outputs.should_process == 'true'
+    environment: TgBot
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Notify Telegram about sync start
-        if: steps.preflight.outputs.should_process == 'true' && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
         continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
         run: |
           $ErrorActionPreference = "Stop"
-          $shortHash = "${{ steps.preflight.outputs.current_sha256 }}"
+          $shortHash = "${{ needs.preflight.outputs.current_sha256 }}"
           if ($shortHash.Length -gt 12) {
             $shortHash = $shortHash.Substring(0, 12)
           }
 
-          $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ steps.preflight.outputs.effective_mode }}")
-          $encodedTrigger = [System.Net.WebUtility]::HtmlEncode("${{ steps.preflight.outputs.run_trigger }}")
+          $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.effective_mode }}")
+          $encodedTrigger = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.run_trigger }}")
           $reasonLine = ""
-          if ("${{ steps.preflight.outputs.reason }}") {
-            $encodedReason = [System.Net.WebUtility]::HtmlEncode("${{ steps.preflight.outputs.reason }}")
+          if ("${{ needs.preflight.outputs.reason }}") {
+            $encodedReason = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.reason }}")
             $reasonLine = "`n<b>Причина:</b> <code>$encodedReason</code>"
           }
 
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           $text = "⏳ <b>Автопилот перевода запущен</b>`n<b>Режим:</b> <code>$encodedMode</code>`n<b>Upstream hash:</b> <code>$shortHash</code>`n<b>Запуск:</b> <code>$encodedTrigger</code>$reasonLine`n<a href=`"$runUrl`">Открыть лог запуска</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+
+  run_sync:
+    runs-on: windows-latest
+    needs: preflight
+    environment: MedvedeBear - AI
+    outputs:
+      status: ${{ steps.report.outputs.status }}
+      process_requested: ${{ steps.report.outputs.process_requested }}
+      commit_required: ${{ steps.report.outputs.commit_required }}
+      tag_required: ${{ steps.report.outputs.tag_required }}
+      tag_name: ${{ steps.report.outputs.tag_name }}
+      translated_total: ${{ steps.report.outputs.translated_total }}
+      cost_actual_known: ${{ steps.report.outputs.cost_actual_known }}
+      cost_actual: ${{ steps.report.outputs.cost_actual }}
+      cost_estimated: ${{ steps.report.outputs.cost_estimated }}
+      missing_count: ${{ steps.report.outputs.missing_count }}
+      version_mismatch_count: ${{ steps.report.outputs.version_mismatch_count }}
+      stale_count: ${{ steps.report.outputs.stale_count }}
+      error_message: ${{ steps.report.outputs.error_message }}
+      commit_created: ${{ steps.commit.outputs.created }}
+      tag_created: ${{ steps.tag.outputs.created }}
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Prepare workspace
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Path "build/autopilot" -Force | Out-Null
+          New-Item -ItemType Directory -Path "build/translation-diff" -Force | Out-Null
+          New-Item -ItemType Directory -Path ".cache/upstream" -Force | Out-Null
+
+      - name: Download upstream check artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: autopilot-preflight-${{ github.run_id }}
+          path: build/autopilot
 
       - name: Run autopilot
         id: autopilot
@@ -199,13 +298,13 @@ jobs:
           $ErrorActionPreference = "Stop"
           $args = @(
             "scripts/run-autopilot.py",
-            "--mode", "${{ steps.preflight.outputs.effective_mode }}",
-            "--mode-source", "${{ steps.preflight.outputs.mode_source }}",
-            "--mode-override", "${{ steps.preflight.outputs.mode_override }}",
-            "--trigger", "${{ steps.preflight.outputs.run_trigger }}",
-            "--reason", "${{ steps.preflight.outputs.reason }}",
-            "--release-channel", "${{ steps.preflight.outputs.release_channel }}",
-            "--custom-tag", "${{ steps.preflight.outputs.custom_tag }}",
+            "--mode", "${{ needs.preflight.outputs.effective_mode }}",
+            "--mode-source", "${{ needs.preflight.outputs.mode_source }}",
+            "--mode-override", "${{ needs.preflight.outputs.mode_override }}",
+            "--trigger", "${{ needs.preflight.outputs.run_trigger }}",
+            "--reason", "${{ needs.preflight.outputs.reason }}",
+            "--release-channel", "${{ needs.preflight.outputs.release_channel }}",
+            "--custom-tag", "${{ needs.preflight.outputs.custom_tag }}",
             "--state-path", ".github/autopilot/state.json",
             "--upstream-check-path", "build/autopilot/upstream-check.json",
             "--run-report-path", "build/autopilot/run-report.json",
@@ -214,13 +313,13 @@ jobs:
             "--repository-path", "${{ github.workspace }}"
           )
 
-          if ("${{ steps.preflight.outputs.force_check }}" -eq "true") {
+          if ("${{ needs.preflight.outputs.force_check }}" -eq "true") {
             $args += "--force-check"
           }
-          if ("${{ steps.preflight.outputs.force_release }}" -eq "true") {
+          if ("${{ needs.preflight.outputs.force_release }}" -eq "true") {
             $args += "--force-release"
           }
-          if ("${{ steps.preflight.outputs.include_existing }}" -eq "true") {
+          if ("${{ needs.preflight.outputs.include_existing }}" -eq "true") {
             $args += "--include-existing"
           }
 
@@ -235,6 +334,10 @@ jobs:
           $actions = $report.actions
           $usage = $report.usage
           $summary = $report.summary
+          $errorMessage = ""
+          if ($null -ne $report.error) {
+            $errorMessage = [string]$report.error.message
+          }
 
           "status=$($report.status)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "process_requested=$($actions.processRequested.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -248,24 +351,14 @@ jobs:
           "missing_count=$($summary.missingInRussianCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "version_mismatch_count=$($summary.versionMismatchCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "stale_count=$($summary.staleOnlyInRussianCount)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "error_message=$($report.error.message)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "error_message=$errorMessage" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Configure git author
         if: steps.report.outputs.status == 'success' && (steps.report.outputs.commit_required == 'true' || steps.report.outputs.tag_required == 'true')
         run: |
           $ErrorActionPreference = "Stop"
-          $authorName = ($env:AUTOPILOT_GIT_AUTHOR_NAME ?? "").Trim()
-          $authorEmail = ($env:AUTOPILOT_GIT_AUTHOR_EMAIL ?? "").Trim()
-
-          if ([string]::IsNullOrWhiteSpace($authorName)) {
-            $authorName = "bg3-dnd55e autopilot"
-          }
-          if ([string]::IsNullOrWhiteSpace($authorEmail)) {
-            $authorEmail = "autopilot@users.noreply.github.com"
-          }
-
-          git config user.name $authorName
-          git config user.email $authorEmail
+          git config user.name "${{ needs.preflight.outputs.git_author_name }}"
+          git config user.email "${{ needs.preflight.outputs.git_author_email }}"
 
       - name: Create commit
         id: commit
@@ -277,7 +370,6 @@ jobs:
           git add "Mods/DnD 5.5e AIO Russian/meta.lsx"
           git commit --file "build/autopilot/commit-message.txt"
           "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "sha=$(git rev-parse HEAD)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Create tag
         id: tag
@@ -292,7 +384,6 @@ jobs:
           "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Push changes
-        id: push
         if: steps.report.outputs.status == 'success' && (steps.report.outputs.commit_required == 'true' || steps.report.outputs.tag_required == 'true')
         run: |
           $ErrorActionPreference = "Stop"
@@ -315,8 +406,6 @@ jobs:
               else {
                 git push origin "HEAD:$refName"
               }
-
-              "pushed=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
               break
             }
             catch {
@@ -346,40 +435,6 @@ jobs:
 
           Get-Content -Raw "build/autopilot/step-summary.md" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
-      - name: Notify Telegram about sync finish
-        if: always() && steps.preflight.outputs.should_process == 'true' && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
-        continue-on-error: true
-        run: |
-          $ErrorActionPreference = "Stop"
-          $status = if ("${{ steps.report.outputs.status }}" -eq "success") { "успех" } else { "ошибка" }
-          $cost = if ("${{ steps.report.outputs.cost_actual_known }}" -eq "true") { "${{ steps.report.outputs.cost_actual }}" } else { "${{ steps.report.outputs.cost_estimated }}" }
-          if ([string]::IsNullOrWhiteSpace($cost)) {
-            $cost = "0"
-          }
-          $costDisplay = '$' + $cost
-          $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ steps.preflight.outputs.effective_mode }}")
-          $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
-
-          $tagLine = if ("${{ steps.tag.outputs.created }}" -eq "true" -and "${{ steps.report.outputs.tag_name }}") {
-            $encodedTag = [System.Net.WebUtility]::HtmlEncode("${{ steps.report.outputs.tag_name }}")
-            "<b>Тег:</b> <code>$encodedTag</code>`n"
-          }
-          else {
-            ""
-          }
-
-          $errorLine = if ("${{ steps.report.outputs.status }}" -ne "success" -and "${{ steps.report.outputs.error_message }}") {
-            $encodedError = [System.Net.WebUtility]::HtmlEncode("${{ steps.report.outputs.error_message }}")
-            "<b>Ошибка:</b> <code>$encodedError</code>`n"
-          }
-          else {
-            ""
-          }
-
-          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "🏁 <b>Автопилот перевода завершён</b>`n<b>Статус:</b> <code>$encodedStatus</code>`n<b>Режим:</b> <code>$encodedMode</code>`n<b>Переведено записей:</b> <code>${{ steps.report.outputs.translated_total }}</code>`n<b>Потрачено:</b> <code>$costDisplay</code>`n<b>Missing in Russian:</b> <code>${{ steps.report.outputs.missing_count }}</code>`n<b>Version mismatches:</b> <code>${{ steps.report.outputs.version_mismatch_count }}</code>`n<b>Stale only in Russian:</b> <code>${{ steps.report.outputs.stale_count }}</code>`n<b>Коммит создан:</b> <code>$(if ("${{ steps.commit.outputs.created }}" -eq "true") { 'да' } else { 'нет' })</code>`n<b>Тег создан:</b> <code>$(if ("${{ steps.tag.outputs.created }}" -eq "true") { 'да' } else { 'нет' })</code>`n$tagLine$errorLine<a href=`"$runUrl`">Открыть лог запуска</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
-
       - name: Upload autopilot artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -401,3 +456,57 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           throw "${{ steps.report.outputs.error_message }}"
+
+  notify_finish:
+    runs-on: windows-latest
+    needs:
+      - preflight
+      - run_sync
+    if: always() && needs.preflight.outputs.should_process == 'true'
+    environment: TgBot
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Notify Telegram about sync finish
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $status = if ("${{ needs.run_sync.outputs.status }}" -eq "success") { "успех" } else { "ошибка" }
+          $cost = if ("${{ needs.run_sync.outputs.cost_actual_known }}" -eq "true") { "${{ needs.run_sync.outputs.cost_actual }}" } else { "${{ needs.run_sync.outputs.cost_estimated }}" }
+          if ([string]::IsNullOrWhiteSpace($cost)) {
+            $cost = "0"
+          }
+          $costDisplay = '$' + $cost
+          $encodedMode = [System.Net.WebUtility]::HtmlEncode("${{ needs.preflight.outputs.effective_mode }}")
+          $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
+
+          $tagLine = if ("${{ needs.run_sync.outputs.tag_created }}" -eq "true" -and "${{ needs.run_sync.outputs.tag_name }}") {
+            $encodedTag = [System.Net.WebUtility]::HtmlEncode("${{ needs.run_sync.outputs.tag_name }}")
+            "<b>Тег:</b> <code>$encodedTag</code>`n"
+          }
+          else {
+            ""
+          }
+
+          $errorLine = if ("${{ needs.run_sync.outputs.status }}" -ne "success" -and "${{ needs.run_sync.outputs.error_message }}") {
+            $encodedError = [System.Net.WebUtility]::HtmlEncode("${{ needs.run_sync.outputs.error_message }}")
+            "<b>Ошибка:</b> <code>$encodedError</code>`n"
+          }
+          else {
+            ""
+          }
+
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $text = "🏁 <b>Автопилот перевода завершён</b>`n<b>Статус:</b> <code>$encodedStatus</code>`n<b>Режим:</b> <code>$encodedMode</code>`n<b>Переведено записей:</b> <code>${{ needs.run_sync.outputs.translated_total }}</code>`n<b>Потрачено:</b> <code>$costDisplay</code>`n<b>Missing in Russian:</b> <code>${{ needs.run_sync.outputs.missing_count }}</code>`n<b>Version mismatches:</b> <code>${{ needs.run_sync.outputs.version_mismatch_count }}</code>`n<b>Stale only in Russian:</b> <code>${{ needs.run_sync.outputs.stale_count }}</code>`n<b>Коммит создан:</b> <code>$(if ("${{ needs.run_sync.outputs.commit_created }}" -eq "true") { 'да' } else { 'нет' })</code>`n<b>Тег создан:</b> <code>$(if ("${{ needs.run_sync.outputs.tag_created }}" -eq "true") { 'да' } else { 'нет' })</code>`n$tagLine$errorLine<a href=`"$runUrl`">Открыть лог запуска</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
