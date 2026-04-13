@@ -64,6 +64,7 @@ $body = @{
     message_thread_id = $ThreadId
     parse_mode = "HTML"
     text = $normalizedText
+    disable_web_page_preview = "true"
 }
 
 if ($DisableNotification) {
