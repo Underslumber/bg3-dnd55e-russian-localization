@@ -91,15 +91,6 @@ Summary:
 3) Edit specific step
 ```
 
-### Compact mode
-
-Input format: `key=N key=N ...`
-
-- N must be an exact option number
-- Valid fields: apply, skip their steps
-- Invalid N for a field: reject that field, ask its step normally
-- All fields valid: skip to CONFIRMATION
-
 ---
 
 ## EXECUTION SILENCE
@@ -149,6 +140,7 @@ attempt 4: emit STEP_ABORT
 ```
 
 Never relax rules across retries.
+Retry counter resets to 0 when the flow advances to the next step.
 
 ---
 

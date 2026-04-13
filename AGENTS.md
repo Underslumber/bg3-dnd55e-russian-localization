@@ -4,14 +4,15 @@
 - Read this file first; treat as system-level constraints.
 - Reusable general rules (MUST read and apply): [AGENT.common.md](AGENT.common.md)
 - Reusable structured interaction rules (MUST read and apply for agent-initiated user-facing questions, approvals, clarifications, confirmations, and branch/action choices): [AGENT.interaction.md](AGENT.interaction.md)
+- Action plans (MUST read before executing any matching user request): [ACTIONS.md](ACTIONS.md)
 - Priority:
   1. User instructions
   2. AGENTS.md
   3. Applicable referenced reusable rule files
   4. Existing code/style
   5. Best practices
-- Prefer minimal, non-breaking changes.
-- Do not introduce unnecessary abstractions.
+- Response language: Russian (commit messages, answers, changelogs, all agent output).
+- Code style: prefer minimal, non-breaking changes; do not introduce unnecessary abstractions.
 
 ---
 
@@ -61,7 +62,7 @@ Canonical paths:
 - Metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
 - Build: `scripts/build.ps1` _(single source of build truth)_
 - CI: `.gitea/workflows/build.yml`
-- Glossary: `glossary/glossary.normalized.json` _(primary terminology reference)_
+- Glossary: `glossary/glossary.normalized.json` _(primary terminology reference; MUST read when working on translations)_
 - Actions: `ACTIONS.md`
 - Local env template: `.env.example`
 - Local env file: `.env.local`
@@ -77,7 +78,7 @@ Top-level repository layout:
 - `Mods/` → mod sources only
 - `scripts/` → build/release/support scripts
 - `.env.example` → local env schema
-- `.env.local` → local machine config/secrets; never commit
+- `.env.local` → local machine config/secrets; never commit — keys: `OPENROUTER_API_KEY`, `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID`, `AUTOPILOT_MODE`, `AUTOPILOT_DEFAULT_RELEASE_CHANNEL`
 - `.gitignore` → ignore policy
 - `ACTIONS.md` → project actions/checklists
 - `AGENT.common.md` → reusable general agent rules
@@ -129,6 +130,11 @@ Triggers:
 - manual: workflow_dispatch
 - branch pushes without tag MUST NOT publish release artifacts
 
+Notifications:
+- Telegram sent automatically by CI via `scripts/send-telegram-notification.ps1`
+- on build start, success, and failure (tag builds only)
+- requires `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID` secrets
+
 ---
 
 ## Versioning (CRITICAL)
@@ -143,7 +149,7 @@ Rules:
   - stable: `vX.Y.Z` -> `Version64 = X.Y.Z.0`
   - suffixed: `vX.Y.Z-suffix` -> `Version64 = X.Y.Z.N`
 - for suffixed tags, suffix affects tag/release channel only and is NOT encoded in `Version64`
-- for suffixed tags on the same base version `X.Y.Z`, increment `build` (`N`) by counting prior released tags `vX.Y.Z-*`; current release uses the next value starting from `1`
+- for suffixed tags on the same base version `X.Y.Z`, increment `build` (`N`) by running `git tag --list "vX.Y.Z-*"` and counting prior released tags; current release uses next value starting from `1`
 - stable tag without suffix always uses `build = 0`, even if suffixed releases for the same base version already existed
 
 Before tag:
@@ -181,14 +187,10 @@ Dependency UUID:
 Before commit:
 - scope valid (localization/metadata only)
 - no forbidden content
-- no build artifacts (`.pak`, `build/`, staging)
-- no temp/debug artifacts; ignored patterns MUST be present in `.gitignore`: `build/`, `build-stage*`, `.tools/`, `*.pak`
+- no build artifacts (`.pak`, `build/`, `.cache/`, staging)
+- no temp/debug artifacts; ignored patterns MUST be present in `.gitignore`: `build/`, `build-stage*`, `.tools/`, `.cache/`, `*.pak`
 - packaging invariants intact
 - version consistent (if applicable)
-
-Before push:
-- explicit user approval
-- commit message valid (RU, factual)
 
 Before release:
 - version == tag
@@ -202,61 +204,29 @@ Before release:
 
 - Every release MUST include changelog.
 
-Changelog:
-- language: Russian
-- concise, user-facing
-- describe WHAT changed
-- group logically
-
-Sources:
-- prefer diff over commits
-
-Diff rules:
-- inspect real file changes
-
-Localization (`russian.xml`):
-- added / changed / removed strings
-- summarize user-visible impact (UI, spells, descriptions)
-
-Metadata / CI:
-- describe effect, not raw edits
-
-Large diff:
-- group + summarize
-
-If no visible changes:
-- state "техническое обновление"
-
-Before release:
-- generate changelog draft
-- ask for approval
+Changelog rules:
+- language: Russian; concise, user-facing; describe WHAT changed; group logically
+- source: prefer real diff over commits; inspect actual file changes
+- `russian.xml` changes: summarize added/changed/removed strings with user-visible impact
+- metadata/CI changes: describe effect, not raw edits
+- large diff: group + summarize
+- no visible changes: state "техническое обновление"
+- do not invent changes; do not include internal noise
 
 Approval gates:
-- Gate A: explicit approval for commit/push (code/content changes)
+- Gate A: explicit approval for commit/push
 - Gate B: explicit approval for release publish (after changelog draft)
 
-Release message:
-- version
-- changelog
-- `[version](url)` if derivable
-
-Do not:
-- invent changes
-- include internal noise
+Release message includes: version, changelog, `[version](url)` if derivable.
 
 ---
 
 ## Release Verification (MUST)
 - verification_order: `workflow_status -> release_presence -> assets_presence -> asset_name`
+- asset_name_template: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
 - source_of_truth: `workflow/release API data`; exact asset filename only if read from build/workflow output
 - wait_cycle_max: `30s`
 - passive_wait_total_max: `120s` unless user explicitly requested a longer wait
 - after_each_wait_cycle: emit user-visible status
 - asset_name_mismatch: stop waiting; report actual asset name
 - workflow_success_missing_asset: stop waiting; report `release_url`, `workflow_url`, `asset_list`
-
----
-
-## Rules Maintenance (MUST)
-- Changes to `AGENTS.md`, `ACTIONS.md`, or referenced reusable rule files: prefer compressed, machine-readable edits.
-- Keep updates minimal and non-duplicative: merge overlapping points, remove redundancy, preserve intent.
