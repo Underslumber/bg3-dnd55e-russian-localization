@@ -19,13 +19,15 @@ Workflow `.github/workflows/autopilot-sync.yml`:
 Workflow использует три GitHub environment:
 
 - `AUTOPILOT_MODE` — переменные режима и git-автора
-- `MedvedeBear - AI` — `OPENROUTER_API_KEY` и `OPENROUTER_MODEL`
+- `MedvedeBear - AI` — `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` и токен для push
 - `TgBot` — Telegram secrets
 
 ## Требуемые secrets
 
 - `OPENROUTER_API_KEY` — обязателен для автоперевода через OpenRouter
+- `AUTOPILOT_PUSH_TOKEN` — обязателен для режима `full`, если tag должен запускать `.github/workflows/build.yml`
 - `TG_BOT_TOKEN` — опционален, нужен для уведомлений Telegram
+- `BOT_TOKEN` — опциональный fallback вместо `TG_BOT_TOKEN`
 - `TG_CHAT_ID` — опционален, нужен для уведомлений Telegram
 - `TG_THREAD_ID` — опционален, нужен для уведомлений Telegram
 
@@ -65,6 +67,16 @@ Workflow использует три GitHub environment:
 - финальное сообщение со статусом, статистикой diff, количеством переведённых записей и стоимостью в `$`
 
 Существующие уведомления релизной сборки в `.github/workflows/build.yml` не дублируются.
+
+## Важно про запуск релиза
+
+Если автопилот пушит commit/tag через стандартный `GITHUB_TOKEN`, GitHub не запускает следующий workflow на событие `push`.
+
+Чтобы tag из `Autopilot Sync` реально запускал `.github/workflows/build.yml`, в environment `MedvedeBear - AI` нужен секрет:
+
+- `AUTOPILOT_PUSH_TOKEN`
+
+Это должен быть PAT или другой токен с правами на push в репозиторий.
 
 ## Как отключить автопилот
 

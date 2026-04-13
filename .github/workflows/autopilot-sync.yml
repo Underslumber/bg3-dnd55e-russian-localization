@@ -218,10 +218,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Notify Telegram about sync start
-        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
         run: |
@@ -266,6 +267,7 @@ jobs:
     env:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+      AUTOPILOT_PUSH_TOKEN: ${{ secrets.AUTOPILOT_PUSH_TOKEN }}
 
     defaults:
       run:
@@ -276,6 +278,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.AUTOPILOT_PUSH_TOKEN != '' && secrets.AUTOPILOT_PUSH_TOKEN || github.token }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -379,6 +382,9 @@ jobs:
           $ErrorActionPreference = "Stop"
           git config user.name "${{ needs.preflight.outputs.git_author_name }}"
           git config user.email "${{ needs.preflight.outputs.git_author_email }}"
+          if (-not [string]::IsNullOrWhiteSpace($env:AUTOPILOT_PUSH_TOKEN)) {
+            git remote set-url origin "https://x-access-token:$env:AUTOPILOT_PUSH_TOKEN@github.com/${{ github.repository }}.git"
+          }
 
       - name: Create commit
         id: commit
@@ -496,10 +502,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Notify Telegram about sync finish
-        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
         run: |
