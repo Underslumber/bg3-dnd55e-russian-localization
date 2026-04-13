@@ -1,8 +1,14 @@
-# DnD 5.5e All-in-One BEYOND Russian Localization
+# DnD 5.5e All-in-One BEYOND — Russian Localization
+
+<p align="center">
+  <img src="Mods/DnD%205.5e%20AIO%20Russian/mod_publish_logo.png" style="max-width: 100%; width: 520px; height: auto;" alt="Логотип мода" />
+</p>
 
 Русская локализация [**DnD 5.5e All-in-One BEYOND**](https://github.com/Yoonmoonsik/dnd55e) для **Baldur's Gate 3**.
 
 Публикация на [mod.io](https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization).
+
+---
 
 ## О моде
 
