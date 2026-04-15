@@ -19,7 +19,8 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 - Commit/push only after explicit user approval; after approval — immediately.
 - Commit message: Russian, factual.
 - Branches: `fix/*`, `feat/*`. Branch choice — once, before first file-changing task.
-- After branch work: PR → `main`, merge, delete branch.
+- After `fix/*`/`feat/*` branch work: offer either merge into `main` + delete branch, or create PR.
+- Rule above does not apply outside `fix/*`/`feat/*` branches.
 - Push retry: ≤2, delay 3s.
 - After tag push — immediately emit `[version](url)`, do not wait for CI.
 
