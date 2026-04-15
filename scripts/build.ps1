@@ -80,16 +80,17 @@ function Set-ModuleInfoVersion64 {
     $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
     $metaContent = [System.IO.File]::ReadAllText($MetaPath, $utf8Encoding)
     $moduleInfoPattern = '(?s)(<node id="ModuleInfo">\s*(?:(?!<children>).)*?<attribute id="Version64" type="int64" value=")\d+("/>)'
-    $updatedMetaContent = [System.Text.RegularExpressions.Regex]::Replace(
-        $metaContent,
-        $moduleInfoPattern,
-        "`${1}$Version64`${2}",
-        1
-    )
-
-    if ($updatedMetaContent -ceq $metaContent) {
+    $match = [System.Text.RegularExpressions.Regex]::Match($metaContent, $moduleInfoPattern)
+    if (-not $match.Success) {
         throw "ModuleInfo/Version64 attribute was not found in '$MetaPath'."
     }
+
+    $updatedMetaContent =
+        $metaContent.Substring(0, $match.Index) +
+        $match.Groups[1].Value +
+        $Version64 +
+        $match.Groups[2].Value +
+        $metaContent.Substring($match.Index + $match.Length)
 
     [System.IO.File]::WriteAllText($MetaPath, $updatedMetaContent, $utf8Encoding)
 }
