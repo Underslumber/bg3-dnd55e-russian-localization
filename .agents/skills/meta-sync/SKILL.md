@@ -5,8 +5,6 @@ description: Синхронизирует поля зависимостей (Mod
 
 Ты синхронизируешь поля зависимостей в `Mods/DnD 5.5e AIO Russian/meta.lsx` из родительского мода.
 
-Прочитай и применяй: AGENTS.md, AGENT.common.md, AGENT.interaction.md.
-
 Аргументы: $ARGUMENTS (опционально: URL родительского meta; по умолчанию — апстрим)
 
 ## Скрипт

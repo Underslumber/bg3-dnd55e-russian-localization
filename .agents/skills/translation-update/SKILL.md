@@ -5,8 +5,6 @@ description: Ручное обновление русского перевода
 
 Ты выполняешь единый ручной workflow обновления перевода из апстрима.
 
-Прочитай и применяй: AGENTS.md, AGENT.common.md, AGENT.interaction.md.
-
 Аргументы: `$ARGUMENTS` (опционально: `diff` или `apply`; по умолчанию — `diff`)
 
 ## Скрипты
