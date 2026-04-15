@@ -113,6 +113,15 @@ def run_validation(xml_path: Path) -> None:
         raise RuntimeError((result.stderr or result.stdout).strip() or "XML validation failed.")
 
 
+def get_required_list(payload: dict[str, object], field: str) -> list[dict[str, object]]:
+    value = payload.get(field) or []
+    if not isinstance(value, list):
+        raise ValueError(f"Edits field '{field}' must be an array.")
+    if not all(isinstance(item, dict) for item in value):
+        raise ValueError(f"Edits field '{field}' must contain only objects.")
+    return [dict(item) for item in value]
+
+
 def main() -> int:
     args = parse_args()
     russian_path = Path(args.russian_path).resolve()
@@ -120,38 +129,60 @@ def main() -> int:
     edits_path = Path(args.edits_path).resolve()
 
     try:
-        russian_document, xml_declaration, content_list_opening_tag = read_xml_document(russian_path)
-        if temporary_russian_path.exists():
-            temporary_russian_path.unlink()
-        temporary_russian_path.write_bytes(russian_path.read_bytes())
-        russian_document, xml_declaration, content_list_opening_tag = read_xml_document(temporary_russian_path)
-
         if not edits_path.exists():
             raise FileNotFoundError(f"Edits file was not found: '{edits_path}'.")
 
         edits = json.loads(edits_path.read_text(encoding="utf-8"))
+        if not isinstance(edits, dict):
+            raise ValueError("Edits JSON root must be an object.")
+
+        updates = get_required_list(edits, "updates")
+        adds = get_required_list(edits, "adds")
+        deletes = get_required_list(edits, "deletes")
+
+        if temporary_russian_path.exists():
+            temporary_russian_path.unlink()
+        temporary_russian_path.write_bytes(russian_path.read_bytes())
+
+        russian_document, xml_declaration, content_list_opening_tag = read_xml_document(temporary_russian_path)
         content_list_node = russian_document.getroot()
         node_map = get_content_node_map(russian_document)
         updated_entries: list[str] = []
         added_entries: list[str] = []
+        deleted_entries: list[str] = []
         seen_edit_content_uids: set[str] = set()
 
-        updates = list(edits.get("updates") or [])
-        adds = list(edits.get("adds") or [])
-
         for edit in updates:
-            content_uid = str(edit.get("contentuid", ""))
-            if not content_uid.strip():
+            content_uid = str(edit.get("contentuid", "")).strip()
+            if not content_uid:
                 raise ValueError("Each update entry must contain non-empty 'contentuid'.")
-
             assert_unique_edit_content_uid(seen_edit_content_uids, content_uid, "updates")
 
+        for edit in adds:
+            content_uid = str(edit.get("contentuid", "")).strip()
+            if not content_uid:
+                raise ValueError("Each add entry must contain non-empty 'contentuid'.")
+            assert_unique_edit_content_uid(seen_edit_content_uids, content_uid, "adds")
+
+        for edit in deletes:
+            content_uid = str(edit.get("contentuid", "")).strip()
+            if not content_uid:
+                raise ValueError("Each delete entry must contain non-empty 'contentuid'.")
+            assert_unique_edit_content_uid(seen_edit_content_uids, content_uid, "deletes")
+
+        if not updates and not adds and not deletes:
+            temporary_russian_path.unlink()
+            print("[translation-update:apply] No edits requested. Original russian.xml left unchanged.")
+            return 0
+
+        for edit in updates:
+            content_uid = str(edit.get("contentuid", "")).strip()
             if content_uid not in node_map:
                 raise ValueError(f"Target russian.xml does not contain contentuid '{content_uid}' for update.")
 
             node = node_map[content_uid]
-            version = str(edit.get("version", "") or "")
-            if version.strip():
+            version = str(edit.get("version", "") or "").strip()
+            if version:
                 node.set("version", version)
 
             if "text" in edit:
@@ -162,25 +193,16 @@ def main() -> int:
 
             updated_entries.append(content_uid)
 
-        if not updates and not adds:
-            if temporary_russian_path.exists():
-                temporary_russian_path.unlink()
-            print("[translation-update:apply] No edits requested. Original russian.xml left unchanged.")
-            return 0
-
         for edit in adds:
-            content_uid = str(edit.get("contentuid", ""))
-            version = str(edit.get("version", ""))
+            content_uid = str(edit.get("contentuid", "")).strip()
+            version = str(edit.get("version", "")).strip()
             text = str(edit.get("text", ""))
 
-            if not content_uid.strip():
-                raise ValueError("Each add entry must contain non-empty 'contentuid'.")
-            assert_unique_edit_content_uid(seen_edit_content_uids, content_uid, "adds")
             if content_uid in node_map:
                 raise ValueError(
                     f"Target russian.xml already contains contentuid '{content_uid}'; use 'updates' instead of 'adds'."
                 )
-            if not version.strip():
+            if not version:
                 raise ValueError(f"Add entry '{content_uid}' must contain non-empty 'version'.")
             if not text.strip():
                 raise ValueError(f"Add entry '{content_uid}' must contain non-empty 'text'.")
@@ -190,6 +212,15 @@ def main() -> int:
             content_list_node.append(new_node)
             node_map[content_uid] = new_node
             added_entries.append(content_uid)
+
+        for edit in deletes:
+            content_uid = str(edit.get("contentuid", "")).strip()
+            if content_uid not in node_map:
+                raise ValueError(f"Target russian.xml does not contain contentuid '{content_uid}' for delete.")
+
+            node = node_map.pop(content_uid)
+            content_list_node.remove(node)
+            deleted_entries.append(content_uid)
 
         write_xml(temporary_russian_path, russian_document, xml_declaration, content_list_opening_tag)
         run_validation(temporary_russian_path)
@@ -203,12 +234,14 @@ def main() -> int:
 
     print(
         f"[translation-update:apply] Updated entries: {len(updated_entries)}; "
-        f"Added entries: {len(added_entries)}."
+        f"Added entries: {len(added_entries)}; Deleted entries: {len(deleted_entries)}."
     )
     if updated_entries:
         print("[translation-update:apply] Updated contentuid: " + ", ".join(updated_entries))
     if added_entries:
         print("[translation-update:apply] Added contentuid: " + ", ".join(added_entries))
+    if deleted_entries:
+        print("[translation-update:apply] Deleted contentuid: " + ", ".join(deleted_entries))
     return 0
 
 

@@ -43,6 +43,10 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 
 Top-level (never package): `.git`, `.gitea`, `.github`, `.cache`, `.tools`, `build`, staging.
 
+## Translation
+- `translation-update`: agent skill; uses skill-local scripts in `.agents/skills/translation-update/`; does not call `scripts/update-translation-openrouter.py`
+- `scripts/update-translation-openrouter.py`: separate OpenRouter pipeline; not part of `translation-update`
+
 ## Secrets
 - `.env.local` keys: `OPENROUTER_API_KEY`, `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID`, `AUTOPILOT_MODE`, `AUTOPILOT_DEFAULT_RELEASE_CHANNEL`.
 - Auto-load when present. If missing but required — mention once, reference `.env.example`, list required keys.
