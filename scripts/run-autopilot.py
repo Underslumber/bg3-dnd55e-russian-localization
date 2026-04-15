@@ -117,6 +117,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_UPSTREAM_ENGLISH_URL,
         dest="upstream_english_url",
     )
+    parser.add_argument(
+        "-TrustedRegistryPath",
+        "--trusted-registry-path",
+        default="glossary/trusted-contentuid-versions.json",
+        dest="trusted_registry_path",
+    )
     return parser.parse_args()
 
 
@@ -311,6 +317,7 @@ def main() -> int:
     secondary_glossary_path = (
         Path(args.secondary_glossary_path).resolve() if args.secondary_glossary_path.strip() else None
     )
+    trusted_registry_path = Path(args.trusted_registry_path).resolve() if args.trusted_registry_path.strip() else None
     scripts_dir = Path(__file__).resolve().parent
 
     report: dict[str, Any] = {
@@ -355,6 +362,7 @@ def main() -> int:
             "englishXml": str(english_path),
             "officialGlossary": str(official_glossary_path) if official_glossary_path is not None else "",
             "secondaryGlossary": str(secondary_glossary_path) if secondary_glossary_path is not None else "",
+            "trustedRegistry": str(trusted_registry_path) if trusted_registry_path is not None else "",
         },
         "actions": {
             "processRequested": False,
@@ -431,6 +439,8 @@ def main() -> int:
                 update_args.extend(["--official-glossary-path", str(official_glossary_path)])
             if secondary_glossary_path is not None:
                 update_args.extend(["--secondary-glossary-path", str(secondary_glossary_path)])
+        if trusted_registry_path is not None:
+            update_args.extend(["--trusted-registry-path", str(trusted_registry_path)])
         if args.include_existing:
             update_args.append("--include-existing")
 

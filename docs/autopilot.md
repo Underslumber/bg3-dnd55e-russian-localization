@@ -14,6 +14,17 @@ Workflow `.github/workflows/autopilot-sync.yml`:
 
 Если hash не изменился и не включён `force_check` или `force_release`, workflow завершится без коммита, тега и Telegram-уведомлений.
 
+Workflow `.github/workflows/daily-translation-review.yml`:
+
+- запускается раз в сутки и вручную
+- работает в постоянной review-ветке `autopilot/daily-translation-review`
+- хранит отдельное состояние upstream в `.github/autopilot/daily-review-state.json`
+- обрабатывает только новые или изменённые записи, которых нет в `glossary/trusted-contentuid-versions.json`
+- валидирует `russian.xml`
+- пушит review-ветку и создаёт или обновляет draft PR в `main`
+
+Если upstream не изменился, workflow завершится без расхода токенов.
+
 ## Требуемые environments
 
 Workflow использует три GitHub environment:
@@ -81,3 +92,29 @@ Workflow использует три GitHub environment:
 ## Как отключить автопилот
 
 Установи `AUTOPILOT_MODE=off` или запусти workflow вручную с `mode_override=off`.
+
+## Доверенный реестр
+
+Файл `glossary/trusted-contentuid-versions.json` хранит проверенные пары `contentuid -> version`.
+
+Он нужен, чтобы:
+
+- не отправлять в LLM уже подтверждённые строки повторно;
+- переводить только новые или реально изменённые записи;
+- экономить токены в ежедневном review workflow.
+
+Обновление реестра:
+
+```powershell
+python scripts/sync-trusted-contentuid-registry.py -RussianPath "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -RegistryPath glossary/trusted-contentuid-versions.json
+```
+
+Эта команда нужна, чтобы пересобрать доверенную базу из текущего подтверждённого `russian.xml`.
+
+Проверка только новых или изменённых записей:
+
+```powershell
+python scripts/filter-trusted-contentuid-registry.py -RussianPath "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -RegistryPath glossary/trusted-contentuid-versions.json -OutputPath build/untrusted-contentuid-versions.json
+```
+
+Эта команда нужна, чтобы получить только те `contentuid/version`, которых ещё нет в доверенном реестре.

@@ -48,6 +48,13 @@ def parse_args() -> argparse.Namespace:
         dest="reference_russian_path",
         help="Optional path to a reference Russian XML whose matching contentuid values should be reused directly.",
     )
+    parser.add_argument(
+        "-TrustedRegistryPath",
+        "--trusted-registry-path",
+        default="glossary/trusted-contentuid-versions.json",
+        dest="trusted_registry_path",
+        help="Path to trusted contentuid/version registry. Matching entries are skipped to save tokens.",
+    )
     parser.add_argument("-BatchSize", "--batch-size", type=int, default=20, dest="batch_size")
     parser.add_argument("-MaxBatchChars", "--max-batch-chars", type=int, default=6000, dest="max_batch_chars")
     parser.add_argument("-Retries", "--retries", type=int, default=3, dest="retries")
@@ -178,6 +185,8 @@ def main() -> int:
                     fill_args.extend(["--secondary-glossary-path", args.secondary_glossary_path])
             if args.reference_russian_path.strip():
                 fill_args.extend(["--reference-russian-path", args.reference_russian_path])
+            if args.trusted_registry_path.strip():
+                fill_args.extend(["--trusted-registry-path", args.trusted_registry_path])
             if args.include_existing:
                 fill_args.append("--include-existing")
 

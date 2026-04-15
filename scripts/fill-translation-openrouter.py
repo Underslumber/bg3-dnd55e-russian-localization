@@ -22,6 +22,7 @@ OPENROUTER_GENERATION_URL = "https://openrouter.ai/api/v1/generation"
 DEFAULT_CANDIDATES_PATH = "build/translation-diff/candidates.json"
 DEFAULT_OFFICIAL_GLOSSARY_PATH = "glossary/glossary.official.json"
 DEFAULT_SECONDARY_GLOSSARY_PATH = "glossary/glossary.normalized.json"
+DEFAULT_TRUSTED_REGISTRY_PATH = "glossary/trusted-contentuid-versions.json"
 DEFAULT_USAGE_REPORT_PATH = "build/translation-diff/openrouter-usage.json"
 DEFAULT_BATCH_SIZE = 20
 DEFAULT_MAX_BATCH_CHARS = 6000
@@ -122,6 +123,13 @@ def parse_args() -> argparse.Namespace:
         help="Where to write the filled candidates JSON. Defaults to in-place update.",
     )
     parser.add_argument(
+        "-TrustedRegistryPath",
+        "--trusted-registry-path",
+        default=DEFAULT_TRUSTED_REGISTRY_PATH,
+        dest="trusted_registry_path",
+        help="Path to trusted contentuid/version registry. Matching entries are skipped to save tokens.",
+    )
+    parser.add_argument(
         "-UsageReportPath",
         "--usage-report-path",
         default=DEFAULT_USAGE_REPORT_PATH,
@@ -210,6 +218,23 @@ def read_optional_glossary(path: Path | None) -> dict[str, str]:
     if not path.exists():
         return {}
     return read_glossary(path)
+
+
+def read_optional_trusted_registry(path: Path | None) -> dict[str, str]:
+    if path is None or not path.exists():
+        return {}
+    payload = read_json(path)
+    if not isinstance(payload, dict):
+        raise ValueError(f"Trusted registry JSON root must be an object: '{path.resolve()}'.")
+    entries = payload.get("entries")
+    if not isinstance(entries, dict):
+        raise ValueError(f"Trusted registry JSON must contain object field 'entries': '{path.resolve()}'.")
+    trusted: dict[str, str] = {}
+    for content_uid, version in entries.items():
+        if not isinstance(content_uid, str) or not isinstance(version, str):
+            raise ValueError(f"Trusted registry entries must be string-to-string pairs: '{path.resolve()}'.")
+        trusted[content_uid] = version
+    return trusted
 
 
 def merge_glossaries(official_glossary: dict[str, str], secondary_glossary: dict[str, str]) -> dict[str, str]:
@@ -536,8 +561,13 @@ def assert_translation_quality(
         )
 
 
-def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[str, Any]]:
+def build_jobs(
+    candidates: dict[str, Any],
+    include_existing: bool,
+    trusted_registry: dict[str, str],
+) -> tuple[list[dict[str, Any]], int]:
     jobs: list[dict[str, Any]] = []
+    skipped_trusted = 0
 
     for section_name in ("updates", "adds"):
         section_entries = candidates.get(section_name) or []
@@ -549,6 +579,7 @@ def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[
                 raise ValueError(f"Candidates section '{section_name}' contains a non-object entry.")
 
             content_uid = str(entry.get("contentuid", "")).strip()
+            version = str(entry.get("version", "")).strip()
             english_text = normalize_multiline_text(entry.get("englishText", ""))
             current_text = normalize_multiline_text(entry.get("text", ""))
             previous_russian_text = normalize_multiline_text(entry.get("russianText", ""))
@@ -564,17 +595,22 @@ def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[
                     continue
                 if section_name == "updates" and current_text.strip() and current_text != previous_russian_text:
                     continue
+            if version and trusted_registry.get(content_uid) == version:
+                skipped_trusted += 1
+                continue
 
             job: dict[str, Any] = {
                 "section": section_name,
                 "contentuid": content_uid,
                 "englishText": english_text,
             }
+            if version:
+                job["version"] = version
             if old_russian_text.strip():
                 job["oldRussianText"] = old_russian_text
             jobs.append(job)
 
-    return jobs
+    return jobs, skipped_trusted
 
 
 def prefill_jobs(
@@ -1046,6 +1082,7 @@ def main() -> int:
         english_path = Path(args.english_path).resolve()
         russian_path = Path(args.russian_path).resolve()
         reference_russian_path = Path(args.reference_russian_path).resolve() if args.reference_russian_path.strip() else None
+        trusted_registry_path = Path(args.trusted_registry_path).resolve() if args.trusted_registry_path.strip() else None
 
         candidates = read_json(candidates_path)
         if not isinstance(candidates, dict):
@@ -1072,10 +1109,18 @@ def main() -> int:
             official_glossary=official_glossary,
             secondary_glossary=secondary_glossary,
         )
+        trusted_registry = read_optional_trusted_registry(trusted_registry_path)
 
-        jobs = build_jobs(candidates=candidates, include_existing=args.include_existing)
+        jobs, skipped_trusted = build_jobs(
+            candidates=candidates,
+            include_existing=args.include_existing,
+            trusted_registry=trusted_registry,
+        )
         if not jobs:
-            print("[fill-translation-openrouter.py] No translation jobs found. Nothing to do.")
+            print(
+                "[fill-translation-openrouter.py] "
+                f"No translation jobs found. SkippedTrusted={skipped_trusted}."
+            )
             return 0
 
         runtime_settings = compute_effective_runtime_settings(
@@ -1214,6 +1259,7 @@ def main() -> int:
             },
             "summary": {
                 "prefilled": prefilled_count,
+                "skippedTrusted": skipped_trusted,
                 "translatedUpdates": translated_updates,
                 "translatedAdds": translated_adds,
                 "promptTokens": total_usage["prompt_tokens"],
@@ -1243,7 +1289,8 @@ def main() -> int:
     print(
         "[fill-translation-openrouter.py] Filled translation candidates successfully. "
         f"Mode={'free-aware' if free_model else 'standard'}; PricingResolution={pricing_resolution}; "
-        f"Prefilled={prefilled_count}; Updates={translated_updates}; Adds={translated_adds}; "
+        f"Prefilled={prefilled_count}; SkippedTrusted={skipped_trusted}; "
+        f"Updates={translated_updates}; Adds={translated_adds}; "
         f"Output='{output_path}'; UsageReport='{usage_report_path}'."
     )
     print(

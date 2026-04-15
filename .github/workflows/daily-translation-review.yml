@@ -1,0 +1,217 @@
+name: Daily Translation Review
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      force_check:
+        description: "Запустить проверку даже без нового hash upstream"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+  REVIEW_BRANCH: "autopilot/daily-translation-review"
+  REVIEW_STATE_PATH: ".github/autopilot/daily-review-state.json"
+
+concurrency:
+  group: daily-translation-review-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  review:
+    runs-on: windows-latest
+    environment: MedvedeBear - AI
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Switch to review branch
+        run: |
+          $ErrorActionPreference = "Stop"
+          git fetch origin "$env:REVIEW_BRANCH" --depth=1 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            git switch --create "$env:REVIEW_BRANCH" --track "origin/$env:REVIEW_BRANCH"
+          }
+          else {
+            git switch -c "$env:REVIEW_BRANCH" origin/main
+          }
+
+      - name: Prepare workspace
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Path "build/autopilot" -Force | Out-Null
+          New-Item -ItemType Directory -Path "build/translation-diff" -Force | Out-Null
+          New-Item -ItemType Directory -Path ".cache/upstream" -Force | Out-Null
+          New-Item -ItemType Directory -Path ".github/autopilot" -Force | Out-Null
+
+      - name: Check upstream english.xml
+        run: |
+          $ErrorActionPreference = "Stop"
+          $args = @(
+            "scripts/check-upstream-change.py",
+            "--state-path", "$env:REVIEW_STATE_PATH",
+            "--download-path", ".cache/upstream/english.xml",
+            "--output-path", "build/autopilot/upstream-check.json"
+          )
+          if ("${{ github.event.inputs.force_check || 'false' }}" -eq "true") {
+            $args += "--force"
+          }
+          python @args
+
+      - name: Decide whether to process
+        id: preflight
+        run: |
+          $ErrorActionPreference = "Stop"
+          $report = Get-Content -Raw "build/autopilot/upstream-check.json" | ConvertFrom-Json
+          $forceCheck = "${{ github.event.inputs.force_check || 'false' }}" -eq "true"
+          $shouldProcess = [bool]$report.changed -or $forceCheck
+          "should_process=$($shouldProcess.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "current_sha256=$($report.currentSha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Stop when upstream is unchanged
+        if: steps.preflight.outputs.should_process != 'true'
+        run: |
+          Write-Host "Upstream не изменился. Токены не тратим."
+
+      - name: Run translation review autopilot
+        if: steps.preflight.outputs.should_process == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          python scripts/run-autopilot.py `
+            --mode sync_only `
+            --mode-source scheduler `
+            --mode-override sync_only `
+            --trigger "${{ github.event_name }}" `
+            --reason "daily translation review" `
+            --state-path "$env:REVIEW_STATE_PATH" `
+            --upstream-check-path "build/autopilot/upstream-check.json" `
+            --run-report-path "build/autopilot/run-report.json" `
+            --commit-message-path "build/autopilot/commit-message.txt" `
+            --resolved-tag-path "build/autopilot/resolved-tag.json" `
+            --repository-path "${{ github.workspace }}" `
+            --trusted-registry-path "glossary/trusted-contentuid-versions.json"
+
+      - name: Detect changes
+        if: steps.preflight.outputs.should_process == 'true'
+        id: diff
+        run: |
+          $ErrorActionPreference = "Stop"
+          $changed = git status --short
+          $hasChanges = -not [string]::IsNullOrWhiteSpace($changed)
+          $russianChanged = $false
+          if ($hasChanges) {
+            $nameOnly = git diff --name-only
+            if ($nameOnly -match [regex]::Escape("Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml")) {
+              $russianChanged = $true
+            }
+          }
+          "has_changes=$($hasChanges.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "russian_changed=$($russianChanged.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Configure git
+        if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.has_changes == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          git config user.name "bg3-dnd55e daily review"
+          git config user.email "autopilot@users.noreply.github.com"
+
+      - name: Commit review branch
+        if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.has_changes == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          git add ".github/autopilot/daily-review-state.json"
+          git add "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml"
+          git commit --file "build/autopilot/commit-message.txt"
+          git push --set-upstream origin "$env:REVIEW_BRANCH"
+
+      - name: Create or update pull request
+        if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.russian_changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const head = `${owner}:${process.env.REVIEW_BRANCH}`;
+            const base = "main";
+            const title = "[autopilot] Ежедневное обновление перевода";
+            const body = [
+              "Что изменено",
+              "- найден новый upstream diff по `english.xml`",
+              "- обработаны только новые или изменённые записи, не входящие в доверенный реестр `contentuid/version`",
+              "- точечные переводы предложены в PR с diff вместо прямого merge",
+              "",
+              "Проверки",
+              "- `scripts/check-upstream-change.py`",
+              "- `scripts/run-autopilot.py --mode sync_only`",
+              "- `scripts/update-translation-openrouter.py` с `glossary/trusted-contentuid-versions.json`",
+              "- `scripts/validate-translation-xml.py`",
+              "",
+              "Экономия токенов",
+              "- доверенные `contentuid/version` пропускаются",
+              "- review-ветка хранит собственное состояние upstream и не гоняет одинаковые записи повторно",
+            ].join("\n");
+
+            const existing = await github.paginate(github.rest.pulls.list, {
+              owner,
+              repo,
+              state: "open",
+              head,
+              base,
+            });
+
+            if (existing.length > 0) {
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number: existing[0].number,
+                title,
+                body,
+              });
+            } else {
+              await github.rest.pulls.create({
+                owner,
+                repo,
+                head,
+                base,
+                title,
+                body,
+                draft: true,
+              });
+            }
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-translation-review-${{ github.run_number }}
+          path: |
+            build/autopilot/upstream-check.json
+            build/autopilot/run-report.json
+            build/translation-diff/summary.json
+            build/translation-diff/summary.md
+            build/translation-diff/candidates.json
+            build/translation-diff/openrouter-usage.json
+          if-no-files-found: ignore
