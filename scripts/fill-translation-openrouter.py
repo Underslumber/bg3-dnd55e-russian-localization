@@ -52,6 +52,7 @@ SYSTEM_PROMPT = (
     "- Prefer established BG3-style terminology such as спасбросок, атака по возможности, бонус мастерства, владение, очки здоровья.\n"
     "- Preserve placeholders, numbers, variables, XML/HTML tags, LSTag tags, bracketed values like [1], and line breaks.\n"
     "- Keep terminology consistent.\n"
+    "- If 'old_ru' is provided in an input object, it is the previous translation for reference only; produce a fresh, improved translation — do not copy it verbatim.\n"
     "- Return only valid JSON.\n\n"
     "Glossary format:\n"
     "- The prompt may contain `Official Glossary` and `Secondary Glossary` blocks.\n"
@@ -551,6 +552,7 @@ def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[
             english_text = normalize_multiline_text(entry.get("englishText", ""))
             current_text = normalize_multiline_text(entry.get("text", ""))
             previous_russian_text = normalize_multiline_text(entry.get("russianText", ""))
+            old_russian_text = normalize_multiline_text(entry.get("oldRussianText", ""))
 
             if not content_uid:
                 raise ValueError(f"Candidates section '{section_name}' contains empty 'contentuid'.")
@@ -563,13 +565,14 @@ def build_jobs(candidates: dict[str, Any], include_existing: bool) -> list[dict[
                 if section_name == "updates" and current_text.strip() and current_text != previous_russian_text:
                     continue
 
-            jobs.append(
-                {
-                    "section": section_name,
-                    "contentuid": content_uid,
-                    "englishText": english_text,
-                }
-            )
+            job: dict[str, Any] = {
+                "section": section_name,
+                "contentuid": content_uid,
+                "englishText": english_text,
+            }
+            if old_russian_text.strip():
+                job["oldRussianText"] = old_russian_text
+            jobs.append(job)
 
     return jobs
 
@@ -888,7 +891,13 @@ def translate_batch(
     model_pricing: dict[str, Decimal],
     is_free_model_runtime: bool,
 ) -> tuple[dict[str, str], dict[str, Any]]:
-    items = [{"id": job["contentuid"], "english": job["englishText"]} for job in batch]
+    items: list[dict[str, str]] = []
+    for job in batch:
+        item: dict[str, str] = {"id": job["contentuid"], "english": job["englishText"]}
+        old_ru = job.get("oldRussianText", "").strip()
+        if old_ru:
+            item["old_ru"] = old_ru
+        items.append(item)
     relevant_official_glossary = select_relevant_glossary(official_glossary, [job["englishText"] for job in batch])
     relevant_secondary_glossary = {
         key: value

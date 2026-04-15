@@ -57,6 +57,16 @@ def parse_args() -> argparse.Namespace:
         dest="include_existing",
         help="Retranslate entries with already edited candidate text.",
     )
+    parser.add_argument(
+        "--from-scratch",
+        action="store_true",
+        dest="from_scratch",
+        default=False,
+        help=(
+            "Pass --from-scratch to compare-translation.py: backs up and clears russian.xml, "
+            "then retranslates all entries from scratch using OpenRouter."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -112,17 +122,17 @@ def main() -> int:
                 get_upstream_script_path,
                 ["--output-path", args.english_path, "--force"],
             )
-            run_python_script(
-                compare_script_path,
-                [
-                    "--english-path",
-                    args.english_path,
-                    "--russian-path",
-                    args.russian_path,
-                    "--output-dir",
-                    str(working_diff_dir),
-                ],
-            )
+            compare_args = [
+                "--english-path",
+                args.english_path,
+                "--russian-path",
+                args.russian_path,
+                "--output-dir",
+                str(working_diff_dir),
+            ]
+            if args.from_scratch:
+                compare_args.append("--from-scratch")
+            run_python_script(compare_script_path, compare_args)
 
             summary_json_path = working_diff_dir / "summary.json"
             if not summary_json_path.exists():
@@ -140,7 +150,7 @@ def main() -> int:
 
             copy_directory_contents(working_diff_dir, resolved_output_dir)
 
-            if not has_diff:
+            if not args.from_scratch and not has_diff:
                 print("[update-translation-openrouter.py] Перевод уже актуален, дополнительные действия не требуются.")
                 return 0
 
