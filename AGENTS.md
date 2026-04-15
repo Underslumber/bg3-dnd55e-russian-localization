@@ -4,7 +4,7 @@
 - Read this file first; treat as system-level constraints.
 - Reusable general rules (MUST read and apply): [AGENT.common.md](AGENT.common.md)
 - Reusable structured interaction rules (MUST read and apply for agent-initiated user-facing questions, approvals, clarifications, confirmations, and branch/action choices): [AGENT.interaction.md](AGENT.interaction.md)
-- Skills (slash-команды для типовых задач): [.skills/](.skills/) — `/translation-update`, `/translation-tools`, `/meta-sync`
+- Skills (slash-команды для типовых задач): [.agents/skills/](.agents/skills/) — `/translation-update`, `/meta-sync`
 - Priority:
   1. User instructions
   2. AGENTS.md
@@ -83,6 +83,7 @@ Top-level repository layout:
 - `AGENT.common.md` → reusable general agent rules
 - `AGENT.interaction.md` → reusable structured interaction rules
 - `AGENTS.md` → project-specific agent contract
+- `.agents/skills/` → локальные skills репозитория
 - `LICENSE` → license metadata
 - `README.md` → project overview
 

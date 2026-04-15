@@ -11,14 +11,14 @@ description: Синхронизирует поля зависимостей (Mod
 
 ## Скрипт
 
-`.skills/meta-sync/scripts/sync-parent-meta.py`
+`.agents/skills/meta-sync/scripts/sync-parent-meta.py`
 
 Запуск из корня репозитория:
 
 ```bash
-python .skills/meta-sync/scripts/sync-parent-meta.py
+python .agents/skills/meta-sync/scripts/sync-parent-meta.py
 # или с явным URL родительского meta:
-python .skills/meta-sync/scripts/sync-parent-meta.py --parent-url <url>
+python .agents/skills/meta-sync/scripts/sync-parent-meta.py --parent-url <url>
 ```
 
 ## Входные данные
@@ -28,7 +28,7 @@ python .skills/meta-sync/scripts/sync-parent-meta.py --parent-url <url>
 
 ## Порядок выполнения
 
-1. Запусти `.skills/meta-sync/scripts/sync-parent-meta.py` (с аргументом из `$ARGUMENTS` если указан)
+1. Запусти `.agents/skills/meta-sync/scripts/sync-parent-meta.py` (с аргументом из `$ARGUMENTS` если указан)
 2. Убедись, что все обязательные поля родителя присутствуют: `Folder`, `MD5`, `Name`, `PublishHandle`, `UUID`, `Version64`; прерви если нет
 3. Проверь что изменены только поля `ModuleShortDesc` в секции dependencies
 4. Сообщи об изменённых полях

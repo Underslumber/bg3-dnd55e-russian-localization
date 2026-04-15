@@ -17,7 +17,7 @@ Russian localization mod for **DnD 5.5e All-in-One BEYOND** (a Baldur's Gate 3 m
 - [AGENTS.md](AGENTS.md) — project-specific agent contract (scope, git workflow, versioning, packaging rules)
 - [AGENT.common.md](AGENT.common.md) — communication and formatting rules
 - [AGENT.interaction.md](AGENT.interaction.md) — structured interaction format for approvals and choices
-- [.skills/](.skills/) — skills: `/translation-update`, `/translation-tools`, `/meta-sync`
+- [.agents/skills/](.agents/skills/) — skills: `/translation-update`, `/meta-sync`
 
 **Response language:** Russian. **Commit messages:** Russian, factual.
 
@@ -59,22 +59,22 @@ Outputs go to `build/` — never commit them. Staging uses `%TEMP%` outside the 
 All scripts are in `scripts/`. Run from repo root.
 
 ```bash
-# 1. Fetch upstream english.xml
-python scripts/get-upstream-english.py
+# Ручной skill-поток: 1. Fetch upstream english.xml
+python .agents/skills/translation-update/scripts/get-upstream-english.py
 
 # 2. Compare with russian.xml → produces build/translation-diff/
-python scripts/compare-translation.py
+python .agents/skills/translation-update/scripts/compare-translation.py
 
-# 3. Fill candidates via OpenRouter (requires OPENROUTER_API_KEY in .env.local)
-python scripts/fill-translation-openrouter.py
+# 3. Заполнить build/translation-diff/candidates.json вручную
 
 # 4. Apply filled candidates to russian.xml
-python scripts/apply-translation-edits.py
+python .agents/skills/translation-update/scripts/apply-translation-edits.py --edits-path build/translation-diff/candidates.json
 
 # 5. Validate XML
 python scripts/validate-translation-xml.py --xml-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml"
 
-# Full update pipeline (steps 1-4 combined)
+# Отдельный OpenRouter pipeline
+python scripts/fill-translation-openrouter.py
 python scripts/update-translation-openrouter.py
 ```
 

@@ -1,11 +1,31 @@
 ---
 name: translation-update
-description: Полный цикл синхронизации русского перевода с апстримом: fetch upstream → compare → generate candidates → apply. Активируй при запросах «обнови перевод», «синхронизировать с апстримом», «translation update», «что нового в переводе».
+description: Ручное обновление русского перевода из апстрима: fetch upstream → compare → подготовка candidates → apply. Активируй при запросах «обнови перевод», «translation update».
 ---
 
-Ты выполняешь полный цикл синхронизации перевода с апстримом.
+Ты выполняешь единый ручной workflow обновления перевода из апстрима.
 
 Прочитай и применяй: AGENTS.md, AGENT.common.md, AGENT.interaction.md.
+
+Аргументы: `$ARGUMENTS` (опционально: `diff` или `apply`; по умолчанию — `diff`)
+
+## Скрипты
+
+`.agents/skills/translation-update/scripts/get-upstream-english.py`
+
+`.agents/skills/translation-update/scripts/compare-translation.py`
+
+`.agents/skills/translation-update/scripts/apply-translation-edits.py`
+
+Запуск из корня репозитория:
+
+```bash
+python .agents/skills/translation-update/scripts/get-upstream-english.py
+python .agents/skills/translation-update/scripts/compare-translation.py
+python .agents/skills/translation-update/scripts/apply-translation-edits.py --edits-path build/translation-diff/candidates.json
+```
+
+Если аргумент не указан — выполни `diff`.
 
 ## Входные данные
 
@@ -14,25 +34,31 @@ description: Полный цикл синхронизации русского �
 - `glossary/glossary.normalized.json` — вторичный глоссарий (только запасной)
 - Апстрим EN: [english.xml](https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml)
 
-## Порядок выполнения
+## Режим `diff`
 
-1. Запусти `python scripts/get-upstream-english.py`; дождись `.cache/upstream/english.xml`
-2. Запусти `python scripts/compare-translation.py` только после завершения шага 1
+1. Запусти `python .agents/skills/translation-update/scripts/get-upstream-english.py`; дождись `.cache/upstream/english.xml`
+2. Запусти `python .agents/skills/translation-update/scripts/compare-translation.py` только после завершения шага 1
 3. Прочитай `build/translation-diff/summary.json`:
    - Если нет `missing`, `version_mismatch` и `stale` — сообщи «перевод актуален» и остановись
    - Если diff есть — останови выполнение после генерации `build/translation-diff/candidates.json`; жди заполненных текстов от пользователя
-4. После получения заполненных candidates:
-   - Убедись, что ни один entry не имеет пустой `text`; прерви если есть
-   - Используй `glossary/glossary.official.json` в первую очередь для согласованности терминов
-   - `glossary/glossary.normalized.json` — только как запасной, без переопределения официальных терминов
-5. Запусти skill `translation-tools` (операция `apply`) с заполненными candidates
+
+## Режим `apply`
+
+1. Убедись, что `build/translation-diff/candidates.json` существует и заполнен
+2. Проверь, что ни один entry в `updates` и `adds` не имеет пустой `text`; прерви если есть
+3. Используй `glossary/glossary.official.json` как основной терминологический источник при проверке готовых текстов
+4. Используй `glossary/glossary.normalized.json` только как запасной, не переопределяя официальный глоссарий
+5. Запусти `python .agents/skills/translation-update/scripts/apply-translation-edits.py --edits-path build/translation-diff/candidates.json`
+6. Сообщи об изменённых entries
 
 ## Проверки
 
+- `compare-translation.py` запускается только после успешной загрузки апстрима
+- `candidates.json` содержит только непустые `text` перед apply
 - XML валиден после apply
+- Уникальность `contentuid` сохранена
 - Термины согласованы с `glossary/glossary.official.json`
 - Scope ограничен локализацией и разрешёнными метаданными
-- Нет race condition между загрузкой апстрима и compare
 
 ## Выходные файлы
 
