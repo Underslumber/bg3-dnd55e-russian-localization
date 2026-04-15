@@ -10,6 +10,8 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 ## Interaction
 - User questions — use host-native interactive tool (`AskUserQuestion`, `question`, equivalents). No tool available — use numbered list.
 - One decision per question. Dependent decisions — sequential.
+- Numbered-list question format: intro line + `1.`/`2.`/`3.` options only; no trailing summary/request in a separate assistant message.
+- If clarification is required, put it into the intro line before the options, not after them.
 - Do not combine branch selection with operational confirmation.
 - Ask once; reuse the answer within the session.
 - Short status updates are allowed and expected.
