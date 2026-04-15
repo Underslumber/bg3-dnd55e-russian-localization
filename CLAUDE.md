@@ -17,7 +17,7 @@ Russian localization mod for **DnD 5.5e All-in-One BEYOND** (a Baldur's Gate 3 m
 - [AGENTS.md](AGENTS.md) — project-specific agent contract (scope, git workflow, versioning, packaging rules)
 - [AGENT.common.md](AGENT.common.md) — communication and formatting rules
 - [AGENT.interaction.md](AGENT.interaction.md) — structured interaction format for approvals and choices
-- [ACTIONS.md](ACTIONS.md) — predefined action plans (translation diff, apply, update, release)
+- [.skills/](.skills/) — skills: `/translation-update`, `/translation-tools`, `/meta-sync`
 
 **Response language:** Russian. **Commit messages:** Russian, factual.
 

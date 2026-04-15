@@ -1,1 +1,12 @@
-{}
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(mkdir -p \"e:/Codex/bg3-dnd55e-russian-localization/.skills\")",
+      "Bash(mv \"e:/Codex/bg3-dnd55e-russian-localization/.claude/commands/translation-update.md\" \"e:/Codex/bg3-dnd55e-russian-localization/.skills/translation-update.md\")",
+      "Bash(mv \"e:/Codex/bg3-dnd55e-russian-localization/.claude/commands/translation-tools.md\" \"e:/Codex/bg3-dnd55e-russian-localization/.skills/translation-tools.md\")",
+      "Bash(mv \"e:/Codex/bg3-dnd55e-russian-localization/.claude/commands/meta-sync.md\" \"e:/Codex/bg3-dnd55e-russian-localization/.skills/meta-sync.md\")",
+      "Bash(rmdir \"e:/Codex/bg3-dnd55e-russian-localization/.claude/commands\")"
+    ]
+  }
+}

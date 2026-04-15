@@ -4,7 +4,7 @@
 - Read this file first; treat as system-level constraints.
 - Reusable general rules (MUST read and apply): [AGENT.common.md](AGENT.common.md)
 - Reusable structured interaction rules (MUST read and apply for agent-initiated user-facing questions, approvals, clarifications, confirmations, and branch/action choices): [AGENT.interaction.md](AGENT.interaction.md)
-- Action plans (MUST read before executing any matching user request): [ACTIONS.md](ACTIONS.md)
+- Skills (slash-команды для типовых задач): [.skills/](.skills/) — `/translation-update`, `/translation-tools`, `/meta-sync`
 - Priority:
   1. User instructions
   2. AGENTS.md
@@ -64,7 +64,6 @@ Canonical paths:
 - CI: `.gitea/workflows/build.yml`
 - Official glossary: `glossary/glossary.official.json` _(primary terminology reference; MUST read first when working on translations)_
 - Secondary glossary: `glossary/glossary.normalized.json` _(secondary/fallback terminology reference; use only after `glossary/glossary.official.json` and do not override official terminology with it)_
-- Actions: `ACTIONS.md`
 - Local env template: `.env.example`
 - Local env file: `.env.local`
 
@@ -81,7 +80,6 @@ Top-level repository layout:
 - `.env.example` → local env schema
 - `.env.local` → local machine config/secrets; never commit — keys: `OPENROUTER_API_KEY`, `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID`, `AUTOPILOT_MODE`, `AUTOPILOT_DEFAULT_RELEASE_CHANNEL`
 - `.gitignore` → ignore policy
-- `ACTIONS.md` → project actions/checklists
 - `AGENT.common.md` → reusable general agent rules
 - `AGENT.interaction.md` → reusable structured interaction rules
 - `AGENTS.md` → project-specific agent contract
