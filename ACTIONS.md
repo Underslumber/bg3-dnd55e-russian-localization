@@ -75,6 +75,7 @@ ACTIONS:
     intent: sync_ru_translation_with_upstream
     inputs:
       - Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml
+      - glossary/glossary.official.json
       - glossary/glossary.normalized.json
       - AGENTS.md::Canonical Paths::Upstream English reference
     plan:
@@ -82,7 +83,8 @@ ACTIONS:
       - if_summary_has_no_missing_no_version_mismatch_no_stale_report_translation_up_to_date_and_stop
       - if_diff_exists_stop_after_generating_build/translation-diff/candidates.json_until_prepared_edits_are_provided_explicitly
       - review_build/translation-diff/candidates.json_before_apply
-      - reuse_glossary_for_term_consistency_when_preparing_texts
+      - reuse_official_glossary_first_for_term_consistency_when_preparing_texts
+      - use_normalized_glossary_only_as_secondary_fallback_without_overriding_official_terms
       - run_translation:apply_only_after_candidate_texts_are_filled_and_explicit_edits_path_is_passed
     checks:
       - xml_valid

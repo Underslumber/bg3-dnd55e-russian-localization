@@ -93,8 +93,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-GlossaryPath",
         "--glossary-path",
-        default="glossary/glossary.normalized.json",
+        default="",
         dest="glossary_path",
+        help="Legacy single-glossary path. If set, dual-glossary mode is disabled and only this dictionary is used.",
+    )
+    parser.add_argument(
+        "-OfficialGlossaryPath",
+        "--official-glossary-path",
+        default="glossary/glossary.official.json",
+        dest="official_glossary_path",
+        help="Path to the primary official glossary JSON dictionary.",
+    )
+    parser.add_argument(
+        "-SecondaryGlossaryPath",
+        "--secondary-glossary-path",
+        default="glossary/glossary.normalized.json",
+        dest="secondary_glossary_path",
+        help="Path to the secondary fallback glossary JSON dictionary.",
     )
     parser.add_argument(
         "-UpstreamEnglishUrl",
@@ -291,7 +306,11 @@ def main() -> int:
     output_dir = Path(args.output_dir).resolve()
     russian_path = Path(args.russian_path).resolve()
     english_path = Path(args.english_path).resolve()
-    glossary_path = Path(args.glossary_path).resolve()
+    glossary_path = Path(args.glossary_path).resolve() if args.glossary_path.strip() else None
+    official_glossary_path = Path(args.official_glossary_path).resolve() if args.official_glossary_path.strip() else None
+    secondary_glossary_path = (
+        Path(args.secondary_glossary_path).resolve() if args.secondary_glossary_path.strip() else None
+    )
     scripts_dir = Path(__file__).resolve().parent
 
     report: dict[str, Any] = {
@@ -334,6 +353,8 @@ def main() -> int:
             "outputDir": str(output_dir),
             "russianXml": str(russian_path),
             "englishXml": str(english_path),
+            "officialGlossary": str(official_glossary_path) if official_glossary_path is not None else "",
+            "secondaryGlossary": str(secondary_glossary_path) if secondary_glossary_path is not None else "",
         },
         "actions": {
             "processRequested": False,
@@ -402,9 +423,14 @@ def main() -> int:
             str(english_path),
             "--output-dir",
             str(output_dir),
-            "--glossary-path",
-            str(glossary_path),
         ]
+        if glossary_path is not None:
+            update_args.extend(["--glossary-path", str(glossary_path)])
+        else:
+            if official_glossary_path is not None:
+                update_args.extend(["--official-glossary-path", str(official_glossary_path)])
+            if secondary_glossary_path is not None:
+                update_args.extend(["--secondary-glossary-path", str(secondary_glossary_path)])
         if args.include_existing:
             update_args.append("--include-existing")
 

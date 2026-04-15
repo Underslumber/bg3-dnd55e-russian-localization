@@ -23,8 +23,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-GlossaryPath",
         "--glossary-path",
-        default="glossary/glossary.normalized.json",
+        default="",
         dest="glossary_path",
+        help="Legacy single-glossary path. If set, dual-glossary mode is disabled and only this dictionary is used.",
+    )
+    parser.add_argument(
+        "-OfficialGlossaryPath",
+        "--official-glossary-path",
+        default="glossary/glossary.official.json",
+        dest="official_glossary_path",
+        help="Path to the primary official glossary JSON dictionary.",
+    )
+    parser.add_argument(
+        "-SecondaryGlossaryPath",
+        "--secondary-glossary-path",
+        default="glossary/glossary.normalized.json",
+        dest="secondary_glossary_path",
+        help="Path to the secondary fallback glossary JSON dictionary.",
     )
     parser.add_argument(
         "-ReferenceRussianPath",
@@ -132,8 +147,6 @@ def main() -> int:
             fill_args = [
                 "--candidates-path",
                 str(working_candidates_path),
-                "--glossary-path",
-                args.glossary_path,
                 "--english-path",
                 args.english_path,
                 "--russian-path",
@@ -147,6 +160,12 @@ def main() -> int:
                 "--retries",
                 str(args.retries),
             ]
+            if args.glossary_path.strip():
+                fill_args.extend(["--glossary-path", args.glossary_path])
+            else:
+                fill_args.extend(["--official-glossary-path", args.official_glossary_path])
+                if args.secondary_glossary_path.strip():
+                    fill_args.extend(["--secondary-glossary-path", args.secondary_glossary_path])
             if args.reference_russian_path.strip():
                 fill_args.extend(["--reference-russian-path", args.reference_russian_path])
             if args.include_existing:

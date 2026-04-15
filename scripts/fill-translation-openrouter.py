@@ -20,11 +20,15 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models"
 OPENROUTER_GENERATION_URL = "https://openrouter.ai/api/v1/generation"
 DEFAULT_CANDIDATES_PATH = "build/translation-diff/candidates.json"
-DEFAULT_GLOSSARY_PATH = "glossary/glossary.normalized.json"
+DEFAULT_OFFICIAL_GLOSSARY_PATH = "glossary/glossary.official.json"
+DEFAULT_SECONDARY_GLOSSARY_PATH = "glossary/glossary.normalized.json"
 DEFAULT_USAGE_REPORT_PATH = "build/translation-diff/openrouter-usage.json"
 DEFAULT_BATCH_SIZE = 20
 DEFAULT_MAX_BATCH_CHARS = 6000
 DEFAULT_RETRIES = 3
+FREE_DEFAULT_BATCH_SIZE = 10
+FREE_DEFAULT_MAX_BATCH_CHARS = 3000
+FREE_DEFAULT_RETRIES = 4
 REQUEST_TIMEOUT_SECONDS = 120
 
 SYSTEM_PROMPT = (
@@ -38,7 +42,8 @@ SYSTEM_PROMPT = (
     "- Output one result for every input object.\n"
     '- Do not include the original English text in the output.\n'
     "- Use the glossary as a strict source of truth.\n"
-    "- If a glossary term appears, use its glossary translation exactly.\n"
+    "- If an official glossary term appears, use its official translation exactly.\n"
+    "- Use the secondary glossary only as a fallback when no official glossary rule applies.\n"
     "- Follow the existing Russian localization style used by this mod.\n"
     "- Translate names, features, classes, and subclass titles as polished in-game UI text, not as literal dictionary glosses.\n"
     '- If the source starts with "Level N:", the result must start with "Уровень N:".\n'
@@ -49,7 +54,9 @@ SYSTEM_PROMPT = (
     "- Keep terminology consistent.\n"
     "- Return only valid JSON.\n\n"
     "Glossary format:\n"
-    "- Plain text lines in the form `English => Russian`.\n"
+    "- The prompt may contain `Official Glossary` and `Secondary Glossary` blocks.\n"
+    "- Each block uses plain text lines in the form `English => Russian`.\n"
+    "- Official rules have priority over secondary rules.\n"
     "- Use each rule as an exact terminology mapping when the English source term appears.\n\n"
     'Output format:\n{"translations":[{"id":"...","ru":"..."}]}'
 )
@@ -67,9 +74,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-GlossaryPath",
         "--glossary-path",
-        default=DEFAULT_GLOSSARY_PATH,
+        default="",
         dest="glossary_path",
-        help="Path to glossary JSON dictionary.",
+        help="Legacy single-glossary path. If set, dual-glossary mode is disabled and only this dictionary is used.",
+    )
+    parser.add_argument(
+        "-OfficialGlossaryPath",
+        "--official-glossary-path",
+        default=DEFAULT_OFFICIAL_GLOSSARY_PATH,
+        dest="official_glossary_path",
+        help="Path to the primary official glossary JSON dictionary.",
+    )
+    parser.add_argument(
+        "-SecondaryGlossaryPath",
+        "--secondary-glossary-path",
+        default=DEFAULT_SECONDARY_GLOSSARY_PATH,
+        dest="secondary_glossary_path",
+        help="Path to the secondary fallback glossary JSON dictionary.",
     )
     parser.add_argument(
         "-EnglishPath",
@@ -173,6 +194,31 @@ def write_json(path: Path, payload: Any) -> None:
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def read_glossary(path: Path) -> dict[str, str]:
+    payload = read_json(path)
+    if not isinstance(payload, dict):
+        raise ValueError(f"Glossary JSON root must be an object: '{path.resolve()}'.")
+    if not all(isinstance(key, str) and isinstance(value, str) for key, value in payload.items()):
+        raise ValueError(f"Glossary JSON must contain only string-to-string pairs: '{path.resolve()}'.")
+    return payload
+
+
+def read_optional_glossary(path: Path | None) -> dict[str, str]:
+    if path is None:
+        return {}
+    if not path.exists():
+        return {}
+    return read_glossary(path)
+
+
+def merge_glossaries(official_glossary: dict[str, str], secondary_glossary: dict[str, str]) -> dict[str, str]:
+    merged = dict(official_glossary)
+    for key, value in secondary_glossary.items():
+        if key not in merged:
+            merged[key] = value
+    return merged
+
+
 def format_usd(value: Decimal) -> str:
     return f"{value.quantize(Decimal('0.000001'))} USD"
 
@@ -184,6 +230,78 @@ def parse_decimal(value: Any) -> Decimal:
         return Decimal(str(value))
     except (InvalidOperation, ValueError, TypeError):
         return Decimal("0")
+
+
+def is_free_model(model: str) -> bool:
+    return model.strip().lower().endswith(":free")
+
+
+def zero_pricing() -> dict[str, Decimal]:
+    return {
+        "prompt": Decimal("0"),
+        "completion": Decimal("0"),
+        "request": Decimal("0"),
+        "internal_reasoning": Decimal("0"),
+    }
+
+
+def compute_effective_runtime_settings(
+    *,
+    is_free: bool,
+    batch_size: int,
+    max_batch_chars: int,
+    retries: int,
+) -> dict[str, int]:
+    effective_batch_size = batch_size
+    effective_max_batch_chars = max_batch_chars
+    effective_retries = retries
+
+    if is_free:
+        if batch_size == DEFAULT_BATCH_SIZE:
+            effective_batch_size = FREE_DEFAULT_BATCH_SIZE
+        if max_batch_chars == DEFAULT_MAX_BATCH_CHARS:
+            effective_max_batch_chars = FREE_DEFAULT_MAX_BATCH_CHARS
+        if retries == DEFAULT_RETRIES:
+            effective_retries = FREE_DEFAULT_RETRIES
+
+    return {
+        "batch_size": effective_batch_size,
+        "max_batch_chars": effective_max_batch_chars,
+        "retries": effective_retries,
+    }
+
+
+def compute_retry_sleep_seconds(attempt: int, *, is_free: bool) -> int:
+    if is_free:
+        return min(4 * attempt, 12)
+    return min(2 * attempt, 6)
+
+
+def normalize_openrouter_error_message(raw_message: str, *, model: str, is_free: bool) -> str:
+    normalized = " ".join(str(raw_message or "").split())
+    if not is_free:
+        return normalized
+
+    lower = normalized.lower()
+    free_issue_fragments = (
+        "429",
+        "rate limit",
+        "too many requests",
+        "quota",
+        "capacity",
+        "provider unavailable",
+        "no provider",
+        "temporarily unavailable",
+        "temporary overload",
+        "service unavailable",
+    )
+    if any(fragment in lower for fragment in free_issue_fragments):
+        return (
+            f"Free-модель '{model}' недоступна или упёрлась в лимит. "
+            "Попробуйте позже или смените OPENROUTER_MODEL. "
+            f"Детали: {normalized}"
+        )
+    return normalized
 
 
 def openrouter_request(
@@ -209,8 +327,19 @@ def openrouter_request(
         method=method,
     )
 
-    with request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
-        return json.loads(response.read().decode("utf-8"))
+    try:
+        with request.urlopen(req, timeout=REQUEST_TIMEOUT_SECONDS) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        body_text = ""
+        try:
+            body_text = exc.read().decode("utf-8", errors="replace").strip()
+        except Exception:
+            body_text = ""
+        detail = f"HTTP {exc.code} {exc.reason}"
+        if body_text:
+            detail = f"{detail}; body: {body_text}"
+        raise RuntimeError(f"OpenRouter API request failed: {detail}") from exc
 
 
 def normalize_multiline_text(value: Any) -> str:
@@ -506,10 +635,20 @@ def build_batches(jobs: list[dict[str, Any]], batch_size: int, max_batch_chars: 
     return batches
 
 
-def build_user_prompt(items: list[dict[str, str]], glossary: dict[str, str]) -> str:
+def build_user_prompt(
+    items: list[dict[str, str]],
+    official_glossary: dict[str, str],
+    secondary_glossary: dict[str, str],
+) -> str:
     items_json = json.dumps(items, ensure_ascii=False, separators=(",", ":"))
-    glossary_text = build_compact_glossary_text(glossary)
-    return f"Glossary:\n{glossary_text}\n\nInput:\n{items_json}"
+    glossary_sections: list[str] = []
+    if official_glossary:
+        glossary_sections.append(f"Official Glossary:\n{build_compact_glossary_text(official_glossary)}")
+    if secondary_glossary:
+        glossary_sections.append(f"Secondary Glossary:\n{build_compact_glossary_text(secondary_glossary)}")
+
+    glossary_text = "\n\n".join(glossary_sections) if glossary_sections else "Glossary:\n"
+    return f"{glossary_text}\n\nInput:\n{items_json}"
 
 
 def build_compact_glossary_text(glossary: dict[str, str]) -> str:
@@ -645,6 +784,17 @@ def fetch_model_pricing(model: str, api_key: str) -> dict[str, Decimal]:
     raise ValueError(f"OpenRouter model '{model}' was not found in /models response.")
 
 
+def resolve_model_pricing(model: str, api_key: str) -> tuple[dict[str, Decimal], str]:
+    if is_free_model(model):
+        try:
+            pricing = fetch_model_pricing(model, api_key)
+            return pricing, "fetched"
+        except (error.URLError, RuntimeError, ValueError, json.JSONDecodeError):
+            return zero_pricing(), "assumed_free_zero"
+
+    return fetch_model_pricing(model, api_key), "fetched"
+
+
 def estimate_cost_from_usage(
     usage: dict[str, int],
     pricing: dict[str, Decimal],
@@ -729,15 +879,27 @@ def post_openrouter(
 
 def translate_batch(
     batch: list[dict[str, Any]],
-    glossary: dict[str, str],
+    official_glossary: dict[str, str],
+    secondary_glossary: dict[str, str],
+    effective_glossary: dict[str, str],
     model: str,
     api_key: str,
     retries: int,
     model_pricing: dict[str, Decimal],
+    is_free_model_runtime: bool,
 ) -> tuple[dict[str, str], dict[str, Any]]:
     items = [{"id": job["contentuid"], "english": job["englishText"]} for job in batch]
-    relevant_glossary = select_relevant_glossary(glossary, [job["englishText"] for job in batch])
-    user_prompt = build_user_prompt(items, relevant_glossary)
+    relevant_official_glossary = select_relevant_glossary(official_glossary, [job["englishText"] for job in batch])
+    relevant_secondary_glossary = {
+        key: value
+        for key, value in select_relevant_glossary(secondary_glossary, [job["englishText"] for job in batch]).items()
+        if key not in relevant_official_glossary
+    }
+    user_prompt = build_user_prompt(
+        items,
+        official_glossary=relevant_official_glossary,
+        secondary_glossary=relevant_secondary_glossary,
+    )
     expected_ids = [item["id"] for item in items]
     retry_feedback = ""
     use_json_schema = True
@@ -780,7 +942,7 @@ def translate_batch(
 
             for item in items:
                 item_id = item["id"]
-                relevant_terms = get_relevant_glossary_terms(glossary, item["english"])
+                relevant_terms = get_relevant_glossary_terms(effective_glossary, item["english"])
                 normalized_translation = normalize_translation_output(
                     english_text=item["english"],
                     translated_text=translations[item_id],
@@ -822,13 +984,17 @@ def translate_batch(
                 "estimated_cost_usd": estimated_cost,
             }
             return translations, batch_stats
-        except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError) as exc:
-            retry_feedback = str(exc)
+        except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError, RuntimeError) as exc:
+            retry_feedback = normalize_openrouter_error_message(
+                str(exc),
+                model=model,
+                is_free=is_free_model_runtime,
+            )
             if "response content is empty or unsupported" in retry_feedback.lower():
                 use_json_schema = False
             if attempt >= retries:
-                raise RuntimeError(f"OpenRouter batch failed after {retries} attempts: {exc}") from exc
-            time.sleep(min(2 * attempt, 6))
+                raise RuntimeError(f"OpenRouter batch failed after {retries} attempts: {retry_feedback}") from exc
+            time.sleep(compute_retry_sleep_seconds(attempt, is_free=is_free_model_runtime))
 
     raise RuntimeError("OpenRouter batch failed unexpectedly.")
 
@@ -860,28 +1026,53 @@ def main() -> int:
     try:
         model = require_env("OPENROUTER_MODEL")
         api_key = require_env("OPENROUTER_API_KEY")
+        free_model = is_free_model(model)
 
         candidates_path = Path(args.candidates_path).resolve()
         output_path = Path(args.output_path).resolve() if args.output_path.strip() else candidates_path
         usage_report_path = Path(args.usage_report_path).resolve()
-        glossary_path = Path(args.glossary_path).resolve()
         english_path = Path(args.english_path).resolve()
         russian_path = Path(args.russian_path).resolve()
         reference_russian_path = Path(args.reference_russian_path).resolve() if args.reference_russian_path.strip() else None
 
         candidates = read_json(candidates_path)
-        glossary = read_json(glossary_path)
         if not isinstance(candidates, dict):
             raise ValueError("Candidates JSON root must be an object.")
-        if not isinstance(glossary, dict):
-            raise ValueError("Glossary JSON root must be an object.")
+
+        legacy_glossary_path = Path(args.glossary_path).resolve() if args.glossary_path.strip() else None
+        official_glossary_path = (
+            Path(args.official_glossary_path).resolve() if args.official_glossary_path.strip() else None
+        )
+        secondary_glossary_path = (
+            Path(args.secondary_glossary_path).resolve() if args.secondary_glossary_path.strip() else None
+        )
+
+        if legacy_glossary_path is not None:
+            official_glossary = read_glossary(legacy_glossary_path)
+            secondary_glossary: dict[str, str] = {}
+        else:
+            if official_glossary_path is None:
+                raise ValueError("Official glossary path is required when legacy '--glossary-path' is not used.")
+            official_glossary = read_glossary(official_glossary_path)
+            secondary_glossary = read_optional_glossary(secondary_glossary_path)
+
+        effective_glossary = merge_glossaries(
+            official_glossary=official_glossary,
+            secondary_glossary=secondary_glossary,
+        )
 
         jobs = build_jobs(candidates=candidates, include_existing=args.include_existing)
         if not jobs:
             print("[fill-translation-openrouter.py] No translation jobs found. Nothing to do.")
             return 0
 
-        model_pricing = fetch_model_pricing(model, api_key)
+        runtime_settings = compute_effective_runtime_settings(
+            is_free=free_model,
+            batch_size=args.batch_size,
+            max_batch_chars=args.max_batch_chars,
+            retries=args.retries,
+        )
+        model_pricing, pricing_resolution = resolve_model_pricing(model, api_key)
 
         exact_translation_memory: dict[str, str] = {}
         if english_path.exists() and russian_path.exists():
@@ -919,18 +1110,21 @@ def main() -> int:
         if representative_jobs:
             batches = build_batches(
                 jobs=representative_jobs,
-                batch_size=args.batch_size,
-                max_batch_chars=args.max_batch_chars,
+                batch_size=runtime_settings["batch_size"],
+                max_batch_chars=runtime_settings["max_batch_chars"],
             )
 
             for index, batch in enumerate(batches, start=1):
                 batch_translations = translate_batch(
                     batch=batch,
-                    glossary=glossary,
+                    official_glossary=official_glossary,
+                    secondary_glossary=secondary_glossary,
+                    effective_glossary=effective_glossary,
                     model=model,
                     api_key=api_key,
-                    retries=args.retries,
+                    retries=runtime_settings["retries"],
                     model_pricing=model_pricing,
+                    is_free_model_runtime=free_model,
                 )
                 translated_batch, batch_stats = batch_translations
 
@@ -980,6 +1174,7 @@ def main() -> int:
 
                 print(
                     "[fill-translation-openrouter.py] "
+                    f"Mode={'free-aware' if free_model else 'standard'}; "
                     f"Translated batch {index}/{len(batches)}. RepresentativeEntries={len(batch)}; "
                     f"PromptTokens={usage['prompt_tokens']}; CompletionTokens={usage['completion_tokens']}; "
                     f"ReasoningTokens={usage['reasoning_tokens']}; "
@@ -990,8 +1185,12 @@ def main() -> int:
 
         translated_updates, translated_adds = apply_translations(candidates, collected_translations)
         write_json(output_path, candidates)
+        if free_model and pricing_resolution == "assumed_free_zero" and actual_cost_available:
+            pricing_resolution = "actual_from_generation_only"
         usage_report = {
             "model": model,
+            "isFreeModel": free_model,
+            "pricingResolution": pricing_resolution,
             "pricing": {
                 "promptPerTokenUsd": str(model_pricing["prompt"]),
                 "completionPerTokenUsd": str(model_pricing["completion"]),
@@ -1015,16 +1214,23 @@ def main() -> int:
                 "estimatedCostUsd": str(total_estimated_cost),
                 "actualCostUsd": str(total_actual_cost),
                 "actualCostKnown": actual_cost_available,
+                "mode": "free-aware" if free_model else "standard",
+            },
+            "runtime": {
+                "batchSize": runtime_settings["batch_size"],
+                "maxBatchChars": runtime_settings["max_batch_chars"],
+                "retries": runtime_settings["retries"],
             },
             "batches": batch_reports,
         }
         write_json(usage_report_path, usage_report)
     except Exception as exc:
-        print(exc, file=sys.stderr)
+        print(normalize_openrouter_error_message(str(exc), model=os.environ.get("OPENROUTER_MODEL", ""), is_free=is_free_model(os.environ.get("OPENROUTER_MODEL", ""))), file=sys.stderr)
         return 1
 
     print(
         "[fill-translation-openrouter.py] Filled translation candidates successfully. "
+        f"Mode={'free-aware' if free_model else 'standard'}; PricingResolution={pricing_resolution}; "
         f"Prefilled={prefilled_count}; Updates={translated_updates}; Adds={translated_adds}; "
         f"Output='{output_path}'; UsageReport='{usage_report_path}'."
     )
@@ -1037,6 +1243,8 @@ def main() -> int:
         f"NativeReasoningTokens={total_native_usage['reasoning_tokens']}; "
         f"EstimatedCost={format_usd(total_estimated_cost)}; "
         f"ActualCost={format_usd(total_actual_cost) if actual_cost_available else 'n/a'}; "
+        f"Mode={'free-aware' if free_model else 'standard'}; "
+        f"PricingResolution={pricing_resolution}; "
         f"PricingPerM=prompt:{format_usd(model_pricing['prompt'] * Decimal('1000000'))}, "
         f"completion:{format_usd(model_pricing['completion'] * Decimal('1000000'))}, "
         f"reasoning:{format_usd(model_pricing['internal_reasoning'] * Decimal('1000000'))}, "

@@ -62,7 +62,8 @@ Canonical paths:
 - Metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
 - Build: `scripts/build.ps1` _(single source of build truth)_
 - CI: `.gitea/workflows/build.yml`
-- Glossary: `glossary/glossary.normalized.json` _(primary terminology reference; MUST read when working on translations)_
+- Official glossary: `glossary/glossary.official.json` _(primary terminology reference; MUST read first when working on translations)_
+- Secondary glossary: `glossary/glossary.normalized.json` _(secondary/fallback terminology reference; use only after `glossary/glossary.official.json` and do not override official terminology with it)_
 - Actions: `ACTIONS.md`
 - Local env template: `.env.example`
 - Local env file: `.env.local`
