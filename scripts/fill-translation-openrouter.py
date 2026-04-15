@@ -823,9 +823,12 @@ def fetch_generation_stats(generation_id: str, api_key: str) -> dict[str, Any]:
             if not isinstance(data, dict):
                 raise ValueError("OpenRouter generation response does not contain 'data'.")
             return data
-        except error.HTTPError as exc:
+        except (error.HTTPError, RuntimeError) as exc:
             last_error = exc
-            if exc.code != 404 or attempt >= 5:
+            is_404 = (isinstance(exc, error.HTTPError) and exc.code == 404) or (
+                isinstance(exc, RuntimeError) and "HTTP 404" in str(exc)
+            )
+            if not is_404 or attempt >= 5:
                 raise
             time.sleep(min(attempt * 2, 8))
     if last_error is not None:
@@ -946,7 +949,7 @@ def translate_batch(
             if generation_id:
                 try:
                     generation_stats = fetch_generation_stats(generation_id, api_key)
-                except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError):
+                except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError, ValueError, RuntimeError):
                     generation_stats = {}
 
             for item in items:
