@@ -9,7 +9,6 @@ param(
     [string]$ModUuid = "6401e84d-daf2-416d-adeb-99c03a2487a6",
     [string]$ModAuthor = "Underslumber Team",
     [string]$ModDescription = "Русская локализация мода, который добавляет и обновляет контент в соответствии с правилами DnD 5.5e и другими источниками, включая предыстории, классы, таланты, расы, заклинания и многое другое. Это отдельный мод локализации и он требует установленный оригинальный мод.",
-    [string]$ModVersion64 = "36028797018963968",
     [string]$ModGroup = "6401e84d-daf2-416d-adeb-99c03a2487a6",
     [string]$DependencyUuid = "897914ef-5c96-053c-44af-0be823f895fe",
     [string]$DependencyVersion64 = "36028797018963968"
@@ -20,13 +19,8 @@ $ErrorActionPreference = "Stop"
 function Convert-VersionTagToVersion64 {
     param(
         [string]$Tag,
-        [string]$FallbackVersion64,
         [string]$RepoPath
     )
-
-    if (-not $Tag) {
-        return [int64]$FallbackVersion64
-    }
 
     $normalized = $Tag
     if ($normalized.StartsWith("v")) {
@@ -61,9 +55,49 @@ function Convert-VersionTagToVersion64 {
     return ([int64]$numbers[0] -shl 55) -bor ([int64]$numbers[1] -shl 47) -bor ([int64]$numbers[2] -shl 31) -bor [int64]$numbers[3]
 }
 
+function Get-ModuleInfoVersion64 {
+    param(
+        [string]$MetaPath
+    )
+
+    $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
+    $metaContent = [System.IO.File]::ReadAllText($MetaPath, $utf8Encoding)
+    $moduleInfoPattern = '(?s)(<node id="ModuleInfo">\s*(?:(?!<children>).)*?<attribute id="Version64" type="int64" value=")(\d+)("/>)'
+    $match = [System.Text.RegularExpressions.Regex]::Match($metaContent, $moduleInfoPattern)
+    if (-not $match.Success) {
+        throw "ModuleInfo/Version64 attribute was not found in '$MetaPath'."
+    }
+
+    return [int64]$match.Groups[2].Value
+}
+
+function Set-ModuleInfoVersion64 {
+    param(
+        [string]$MetaPath,
+        [int64]$Version64
+    )
+
+    $utf8Encoding = [System.Text.UTF8Encoding]::new($false)
+    $metaContent = [System.IO.File]::ReadAllText($MetaPath, $utf8Encoding)
+    $moduleInfoPattern = '(?s)(<node id="ModuleInfo">\s*(?:(?!<children>).)*?<attribute id="Version64" type="int64" value=")\d+("/>)'
+    $updatedMetaContent = [System.Text.RegularExpressions.Regex]::Replace(
+        $metaContent,
+        $moduleInfoPattern,
+        "`${1}$Version64`${2}",
+        1
+    )
+
+    if ($updatedMetaContent -ceq $metaContent) {
+        throw "ModuleInfo/Version64 attribute was not found in '$MetaPath'."
+    }
+
+    [System.IO.File]::WriteAllText($MetaPath, $updatedMetaContent, $utf8Encoding)
+}
+
 $workspacePath = [System.IO.Path]::GetFullPath($Workspace)
 $modsPath = Join-Path $workspacePath "Mods"
 $modPath = Join-Path $modsPath $ModFolder
+$metaPath = Join-Path $modPath "meta.lsx"
 $buildPath = Join-Path $workspacePath "build"
 $stagingRoot = Join-Path $env:TEMP "bg3-dnd55e-russian-localization-stage"
 $stagingPath = Join-Path $stagingRoot "build-stage"
@@ -75,7 +109,6 @@ if ($VersionTag) {
 }
 $zipPath = Join-Path $buildPath "$archiveName.zip"
 $infoJsonPath = Join-Path $buildPath "info.json"
-$resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag -FallbackVersion64 $ModVersion64 -RepoPath $workspacePath
 
 if (-not (Test-Path -LiteralPath $DivinePath)) {
     $resolvedCommand = Get-Command $DivinePath -ErrorAction SilentlyContinue
@@ -89,8 +122,18 @@ if (-not (Test-Path -LiteralPath $modPath)) {
     throw "Mod folder was not found: '$modPath'."
 }
 
+if (-not (Test-Path -LiteralPath $metaPath)) {
+    throw "meta.lsx was not found: '$metaPath'."
+}
+
 if (-not (Test-Path -LiteralPath (Join-Path $modPath "Localization\\Russian\\russian.xml"))) {
     throw "Localization file was not found under '$modPath'."
+}
+
+$resolvedVersion64 = Get-ModuleInfoVersion64 -MetaPath $metaPath
+if ($VersionTag) {
+    $resolvedVersion64 = Convert-VersionTagToVersion64 -Tag $VersionTag -RepoPath $workspacePath
+    Set-ModuleInfoVersion64 -MetaPath $metaPath -Version64 $resolvedVersion64
 }
 
 New-Item -ItemType Directory -Path $buildPath -Force | Out-Null
@@ -111,16 +154,6 @@ if (Test-Path -LiteralPath $stagingRoot) {
 
 New-Item -ItemType Directory -Path $stagingPath -Force | Out-Null
 Copy-Item -LiteralPath $modsPath -Destination $stagingPath -Recurse
-
-$stagedMetaPath = Join-Path $stagingPath "Mods\\$ModFolder\\meta.lsx"
-if (-not (Test-Path -LiteralPath $stagedMetaPath)) {
-    throw "Staged meta.lsx was not found: '$stagedMetaPath'."
-}
-
-$utf8Encoding = [System.Text.UTF8Encoding]::new($false)
-$stagedMetaContent = [System.IO.File]::ReadAllText($stagedMetaPath, $utf8Encoding)
-$stagedMetaContent = $stagedMetaContent -replace '(<attribute id="Version64" type="int64" value=")\d+("/>)', "`${1}$resolvedVersion64`${2}"
-[System.IO.File]::WriteAllText($stagedMetaPath, $stagedMetaContent, $utf8Encoding)
 
 Write-Host "[build.ps1] Staged source tree:"
 Get-ChildItem -Recurse $stagingPath | Select-Object FullName, Length | Format-Table -AutoSize

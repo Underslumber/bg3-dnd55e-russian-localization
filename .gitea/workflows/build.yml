@@ -90,6 +90,50 @@ jobs:
 
           & ".\\scripts\\build.ps1" -DivinePath $divine.FullName -Workspace "${{ gitea.workspace }}" -VersionTag "${{ gitea.ref_name }}"
 
+      - name: Commit updated meta.lsx
+        if: startsWith(gitea.ref, 'refs/tags/v')
+        run: |
+          $ErrorActionPreference = "Stop"
+          $workspace = "${{ gitea.workspace }}"
+          $repoUrl = "${{ gitea.server_url }}/${{ gitea.repository }}.git"
+          $tagName = "${{ gitea.ref_name }}"
+          $authPair = "${{ gitea.actor }}:${{ secrets.GITEA_TOKEN }}"
+          $authBytes = [System.Text.Encoding]::ASCII.GetBytes($authPair)
+          $authBasic = [Convert]::ToBase64String($authBytes)
+          $metaPath = "Mods/DnD 5.5e AIO Russian/meta.lsx"
+
+          Set-Location $workspace
+          git remote set-url origin $repoUrl
+
+          git diff --quiet -- $metaPath
+          if ($LASTEXITCODE -eq 0) {
+              Write-Host "[build.yml] meta.lsx was not changed by the build. Skipping commit."
+              exit 0
+          }
+          if ($LASTEXITCODE -ne 1) {
+              throw "git diff failed for '$metaPath' with exit code $LASTEXITCODE."
+          }
+
+          git config user.name "gitea-actions[bot]"
+          git config user.email "gitea-actions[bot]@users.noreply.local"
+          git add -- $metaPath
+          git commit -m "Обновить Version64 после сборки $tagName"
+
+          $pushAttempt = 0
+          do {
+              $pushAttempt++
+              git -c "http.extraHeader=Authorization: Basic $authBasic" push origin HEAD:main
+              if ($LASTEXITCODE -eq 0) {
+                  break
+              }
+
+              if ($pushAttempt -ge 2) {
+                  throw "git push failed after $pushAttempt attempts."
+              }
+
+              Start-Sleep -Seconds 3
+          } while ($true)
+
       - name: Show build result
         run: |
           $ErrorActionPreference = "Stop"
