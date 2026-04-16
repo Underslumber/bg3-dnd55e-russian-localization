@@ -183,3 +183,52 @@ jobs:
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           $text = "❌ <b>Сборка релиза завершилась ошибкой</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
+
+  upload_to_nexusmods:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    environment: NexusMods
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bg3-dnd55e-russian-localization-${{ github.run_number }}
+          path: build
+
+      - name: Resolve Nexus upload metadata
+        id: vars
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tagName = "${{ github.ref_name }}"
+          if (-not $tagName) {
+              throw "Git tag name is required for Nexus Mods upload."
+          }
+
+          $version = $tagName
+          if ($version.StartsWith("v")) {
+              $version = $version.Substring(1)
+          }
+
+          $zipName = "DnD 5.5e AIO Russian $tagName.zip"
+          $zipPath = Join-Path "${{ github.workspace }}" "build/$zipName"
+          if (-not (Test-Path -LiteralPath $zipPath)) {
+              throw "Release archive was not found at '$zipPath'."
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "zip_name=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload release to Nexus Mods
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.4
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: ${{ vars.NEXUSMODS_FILE_GROUP_ID }}
+          filename: ${{ steps.vars.outputs.zip_path }}
+          version: ${{ steps.vars.outputs.version }}
+          display_name: ${{ steps.vars.outputs.zip_name }}
+          description: GitHub release ${{ github.ref_name }}
+          file_category: main
