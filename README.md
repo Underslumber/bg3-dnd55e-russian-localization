@@ -1,11 +1,11 @@
 # DnD 5.5e All-in-One BEYOND — Russian Localization
 
 <p align="center">
-  <img src="Mods/DnD%205.5e%20AIO%20Russian/mod_publish_logo.png" style="max-width: 100%; width: 520px; height: auto;" alt="Логотип мода" />
+  <img src="Mods/DnD%205.5e%20AIO%20Russian/mod_publish_logo.png" style="max-width: 100%; width: 80%; height: auto;" alt="Логотип мода" />
 </p>
 
 <p align="center">
-  Русская локализация <a href="https://github.com/Yoonmoonsik/dnd55e"><strong>DnD 5.5e All-in-One BEYOND</strong></a> для <strong>Baldur's Gate 3</strong>.
+  Русская локализация <strong>DnD 5.5e All-in-One BEYOND</strong> для <strong>Baldur's Gate 3</strong>.
 </p>
 
 <p align="center">
@@ -42,8 +42,3 @@
 1. Установите оригинальный мод **DnD 5.5e All-in-One BEYOND**.
 2. Установите русскую локализацию через [mod.io](https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization) или из релизов репозитория.
 3. Убедитесь, что в игре активны и основной мод, и русификатор.
-
-## Ссылки
-
-- [Публикация на mod.io](https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization)
-- [Оригинальный мод DnD 5.5e All-in-One BEYOND](https://github.com/Yoonmoonsik/dnd55e)
