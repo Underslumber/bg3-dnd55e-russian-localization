@@ -36,7 +36,7 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 - localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
 - build_script: `scripts/build.ps1` (single build source of truth)
-- ci: `.gitea/workflows/build.yml`
+- ci: `.github/workflows/build.yml`
 - glossary_primary: `glossary/glossary.official.json` (read first)
 - glossary_fallback: `glossary/glossary.normalized.json` (does not override official)
 - env_schema: `.env.example`
@@ -44,7 +44,7 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 - skills: `.agents/skills/` — `/translation-update`, `/meta-sync`
 - upstream_en: https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml
 
-Top-level (never package): `.git`, `.gitea`, `.github`, `.cache`, `.tools`, `build`, staging.
+Top-level (never package): `.git`, `.github`, `.cache`, `.tools`, `build`, staging.
 
 ## Translation
 - `translation-update`: agent skill; uses skill-local scripts in `.agents/skills/translation-update/`; does not call `scripts/update-translation-openrouter.py`
@@ -58,7 +58,7 @@ Top-level (never package): `.git`, `.gitea`, `.github`, `.cache`, `.tools`, `bui
 ## Packaging
 - `.pak` contains only `Mods/...`.
 - Required: `meta.lsx`, `russian.xml`.
-- Forbidden in `.pak`: `.git`, `.gitea`, `scripts`, `tools`, `.tools`, `build`, staging.
+- Forbidden in `.pak`: `.git`, `scripts`, `tools`, `.tools`, `build`, staging.
 - Staging — in `%TEMP%`, not inside repo.
 
 ## Build & CI
