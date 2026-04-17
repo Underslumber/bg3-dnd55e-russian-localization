@@ -3127,4 +3127,6 @@
   <content contentuid="hf5433434g6271ge302gedbbg79fd7c7dccbb" version="1">Мистическая алхимия</content>
   <content contentuid="hfb02885eg51e1gd167gf1a1ged6463b56463" version="1">Вы нормально видите в магической и немагической тьме на расстоянии до 24 м.</content>
   <content contentuid="hffa16306g6658g076dgaf29gcf1993850b8a" version="1">Вы создаете зелье невидимости.</content>
+  <content contentuid="h87d82c29gd117g1a29ge05cg9e2b93fce725" version="1">Когда вы применяете токсин, вы можете немедленно нанести урон. Яд, который вы применяете, становится сильнее каждый раз, когда вы достигаете 5-го и 9-го уровней.</content>
+  <content contentuid="hb178fcfbg2a6bg595fg1a08g177cffbae328" version="1">Когда вы применяете токсин, вы можете немедленно нанести урон. Яд, который вы применяете, становится сильнее каждый раз, когда вы достигаете 5-го и 9-го уровней плута.</content>
 </contentList>
