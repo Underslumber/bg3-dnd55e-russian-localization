@@ -58,6 +58,12 @@ def parse_args() -> argparse.Namespace:
         default="build/glossary-review-input.json",
         dest="output_path",
     )
+    parser.add_argument(
+        "-TrustedRegistryPath",
+        "--trusted-registry-path",
+        default="glossary/trusted-contentuid-versions.json",
+        dest="trusted_registry_path",
+    )
     return parser.parse_args()
 
 
@@ -79,6 +85,27 @@ def read_json(path: Path) -> object:
 def write_json(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def read_optional_trusted_registry(path: Path) -> dict[str, str]:
+    resolved_path = path.resolve()
+    if not resolved_path.exists():
+        return {}
+
+    payload = read_json(resolved_path)
+    if not isinstance(payload, dict):
+        raise ValueError("Trusted registry JSON root must be an object.")
+
+    entries = payload.get("entries")
+    if not isinstance(entries, dict):
+        raise ValueError("Trusted registry JSON must contain object field 'entries'.")
+
+    trusted: dict[str, str] = {}
+    for content_uid, version in entries.items():
+        if not isinstance(content_uid, str) or not isinstance(version, str):
+            raise ValueError("Trusted registry entries must be string-to-string pairs.")
+        trusted[content_uid] = version
+    return trusted
 
 
 def read_localization_entries(path: Path) -> dict[str, dict[str, str]]:
@@ -178,8 +205,15 @@ def build_review_items(
     english_entries: dict[str, dict[str, str]],
     russian_entries: dict[str, dict[str, str]],
     glossary_patterns: list[tuple[str, str, re.Pattern[str]]],
-) -> list[dict[str, object]]:
+    trusted_registry: dict[str, str],
+) -> tuple[list[dict[str, object]], dict[str, int]]:
     items: list[dict[str, object]] = []
+    stats = {
+        "untrusted": 0,
+        "version_mismatch": 0,
+        "trusted_skipped": 0,
+        "missing_in_registry": 0,
+    }
 
     for content_uid in sorted(english_entries):
         english_entry = english_entries[content_uid]
@@ -197,20 +231,32 @@ def build_review_items(
         if not required_terms:
             continue
 
+        trusted_version = trusted_registry.get(content_uid)
+        current_version = str(russian_entry["version"] or "")
+        if trusted_version == current_version and trusted_version != "":
+            stats["trusted_skipped"] += 1
+            continue
+
         item: dict[str, object] = {
             "contentuid": content_uid,
-            "version": russian_entry["version"],
+            "version": current_version,
             "english_text": english_text,
             "current_russian_text": russian_text,
             "required_glossary_terms": required_terms,
             "english_placeholders": get_placeholder_tokens(english_text),
             "current_russian_placeholders": get_placeholder_tokens(russian_text),
         }
+        if trusted_version:
+            stats["untrusted"] += 1
+            item["trusted_version"] = trusted_version
+        else:
+            stats["missing_in_registry"] += 1
         if english_entry["version"] != russian_entry["version"]:
             item["notes"] = ["version_mismatch"]
+            stats["version_mismatch"] += 1
         items.append(item)
 
-    return items
+    return items, stats
 
 
 def main() -> int:
@@ -220,8 +266,14 @@ def main() -> int:
         english_entries = read_localization_entries(Path(args.english_path))
         russian_entries = read_localization_entries(Path(args.russian_path))
         glossary = load_glossary(Path(args.glossary_path))
+        trusted_registry = read_optional_trusted_registry(Path(args.trusted_registry_path))
         glossary_patterns = build_glossary_patterns(glossary)
-        items = build_review_items(english_entries, russian_entries, glossary_patterns)
+        items, stats = build_review_items(
+            english_entries,
+            russian_entries,
+            glossary_patterns,
+            trusted_registry,
+        )
 
         output_path = Path(args.output_path).resolve()
         write_json(
@@ -231,7 +283,9 @@ def main() -> int:
                 "englishPath": str(Path(args.english_path).resolve()),
                 "russianPath": str(Path(args.russian_path).resolve()),
                 "glossaryPath": str(Path(args.glossary_path).resolve()),
+                "trustedRegistryPath": str(Path(args.trusted_registry_path).resolve()),
                 "itemCount": len(items),
+                "summary": stats,
                 "items": items,
             },
         )

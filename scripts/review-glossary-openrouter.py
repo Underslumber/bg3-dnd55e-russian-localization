@@ -202,11 +202,17 @@ def fetch_model_pricing(model: str, api_key: str) -> tuple[dict[str, Decimal], s
 def fetch_generation_stats(generation_id: str, api_key: str) -> dict[str, Any]:
     if not generation_id:
         return {}
-    payload = openrouter_request(
-        f"{OPENROUTER_GENERATION_URL}?id={generation_id}",
-        method="GET",
-        api_key=api_key,
-    )
+    try:
+        payload = openrouter_request(
+            f"{OPENROUTER_GENERATION_URL}?id={generation_id}",
+            method="GET",
+            api_key=api_key,
+        )
+    except RuntimeError as exc:
+        message = str(exc)
+        if "HTTP 404" in message or "not found" in message.lower():
+            return {}
+        raise
     data = payload.get("data")
     if isinstance(data, dict):
         return data

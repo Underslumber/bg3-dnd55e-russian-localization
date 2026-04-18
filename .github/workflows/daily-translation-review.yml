@@ -133,6 +133,7 @@ jobs:
             --english-path ".cache/upstream/english.xml" `
             --russian-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" `
             --glossary-path "glossary/glossary.official.json" `
+            --trusted-registry-path "glossary/trusted-contentuid-versions.json" `
             --output-path "build/glossary-review-input.json"
 
           $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
@@ -141,6 +142,35 @@ jobs:
             $itemCount = [int]$audit.itemCount
           }
           "item_count=$itemCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Guard glossary review scope
+        if: steps.preflight.outputs.should_process == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
+          $registry = Get-Content -Raw "glossary/trusted-contentuid-versions.json" | ConvertFrom-Json
+          $trustedEntries = if ($null -ne $registry.entries) { $registry.entries } else { @{} }
+
+          $itemCount = if ($null -ne $audit.itemCount) { [int]$audit.itemCount } else { 0 }
+          $summary = $audit.summary
+          $summaryUntrusted = if ($null -ne $summary -and $null -ne $summary.untrusted) { [int]$summary.untrusted } else { 0 }
+          $summaryMissing = if ($null -ne $summary -and $null -ne $summary.missing_in_registry) { [int]$summary.missing_in_registry } else { 0 }
+          $eligibleCount = $summaryUntrusted + $summaryMissing
+
+          if ($itemCount -ne $eligibleCount) {
+            throw "Glossary review guard failed: itemCount=$itemCount, eligibleCount=$eligibleCount."
+          }
+
+          foreach ($item in ($audit.items | ForEach-Object { $_ })) {
+            $contentUid = [string]$item.contentuid
+            $version = [string]$item.version
+            if ($trustedEntries.PSObject.Properties.Name -contains $contentUid) {
+              $trustedVersion = [string]$trustedEntries.$contentUid
+              if ($trustedVersion -eq $version -and -not [string]::IsNullOrWhiteSpace($version)) {
+                throw "Glossary review guard failed: trusted contentuid/version leaked into audit output: $contentUid@$version."
+              }
+            }
+          }
 
       - name: Generate glossary review fixes
         if: steps.preflight.outputs.should_process == 'true' && steps.glossary_audit.outputs.item_count != '0'
@@ -282,7 +312,7 @@ jobs:
             const body = [
               "Что изменено",
               "- найден новый upstream diff по `english.xml`",
-              "- обработаны только новые или изменённые записи, не входящие в доверенный реестр `contentuid/version`",
+              "- glossary-review ограничен только новыми или изменёнными `contentuid/version`, отсутствующими в доверенном реестре",
               `- найдено ошибок перевода: ${errorsCount}`,
               `- найдено неточностей перевода: ${inaccuraciesCount}`,
               `- потрачено на исправление: $${reviewCost}`,
@@ -295,6 +325,7 @@ jobs:
               "- `scripts/review-glossary-openrouter.py`",
               "- `scripts/apply-translation-edits.py`",
               "- `scripts/update-translation-openrouter.py` с `glossary/trusted-contentuid-versions.json`",
+              "- fail-fast guard на trusted `contentuid/version` перед вызовом OpenRouter",
               "- `scripts/validate-translation-xml.py`",
               "",
               "Экономия токенов",
