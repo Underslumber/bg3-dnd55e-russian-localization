@@ -20,7 +20,7 @@
                 <node id="ModuleInfo">
                     <attribute id="Author" type="LSString" value="Underslumber Team"/>
                     <attribute id="CharacterCreationLevelName" type="FixedString" value=""/>
-                    <attribute id="Description" type="LSString" value="Русский перевод мода DnD 5.5e All-in-One BEYOND. Перевод ещё в разработке: AI помогает быстро обновлять тексты, а финальные правки и качество мы проверяем вручную."/>
+                    <attribute id="Description" type="LSString" value="Russian translation of the DnD 5.5e All-in-One BEYOND mod. The translation is still in development: AI helps update texts quickly, and final edits and quality checks are done manually."/>
                     <attribute id="FileSize" type="uint64" value="2488095"/>
                     <attribute id="Folder" type="LSString" value="DnD 5.5e AIO Russian"/>
                     <attribute id="LobbyLevelName" type="FixedString" value=""/>
