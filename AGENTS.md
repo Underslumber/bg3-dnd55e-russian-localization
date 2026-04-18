@@ -20,7 +20,7 @@ SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
 ## Git
 - Commit/push only after explicit user approval; after approval — immediately.
 - Commit message: Russian, factual.
-- Branches: `fix/*`, `feat/*`. Branch choice — once, before first file-changing task.
+- Branches: `fix/*`, `feat/*`. Branch choice — once, before first file-changing task; agent proposes 2–3 concrete names based on task context; user picks or provides own name.
 - After `fix/*`/`feat/*` branch work: offer either merge into `main` + delete branch, or create PR.
 - Rule above does not apply outside `fix/*`/`feat/*` branches.
 - Push retry: ≤2, delay 3s.

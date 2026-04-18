@@ -1,7 +1,7 @@
 # DnD 5.5e All-in-One BEYOND — Russian Localization
 
 <p align="center">
-  <img src="Mods/DnD%205.5e%20AIO%20Russian/mod_publish_logo.png" style="max-width: 100%; width: 80%; height: auto;" alt="Логотип мода" />
+  <img src="Projects/thumbnail.png" style="max-width: 100%; width: 80%; height: auto;" alt="Логотип мода" />
 </p>
 
 <p align="center">
