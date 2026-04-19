@@ -197,6 +197,7 @@ def main() -> int:
                     "contentuid": item["contentuid"],
                     "version": item["englishVersion"],
                     "text": item["russianText"],
+                    "oldRussianText": item["russianText"],
                     "englishText": item["englishText"],
                     "russianVersion": item["russianVersion"],
                 }

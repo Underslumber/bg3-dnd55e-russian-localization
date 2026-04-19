@@ -43,8 +43,9 @@ SYSTEM_PROMPT = (
     "- Output one result for every input object.\n"
     '- Do not include the original English text in the output.\n'
     "- Use the glossary as a strict source of truth.\n"
-    "- If an official glossary term appears, use its official translation exactly.\n"
-    "- Use the secondary glossary only as a fallback when no official glossary rule applies.\n"
+    "- If a glossary term appears, keep that term from the glossary and do not replace it with a synonym or a different term.\n"
+    "- You may inflect glossary terms to fit Russian grammar, including case, number, and gender.\n"
+    "- Use the secondary glossary only as a fallback when a more specific term appears there.\n"
     "- Follow the existing Russian localization style used by this mod.\n"
     "- Translate names, features, classes, and subclass titles as polished in-game UI text, not as literal dictionary glosses.\n"
     '- If the source starts with "Level N:", the result must start with "Уровень N:".\n'
@@ -53,13 +54,13 @@ SYSTEM_PROMPT = (
     "- Prefer established BG3-style terminology such as спасбросок, атака по возможности, бонус мастерства, владение, очки здоровья.\n"
     "- Preserve placeholders, numbers, variables, XML/HTML tags, LSTag tags, bracketed values like [1], and line breaks.\n"
     "- Keep terminology consistent.\n"
-    "- If 'old_ru' is provided in an input object, it is the previous translation for reference only; produce a fresh, improved translation — do not copy it verbatim.\n"
+    "- If 'old_ru' is provided in an input object and it already uses correct terminology and style, keep it as close as possible and only update the parts required by the English source.\n"
     "- Return only valid JSON.\n\n"
     "Glossary format:\n"
     "- The prompt may contain `Official Glossary` and `Secondary Glossary` blocks.\n"
     "- Each block uses plain text lines in the form `English => Russian`.\n"
-    "- Official rules have priority over secondary rules.\n"
-    "- Use each rule as an exact terminology mapping when the English source term appears.\n\n"
+    "- When rules overlap, prefer the most specific matching English term.\n"
+    "- Use each rule as a terminology constraint, but adapt the Russian word form to the sentence when needed.\n\n"
     'Output format:\n{"translations":[{"id":"...","ru":"..."}]}'
 )
 
@@ -243,6 +244,23 @@ def merge_glossaries(official_glossary: dict[str, str], secondary_glossary: dict
         if key not in merged:
             merged[key] = value
     return merged
+
+
+def normalize_russian_for_match(value: str) -> str:
+    return normalize_multiline_text(value).lower().replace("ё", "е")
+
+
+def extract_russian_term_fragments(term: str) -> list[str]:
+    fragments: list[str] = []
+    normalized = normalize_russian_for_match(term)
+    for word in re.findall(r"[а-я]+", normalized):
+        if len(word) < 5:
+            continue
+        fragment_length = max(5, len(word) - 2)
+        fragment = word[:fragment_length]
+        if fragment not in fragments:
+            fragments.append(fragment)
+    return fragments
 
 
 def format_usd(value: Decimal) -> str:
@@ -489,23 +507,30 @@ def select_relevant_glossary(glossary: dict[str, str], texts: list[str]) -> dict
     return relevant
 
 
+def select_relevant_glossaries(
+    official_glossary: dict[str, str],
+    secondary_glossary: dict[str, str],
+    texts: list[str],
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    combined_glossary = merge_glossaries(official_glossary, secondary_glossary)
+    combined_selected = select_relevant_glossary(combined_glossary, texts)
+
+    relevant_official: dict[str, str] = {}
+    relevant_secondary: dict[str, str] = {}
+    for source_term, target_term in combined_selected.items():
+        if source_term in official_glossary and official_glossary[source_term] == target_term:
+            relevant_official[source_term] = target_term
+        else:
+            relevant_secondary[source_term] = target_term
+    return relevant_official, relevant_secondary, combined_selected
+
+
 def get_relevant_glossary_terms(glossary: dict[str, str], english_text: str) -> dict[str, str]:
     return select_relevant_glossary(glossary, [english_text])
 
 
 def replace_visible_glossary_terms(translated_text: str, relevant_glossary: dict[str, str]) -> str:
-    parts = re.split(r"(<[^>]+>)", translated_text)
-    ordered_terms = sorted(relevant_glossary.items(), key=lambda item: len(item[0]), reverse=True)
-
-    for index, part in enumerate(parts):
-        if not part or (part.startswith("<") and part.endswith(">")):
-            continue
-
-        for source_term, target_term in ordered_terms:
-            part = part.replace(source_term, target_term)
-        parts[index] = part
-
-    repaired_text = "".join(parts)
+    repaired_text = translated_text
     repaired_text = repaired_text.replace(
         '<LSTag Tooltip="AbilityCheck">Checks</LSTag>',
         '<LSTag Tooltip="AbilityCheck">проверках</LSTag>',
@@ -542,10 +567,26 @@ def assert_translation_quality(
         raise ValueError(f"Translation for id '{item_id}' matches the original English text.")
 
     visible_text = re.sub(r"<[^>]+>", " ", translated_text)
+    normalized_visible_text = normalize_russian_for_match(visible_text)
     for source_term, target_term in relevant_glossary.items():
-        if source_term and source_term in visible_text and target_term not in visible_text:
+        if source_term and source_term in visible_text:
             raise ValueError(
                 f"Translation for id '{item_id}' still contains glossary source term '{source_term}'."
+            )
+        fragments = extract_russian_term_fragments(target_term)
+        if fragments and not all(fragment in normalized_visible_text for fragment in fragments):
+            raise ValueError(
+                f"Translation for id '{item_id}' does not preserve glossary term '{target_term}' in context."
+            )
+
+    known_bad_patterns = (
+        r"\bодну\s+ячейка\b",
+        r"\bиспытани(?:е|я|й|ям|ями|ях)\s+от\s+смерти\b",
+    )
+    for pattern in known_bad_patterns:
+        if re.search(pattern, normalized_visible_text):
+            raise ValueError(
+                f"Translation for id '{item_id}' matches known broken grammar pattern '{pattern}'."
             )
 
     stripped_text = visible_text
@@ -937,12 +978,11 @@ def translate_batch(
         if old_ru:
             item["old_ru"] = old_ru
         items.append(item)
-    relevant_official_glossary = select_relevant_glossary(official_glossary, [job["englishText"] for job in batch])
-    relevant_secondary_glossary = {
-        key: value
-        for key, value in select_relevant_glossary(secondary_glossary, [job["englishText"] for job in batch]).items()
-        if key not in relevant_official_glossary
-    }
+    relevant_official_glossary, relevant_secondary_glossary, combined_relevant_glossary = select_relevant_glossaries(
+        official_glossary,
+        secondary_glossary,
+        [job["englishText"] for job in batch],
+    )
     user_prompt = build_user_prompt(
         items,
         official_glossary=relevant_official_glossary,
@@ -990,7 +1030,7 @@ def translate_batch(
 
             for item in items:
                 item_id = item["id"]
-                relevant_terms = get_relevant_glossary_terms(effective_glossary, item["english"])
+                relevant_terms = get_relevant_glossary_terms(combined_relevant_glossary, item["english"])
                 normalized_translation = normalize_translation_output(
                     english_text=item["english"],
                     translated_text=translations[item_id],
