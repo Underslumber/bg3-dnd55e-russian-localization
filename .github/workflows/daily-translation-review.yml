@@ -32,7 +32,6 @@ jobs:
     outputs:
       process_requested: ${{ steps.preflight.outputs.should_process }}
       errors_count: ${{ steps.metrics.outputs.errors_count }}
-      inaccuracies_count: ${{ steps.metrics.outputs.inaccuracies_count }}
       cost_actual_known: ${{ steps.metrics.outputs.cost_actual_known }}
       cost_actual: ${{ steps.metrics.outputs.cost_actual }}
       cost_estimated: ${{ steps.metrics.outputs.cost_estimated }}
@@ -137,72 +136,6 @@ jobs:
             --repository-path "${{ github.workspace }}" `
             --trusted-registry-path "glossary/trusted-contentuid-versions.json"
 
-      - name: Collect glossary review items
-        if: steps.preflight.outputs.should_process == 'true'
-        id: glossary_audit
-        run: |
-          $ErrorActionPreference = "Stop"
-          python scripts/audit-translation-quality.py `
-            --english-path ".cache/upstream/english.xml" `
-            --russian-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" `
-            --glossary-path "glossary/glossary.official.json" `
-            --trusted-registry-path "glossary/trusted-contentuid-versions.json" `
-            --output-path "build/glossary-review-input.json"
-
-          $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
-          $itemCount = 0
-          if ($null -ne $audit.itemCount) {
-            $itemCount = [int]$audit.itemCount
-          }
-          "item_count=$itemCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-
-      - name: Guard glossary review scope
-        if: steps.preflight.outputs.should_process == 'true'
-        run: |
-          $ErrorActionPreference = "Stop"
-          $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
-          $registry = Get-Content -Raw "glossary/trusted-contentuid-versions.json" | ConvertFrom-Json
-          $trustedEntries = if ($null -ne $registry.entries) { $registry.entries } else { @{} }
-
-          $itemCount = if ($null -ne $audit.itemCount) { [int]$audit.itemCount } else { 0 }
-          $summary = $audit.summary
-          $summaryUntrusted = if ($null -ne $summary -and $null -ne $summary.untrusted) { [int]$summary.untrusted } else { 0 }
-          $summaryMissing = if ($null -ne $summary -and $null -ne $summary.missing_in_registry) { [int]$summary.missing_in_registry } else { 0 }
-          $eligibleCount = $summaryUntrusted + $summaryMissing
-
-          if ($itemCount -ne $eligibleCount) {
-            throw "Glossary review guard failed: itemCount=$itemCount, eligibleCount=$eligibleCount."
-          }
-
-          foreach ($item in ($audit.items | ForEach-Object { $_ })) {
-            $contentUid = [string]$item.contentuid
-            $version = [string]$item.version
-            if ($trustedEntries.PSObject.Properties.Name -contains $contentUid) {
-              $trustedVersion = [string]$trustedEntries.$contentUid
-              if ($trustedVersion -eq $version -and -not [string]::IsNullOrWhiteSpace($version)) {
-                throw "Glossary review guard failed: trusted contentuid/version leaked into audit output: $contentUid@$version."
-              }
-            }
-          }
-
-      - name: Generate glossary review fixes
-        if: steps.preflight.outputs.should_process == 'true' && steps.glossary_audit.outputs.item_count != '0'
-        run: |
-          $ErrorActionPreference = "Stop"
-          python scripts/review-glossary-openrouter.py `
-            --input-path "build/glossary-review-input.json" `
-            --prompt-path "docs/official-localization/prompt-glossary-review.md" `
-            --output-path "build/glossary-review-fixes.json" `
-            --usage-report-path "build/glossary-review-usage.json"
-
-      - name: Apply glossary review fixes
-        if: steps.preflight.outputs.should_process == 'true' && steps.glossary_audit.outputs.item_count != '0'
-        run: |
-          $ErrorActionPreference = "Stop"
-          python scripts/apply-translation-edits.py `
-            --russian-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" `
-            --edits-path "build/glossary-review-fixes.json"
-
       - name: Detect changes
         if: steps.preflight.outputs.should_process == 'true'
         id: diff
@@ -282,22 +215,13 @@ jobs:
           $summary = $runReport.summary
           $errorsCount = [int]($summary.missingInRussianCount) + [int]($summary.versionMismatchCount) + [int]($summary.staleOnlyInRussianCount)
 
-          $inaccuraciesCount = 0
-          if (Test-Path "build/glossary-review-input.json") {
-            $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
-            if ($null -ne $audit.itemCount) {
-              $inaccuraciesCount = [int]$audit.itemCount
-            }
-          }
-
           $costEstimated = [decimal]::Zero
           $costActual = [decimal]::Zero
           $costActualKnown = $true
           $hasCost = $false
 
           $usagePaths = @(
-            "build/translation-diff/openrouter-usage.json",
-            "build/glossary-review-usage.json"
+            "build/translation-diff/openrouter-usage.json"
           )
 
           foreach ($usagePath in $usagePaths) {
@@ -324,7 +248,6 @@ jobs:
           }
 
           "errors_count=$errorsCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "inaccuracies_count=$inaccuraciesCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "cost_actual_known=$($costActualKnown.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "cost_actual=$($costActual.ToString([System.Globalization.CultureInfo]::InvariantCulture))" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "cost_estimated=$($costEstimated.ToString([System.Globalization.CultureInfo]::InvariantCulture))" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -334,6 +257,7 @@ jobs:
         id: pr
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.AUTOPILOT_PUSH_TOKEN || github.token }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -341,33 +265,26 @@ jobs:
             const base = "main";
             const title = "[autopilot] Ежедневное обновление перевода";
             const errorsCount = Number("${{ steps.metrics.outputs.errors_count || '0' }}");
-            const inaccuraciesCount = Number("${{ steps.metrics.outputs.inaccuracies_count || '0' }}");
             const reviewCost = "${{ steps.metrics.outputs.cost_actual_known }}" === "true"
               ? "${{ steps.metrics.outputs.cost_actual || '0' }}"
               : "${{ steps.metrics.outputs.cost_estimated || '0' }}";
             const body = [
               "Что изменено",
               "- найден новый upstream diff по `english.xml`",
-              "- glossary-review ограничен только новыми или изменёнными `contentuid/version`, отсутствующими в доверенном реестре",
               `- найдено ошибок перевода: ${errorsCount}`,
-              `- найдено неточностей перевода: ${inaccuraciesCount}`,
-              `- потрачено на исправление: $${reviewCost}`,
+              `- затраты на автоперевод: $${reviewCost}`,
               "- review-ветка пересобрана от актуального `main`, чтобы workflow использовал свежие скрипты",
               "- точечные переводы предложены в PR с diff вместо прямого merge",
               "",
               "Проверки",
               "- `scripts/check-upstream-change.py`",
               "- `scripts/run-autopilot.py --mode sync_only`",
-              "- `scripts/audit-translation-quality.py`",
-              "- `scripts/review-glossary-openrouter.py`",
-              "- `scripts/apply-translation-edits.py`",
               "- `scripts/update-translation-openrouter.py` с `glossary/trusted-contentuid-versions.json`",
-              "- fail-fast guard на trusted `contentuid/version` перед вызовом OpenRouter",
               "- `scripts/validate-translation-xml.py`",
               "",
               "Экономия токенов",
-              "- доверенные `contentuid/version` пропускаются",
-              "- review-ветка хранит собственное состояние upstream и не гоняет одинаковые записи повторно",
+              "- доверенные `contentuid/version` пропускаются в основном translation pipeline",
+              "- review-ветка хранит собственное состояние upstream и не гоняет одинаковый upstream diff повторно",
             ].join("\n");
 
             const existing = await github.paginate(github.rest.pulls.list, {
@@ -416,9 +333,6 @@ jobs:
             build/translation-diff/summary.md
             build/translation-diff/candidates.json
             build/translation-diff/openrouter-usage.json
-            build/glossary-review-input.json
-            build/glossary-review-fixes.json
-            build/glossary-review-usage.json
           if-no-files-found: ignore
 
   notify_finish:
@@ -480,13 +394,11 @@ jobs:
 
           $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
           $errorsCount = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.errors_count || '0' }}")
-          $inaccuraciesCount = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.inaccuracies_count || '0' }}")
           $textLines = [System.Collections.Generic.List[string]]::new()
           $textLines.Add("🏁 <b>Ежедневный review перевода завершён</b>")
           $textLines.Add("<b>Статус:</b> <code>$encodedStatus</code>")
           $textLines.Add("<b>Ошибки перевода:</b> <code>$errorsCount</code>")
-          $textLines.Add("<b>Неточности перевода:</b> <code>$inaccuraciesCount</code>")
-          $textLines.Add("<b>Потрачено на исправление:</b> <code>$costDisplay</code>")
+          $textLines.Add("<b>Потрачено на автоперевод:</b> <code>$costDisplay</code>")
 
           if ("${{ needs.review.outputs.pr_available }}" -eq "true" -and "${{ needs.review.outputs.pr_number }}") {
             $encodedPrNumber = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.pr_number }}")

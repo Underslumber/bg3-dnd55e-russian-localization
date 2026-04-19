@@ -20,9 +20,6 @@ Workflow `.github/workflows/daily-translation-review.yml`:
 - всегда выполняет Python-скрипты на актуальном дереве `main`
 - пересобирает служебную review-ветку `autopilot/daily-translation-review` от текущего `main` перед коммитом результата
 - хранит отдельное состояние upstream в `.github/autopilot/daily-review-state.json`
-- обрабатывает только новые или изменённые записи, которых нет в `glossary/trusted-contentuid-versions.json`
-- дополнительно проверяет итоговый `russian.xml` на неточности по глоссарию
-- подготавливает точечные правки через OpenRouter и применяет их в review-ветке
 - валидирует `russian.xml`
 - пушит review-ветку и создаёт или обновляет draft PR в `main`
 
@@ -85,8 +82,7 @@ Workflow использует три GitHub environment:
 В `daily-translation-review.yml` отправляется финальное сообщение со следующими полями:
 
 - количество найденных ошибок перевода
-- количество найденных неточностей перевода
-- суммарная стоимость исправления
+- суммарная стоимость автоперевода
 - ссылка на draft PR, где можно подтвердить слияние изменений
 
 ## Важно про запуск релиза
@@ -111,20 +107,4 @@ Workflow использует три GitHub environment:
 
 - не отправлять в LLM уже подтверждённые строки повторно;
 - переводить только новые или реально изменённые записи;
-- экономить токены в ежедневном review workflow.
-
-Обновление реестра:
-
-```powershell
-python scripts/sync-trusted-contentuid-registry.py -RussianPath "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -RegistryPath glossary/trusted-contentuid-versions.json
-```
-
-Эта команда нужна, чтобы пересобрать доверенную базу из текущего подтверждённого `russian.xml`.
-
-Проверка только новых или изменённых записей:
-
-```powershell
-python scripts/filter-trusted-contentuid-registry.py -RussianPath "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -RegistryPath glossary/trusted-contentuid-versions.json -OutputPath build/untrusted-contentuid-versions.json
-```
-
-Эта команда нужна, чтобы получить только те `contentuid/version`, которых ещё нет в доверенном реестре.
+- экономить токены в основном translation pipeline.
