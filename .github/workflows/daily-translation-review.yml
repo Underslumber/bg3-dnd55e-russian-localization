@@ -2,7 +2,7 @@ name: Daily Translation Review
 
 on:
   schedule:
-    - cron: "17 2 * * *"
+    - cron: "0 18 * * *"
   workflow_dispatch:
     inputs:
       force_check:
@@ -29,6 +29,16 @@ jobs:
   review:
     runs-on: windows-latest
     environment: MedvedeBear - AI
+    outputs:
+      process_requested: ${{ steps.preflight.outputs.should_process }}
+      errors_count: ${{ steps.metrics.outputs.errors_count }}
+      inaccuracies_count: ${{ steps.metrics.outputs.inaccuracies_count }}
+      cost_actual_known: ${{ steps.metrics.outputs.cost_actual_known }}
+      cost_actual: ${{ steps.metrics.outputs.cost_actual }}
+      cost_estimated: ${{ steps.metrics.outputs.cost_estimated }}
+      pr_url: ${{ steps.pr.outputs.pr_url }}
+      pr_number: ${{ steps.pr.outputs.pr_number }}
+      pr_available: ${{ steps.pr.outputs.pr_available }}
     env:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL }}
@@ -48,17 +58,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Switch to review branch
-        run: |
-          $ErrorActionPreference = "Stop"
-          git fetch origin "$env:REVIEW_BRANCH" --depth=1 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            git switch --create "$env:REVIEW_BRANCH" --track "origin/$env:REVIEW_BRANCH"
-          }
-          else {
-            git switch -c "$env:REVIEW_BRANCH" origin/main
-          }
-
       - name: Prepare workspace
         run: |
           $ErrorActionPreference = "Stop"
@@ -66,6 +65,30 @@ jobs:
           New-Item -ItemType Directory -Path "build/translation-diff" -Force | Out-Null
           New-Item -ItemType Directory -Path ".cache/upstream" -Force | Out-Null
           New-Item -ItemType Directory -Path ".github/autopilot" -Force | Out-Null
+
+      - name: Load review branch state
+        run: |
+          $ErrorActionPreference = "Stop"
+          git fetch origin "$env:REVIEW_BRANCH" --depth=1 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Review branch не найдена. Используем локальное состояние."
+            return
+          }
+
+          $stateRef = "origin/$env:REVIEW_BRANCH`:$env:REVIEW_STATE_PATH"
+          git cat-file -e $stateRef 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Файл состояния в review-ветке не найден. Используем локальное состояние."
+            return
+          }
+
+          $stateContent = git show $stateRef
+          if ([string]::IsNullOrWhiteSpace($stateContent)) {
+            Write-Host "Файл состояния в review-ветке пустой. Используем локальное состояние."
+            return
+          }
+
+          $stateContent | Out-File -FilePath "$env:REVIEW_STATE_PATH" -Encoding utf8NoBOM
 
       - name: Check upstream english.xml
         run: |
@@ -114,6 +137,72 @@ jobs:
             --repository-path "${{ github.workspace }}" `
             --trusted-registry-path "glossary/trusted-contentuid-versions.json"
 
+      - name: Collect glossary review items
+        if: steps.preflight.outputs.should_process == 'true'
+        id: glossary_audit
+        run: |
+          $ErrorActionPreference = "Stop"
+          python scripts/audit-translation-quality.py `
+            --english-path ".cache/upstream/english.xml" `
+            --russian-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" `
+            --glossary-path "glossary/glossary.official.json" `
+            --trusted-registry-path "glossary/trusted-contentuid-versions.json" `
+            --output-path "build/glossary-review-input.json"
+
+          $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
+          $itemCount = 0
+          if ($null -ne $audit.itemCount) {
+            $itemCount = [int]$audit.itemCount
+          }
+          "item_count=$itemCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Guard glossary review scope
+        if: steps.preflight.outputs.should_process == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
+          $registry = Get-Content -Raw "glossary/trusted-contentuid-versions.json" | ConvertFrom-Json
+          $trustedEntries = if ($null -ne $registry.entries) { $registry.entries } else { @{} }
+
+          $itemCount = if ($null -ne $audit.itemCount) { [int]$audit.itemCount } else { 0 }
+          $summary = $audit.summary
+          $summaryUntrusted = if ($null -ne $summary -and $null -ne $summary.untrusted) { [int]$summary.untrusted } else { 0 }
+          $summaryMissing = if ($null -ne $summary -and $null -ne $summary.missing_in_registry) { [int]$summary.missing_in_registry } else { 0 }
+          $eligibleCount = $summaryUntrusted + $summaryMissing
+
+          if ($itemCount -ne $eligibleCount) {
+            throw "Glossary review guard failed: itemCount=$itemCount, eligibleCount=$eligibleCount."
+          }
+
+          foreach ($item in ($audit.items | ForEach-Object { $_ })) {
+            $contentUid = [string]$item.contentuid
+            $version = [string]$item.version
+            if ($trustedEntries.PSObject.Properties.Name -contains $contentUid) {
+              $trustedVersion = [string]$trustedEntries.$contentUid
+              if ($trustedVersion -eq $version -and -not [string]::IsNullOrWhiteSpace($version)) {
+                throw "Glossary review guard failed: trusted contentuid/version leaked into audit output: $contentUid@$version."
+              }
+            }
+          }
+
+      - name: Generate glossary review fixes
+        if: steps.preflight.outputs.should_process == 'true' && steps.glossary_audit.outputs.item_count != '0'
+        run: |
+          $ErrorActionPreference = "Stop"
+          python scripts/review-glossary-openrouter.py `
+            --input-path "build/glossary-review-input.json" `
+            --prompt-path "docs/official-localization/prompt-glossary-review.md" `
+            --output-path "build/glossary-review-fixes.json" `
+            --usage-report-path "build/glossary-review-usage.json"
+
+      - name: Apply glossary review fixes
+        if: steps.preflight.outputs.should_process == 'true' && steps.glossary_audit.outputs.item_count != '0'
+        run: |
+          $ErrorActionPreference = "Stop"
+          python scripts/apply-translation-edits.py `
+            --russian-path "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" `
+            --edits-path "build/glossary-review-fixes.json"
+
       - name: Detect changes
         if: steps.preflight.outputs.should_process == 'true'
         id: diff
@@ -138,6 +227,29 @@ jobs:
           git config user.name "bg3-dnd55e daily review"
           git config user.email "autopilot@users.noreply.github.com"
 
+      - name: Rebuild review branch from main
+        if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.has_changes == 'true'
+        run: |
+          $ErrorActionPreference = "Stop"
+          $stateSnapshotPath = Join-Path $env:RUNNER_TEMP "daily-review-state.json"
+          $translationSnapshotPath = Join-Path $env:RUNNER_TEMP "daily-review-russian.xml"
+
+          Copy-Item -LiteralPath "$env:REVIEW_STATE_PATH" -Destination $stateSnapshotPath -Force
+          Copy-Item -LiteralPath "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -Destination $translationSnapshotPath -Force
+
+          git switch --detach origin/main
+
+          git show-ref --verify --quiet "refs/heads/$env:REVIEW_BRANCH"
+          if ($LASTEXITCODE -eq 0) {
+            git branch -D "$env:REVIEW_BRANCH"
+          }
+
+          git switch --create "$env:REVIEW_BRANCH" origin/main
+
+          New-Item -ItemType Directory -Path (Split-Path -Parent "$env:REVIEW_STATE_PATH") -Force | Out-Null
+          Copy-Item -LiteralPath $stateSnapshotPath -Destination "$env:REVIEW_STATE_PATH" -Force
+          Copy-Item -LiteralPath $translationSnapshotPath -Destination "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml" -Force
+
       - name: Commit review branch
         if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.has_changes == 'true'
         run: |
@@ -145,10 +257,81 @@ jobs:
           git add ".github/autopilot/daily-review-state.json"
           git add "Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml"
           git commit --file "build/autopilot/commit-message.txt"
-          git push --set-upstream origin "$env:REVIEW_BRANCH"
+          git push --force-with-lease --set-upstream origin "HEAD:$env:REVIEW_BRANCH"
+
+      - name: Summarize review metrics
+        if: steps.preflight.outputs.should_process == 'true'
+        id: metrics
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          function Parse-DecimalOrZero {
+            param([string]$Value)
+            if ([string]::IsNullOrWhiteSpace($Value)) {
+              return [decimal]::Zero
+            }
+            try {
+              return [decimal]::Parse($Value, [System.Globalization.CultureInfo]::InvariantCulture)
+            }
+            catch {
+              return [decimal]::Zero
+            }
+          }
+
+          $runReport = Get-Content -Raw "build/autopilot/run-report.json" | ConvertFrom-Json
+          $summary = $runReport.summary
+          $errorsCount = [int]($summary.missingInRussianCount) + [int]($summary.versionMismatchCount) + [int]($summary.staleOnlyInRussianCount)
+
+          $inaccuraciesCount = 0
+          if (Test-Path "build/glossary-review-input.json") {
+            $audit = Get-Content -Raw "build/glossary-review-input.json" | ConvertFrom-Json
+            if ($null -ne $audit.itemCount) {
+              $inaccuraciesCount = [int]$audit.itemCount
+            }
+          }
+
+          $costEstimated = [decimal]::Zero
+          $costActual = [decimal]::Zero
+          $costActualKnown = $true
+          $hasCost = $false
+
+          $usagePaths = @(
+            "build/translation-diff/openrouter-usage.json",
+            "build/glossary-review-usage.json"
+          )
+
+          foreach ($usagePath in $usagePaths) {
+            if (-not (Test-Path $usagePath)) {
+              continue
+            }
+            $usagePayload = Get-Content -Raw $usagePath | ConvertFrom-Json
+            $usageSummary = $usagePayload.summary
+            if ($null -eq $usageSummary) {
+              continue
+            }
+            $hasCost = $true
+            $costEstimated += Parse-DecimalOrZero([string]$usageSummary.estimatedCostUsd)
+            if ($usageSummary.actualCostKnown -eq $true) {
+              $costActual += Parse-DecimalOrZero([string]$usageSummary.actualCostUsd)
+            }
+            else {
+              $costActualKnown = $false
+            }
+          }
+
+          if (-not $hasCost) {
+            $costActualKnown = $false
+          }
+
+          "errors_count=$errorsCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "inaccuracies_count=$inaccuraciesCount" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "cost_actual_known=$($costActualKnown.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "cost_actual=$($costActual.ToString([System.Globalization.CultureInfo]::InvariantCulture))" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "cost_estimated=$($costEstimated.ToString([System.Globalization.CultureInfo]::InvariantCulture))" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Create or update pull request
         if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.russian_changed == 'true'
+        id: pr
         uses: actions/github-script@v7
         with:
           script: |
@@ -157,16 +340,29 @@ jobs:
             const head = `${owner}:${process.env.REVIEW_BRANCH}`;
             const base = "main";
             const title = "[autopilot] Ежедневное обновление перевода";
+            const errorsCount = Number("${{ steps.metrics.outputs.errors_count || '0' }}");
+            const inaccuraciesCount = Number("${{ steps.metrics.outputs.inaccuracies_count || '0' }}");
+            const reviewCost = "${{ steps.metrics.outputs.cost_actual_known }}" === "true"
+              ? "${{ steps.metrics.outputs.cost_actual || '0' }}"
+              : "${{ steps.metrics.outputs.cost_estimated || '0' }}";
             const body = [
               "Что изменено",
               "- найден новый upstream diff по `english.xml`",
-              "- обработаны только новые или изменённые записи, не входящие в доверенный реестр `contentuid/version`",
+              "- glossary-review ограничен только новыми или изменёнными `contentuid/version`, отсутствующими в доверенном реестре",
+              `- найдено ошибок перевода: ${errorsCount}`,
+              `- найдено неточностей перевода: ${inaccuraciesCount}`,
+              `- потрачено на исправление: $${reviewCost}`,
+              "- review-ветка пересобрана от актуального `main`, чтобы workflow использовал свежие скрипты",
               "- точечные переводы предложены в PR с diff вместо прямого merge",
               "",
               "Проверки",
               "- `scripts/check-upstream-change.py`",
               "- `scripts/run-autopilot.py --mode sync_only`",
+              "- `scripts/audit-translation-quality.py`",
+              "- `scripts/review-glossary-openrouter.py`",
+              "- `scripts/apply-translation-edits.py`",
               "- `scripts/update-translation-openrouter.py` с `glossary/trusted-contentuid-versions.json`",
+              "- fail-fast guard на trusted `contentuid/version` перед вызовом OpenRouter",
               "- `scripts/validate-translation-xml.py`",
               "",
               "Экономия токенов",
@@ -190,8 +386,11 @@ jobs:
                 title,
                 body,
               });
+              core.setOutput("pr_url", existing[0].html_url);
+              core.setOutput("pr_number", String(existing[0].number));
+              core.setOutput("pr_available", "true");
             } else {
-              await github.rest.pulls.create({
+              const created = await github.rest.pulls.create({
                 owner,
                 repo,
                 head,
@@ -200,6 +399,9 @@ jobs:
                 body,
                 draft: true,
               });
+              core.setOutput("pr_url", created.data.html_url);
+              core.setOutput("pr_number", String(created.data.number));
+              core.setOutput("pr_available", "true");
             }
 
       - name: Upload artifacts
@@ -214,4 +416,90 @@ jobs:
             build/translation-diff/summary.md
             build/translation-diff/candidates.json
             build/translation-diff/openrouter-usage.json
+            build/glossary-review-input.json
+            build/glossary-review-fixes.json
+            build/glossary-review-usage.json
           if-no-files-found: ignore
+
+  notify_finish:
+    runs-on: windows-latest
+    needs:
+      - review
+    if: always() && needs.review.outputs.process_requested == 'true'
+    environment: TgBot
+
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Notify Telegram about review finish
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $status = if ("${{ needs.review.result }}" -eq "success") { "успех" } else { "ошибка" }
+          $cost = if ("${{ needs.review.outputs.cost_actual_known }}" -eq "true") { "${{ needs.review.outputs.cost_actual }}" } else { "${{ needs.review.outputs.cost_estimated }}" }
+          if ([string]::IsNullOrWhiteSpace($cost)) {
+            $cost = "0"
+          }
+          $costDisplay = '$' + $cost + "🇺🇸"
+          try {
+            $usdCost = [decimal]::Parse($cost, [System.Globalization.CultureInfo]::InvariantCulture)
+          }
+          catch {
+            $usdCost = [decimal]::Zero
+          }
+          try {
+            $cbrResponse = Invoke-WebRequest -UseBasicParsing -Uri "https://www.cbr.ru/scripts/XML_daily.asp" -TimeoutSec 10
+            [xml]$cbrXml = $cbrResponse.Content
+            $usdNode = $cbrXml.ValCurs.Valute | Where-Object { $_.CharCode -eq "USD" } | Select-Object -First 1
+            if ($null -ne $usdNode) {
+              $nominalText = if ($null -ne $usdNode.Nominal) { $usdNode.Nominal.ToString() } else { "1" }
+              $valueRaw = if ($null -ne $usdNode.Value) { $usdNode.Value.ToString() } else { "0" }
+              $nominal = [decimal]::Parse($nominalText, [System.Globalization.CultureInfo]::InvariantCulture)
+              $rateText = $valueRaw.Replace(',', '.')
+              $marketRate = [decimal]::Parse($rateText, [System.Globalization.CultureInfo]::InvariantCulture)
+              if ($nominal -gt 0) {
+                $rubCost = [decimal]::Round(($usdCost * ($marketRate / $nominal) * [decimal]"1.2"), 4, [System.MidpointRounding]::AwayFromZero)
+                $rubText = $rubCost.ToString("0.####", [System.Globalization.CultureInfo]::InvariantCulture)
+                $costDisplay += "| ₽$rubText🇷🇺"
+              }
+            }
+          }
+          catch {
+          }
+
+          $encodedStatus = [System.Net.WebUtility]::HtmlEncode($status)
+          $errorsCount = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.errors_count || '0' }}")
+          $inaccuraciesCount = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.inaccuracies_count || '0' }}")
+          $textLines = [System.Collections.Generic.List[string]]::new()
+          $textLines.Add("🏁 <b>Ежедневный review перевода завершён</b>")
+          $textLines.Add("<b>Статус:</b> <code>$encodedStatus</code>")
+          $textLines.Add("<b>Ошибки перевода:</b> <code>$errorsCount</code>")
+          $textLines.Add("<b>Неточности перевода:</b> <code>$inaccuraciesCount</code>")
+          $textLines.Add("<b>Потрачено на исправление:</b> <code>$costDisplay</code>")
+
+          if ("${{ needs.review.outputs.pr_available }}" -eq "true" -and "${{ needs.review.outputs.pr_number }}") {
+            $encodedPrNumber = [System.Net.WebUtility]::HtmlEncode("${{ needs.review.outputs.pr_number }}")
+            $textLines.Add("<b>PR:</b> <code>#$encodedPrNumber</code>")
+          }
+
+          if ("${{ needs.review.outputs.pr_available }}" -eq "true" -and "${{ needs.review.outputs.pr_url }}") {
+            $textLines.Add("<a href=`"${{ needs.review.outputs.pr_url }}`">Подтвердить слияние изменений</a>")
+          }
+          else {
+            $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            $textLines.Add("<a href=`"$runUrl`">Открыть лог запуска</a>")
+          }
+
+          $text = [string]::Join("`n", $textLines)
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text

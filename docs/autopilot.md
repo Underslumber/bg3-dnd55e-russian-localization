@@ -16,8 +16,9 @@ Workflow `.github/workflows/autopilot-sync.yml`:
 
 Workflow `.github/workflows/daily-translation-review.yml`:
 
-- запускается раз в сутки и вручную
-- работает в постоянной review-ветке `autopilot/daily-translation-review`
+- запускается раз в сутки в `18:00 UTC / 21:00 МСК` и вручную
+- всегда выполняет Python-скрипты на актуальном дереве `main`
+- пересобирает служебную review-ветку `autopilot/daily-translation-review` от текущего `main` перед коммитом результата
 - хранит отдельное состояние upstream в `.github/autopilot/daily-review-state.json`
 - обрабатывает только новые или изменённые записи, которых нет в `glossary/trusted-contentuid-versions.json`
 - валидирует `russian.xml`
