@@ -166,32 +166,18 @@ function Select-ToolkitProjectFromBrowser {
         [string]$ProjectPath
     )
 
-    $rect = $Window.Current.BoundingRectangle
-    if ($rect.IsEmpty) {
-        throw "Cannot select Toolkit project because Toolkit window bounds are unavailable."
-    }
-
     Write-Diagnostic "Selecting Toolkit project from browser by fallback coordinates."
     Minimize-OtherWindows -KeepProcessId $ProcessId
     Set-ToolkitForeground -ProcessId $ProcessId
 
-    if ($rect.Width -lt 1000 -or $rect.Height -lt 700) {
-        $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-        Write-Diagnostic "Toolkit bounds look invalid after activation; using screen fallback $($screen.Width)x$($screen.Height)."
-        $searchX = [int]($screen.Width * 0.64)
-        $searchY = 170
-        $cardX = [int]($screen.Width * 0.50)
-        $cardY = 312
-        $selectX = [int]($screen.Width - 420)
-        $selectY = [int]($screen.Height - 175)
-    } else {
-        $searchX = [int]($rect.Left + ($rect.Width * 0.64))
-        $searchY = [int]($rect.Top + 177)
-        $cardX = [int]($rect.Left + ($rect.Width * 0.50))
-        $cardY = [int]($rect.Top + 320)
-        $selectX = [int]($rect.Left + $rect.Width - 75)
-        $selectY = [int]($rect.Top + $rect.Height - 120)
-    }
+    $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+    Write-Diagnostic "Using screen fallback $($screen.Width)x$($screen.Height)."
+    $searchX = [int]($screen.Width * 0.64)
+    $searchY = 170
+    $cardX = [int]($screen.Width * 0.50)
+    $cardY = 312
+    $selectX = [int]($screen.Width - 420)
+    $selectY = [int]($screen.Height - 175)
 
     Write-Diagnostic "Clicking 'Project browser search' at absolute coordinates $searchX,$searchY."
     Invoke-MouseClick -X $searchX -Y $searchY
