@@ -39,6 +39,7 @@ public static class Bg3PublishWin32 {
     [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
     public const int SW_RESTORE = 9;
+    public const int SW_MINIMIZE = 6;
     public const uint LEFTDOWN = 0x0002;
     public const uint LEFTUP = 0x0004;
 }
@@ -95,6 +96,21 @@ function Set-ToolkitForeground {
         }
         Start-Sleep -Milliseconds 500
     }
+}
+
+function Minimize-OtherWindows {
+    param([int]$KeepProcessId)
+
+    Get-Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.Id -ne $KeepProcessId -and $_.MainWindowHandle -ne 0 } |
+        ForEach-Object {
+            try {
+                Write-Diagnostic "Minimizing window owned by process '$($_.ProcessName)' ($($_.Id))."
+                [Bg3PublishWin32]::ShowWindow($_.MainWindowHandle, [Bg3PublishWin32]::SW_MINIMIZE) | Out-Null
+            } catch {
+                Write-Diagnostic "Failed to minimize '$($_.ProcessName)' ($($_.Id)): $($_.Exception.Message)"
+            }
+        }
 }
 
 function Invoke-MouseClick {
@@ -155,6 +171,7 @@ function Select-ToolkitProjectFromBrowser {
     }
 
     Write-Diagnostic "Selecting Toolkit project from browser by fallback coordinates."
+    Minimize-OtherWindows -KeepProcessId $Window.Current.ProcessId
     Set-ToolkitForeground -ProcessId $Window.Current.ProcessId
     Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width * 0.64)) -Y 177 -Label "Project browser search"
     Start-Sleep -Milliseconds 300
@@ -312,6 +329,7 @@ function Open-ProjectSettings {
         [int]$ProcessId
     )
 
+    Minimize-OtherWindows -KeepProcessId $ProcessId
     Set-ToolkitForeground -ProcessId $ProcessId
 
     $projectMenu = Find-DescendantByName -Root $Window -Names @("Project", "_Project")
