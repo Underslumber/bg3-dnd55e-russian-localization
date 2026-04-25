@@ -232,3 +232,40 @@ jobs:
           display_name: ${{ steps.vars.outputs.zip_name }}
           description: GitHub release ${{ github.ref_name }}
           file_category: main
+
+  publish_to_modio:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, upload_to_nexusmods]
+    runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: ModIO
+
+    defaults:
+      run:
+        shell: pwsh
+
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+      MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
+      MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Publish release to mod.io
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) {
+              $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe"
+          }
+
+          .\scripts\publish-modio.ps1 `
+            -VersionTag "${{ github.ref_name }}" `
+            -Workspace "${{ github.workspace }}" `
+            -Bg3ToolPath $bg3ToolPath

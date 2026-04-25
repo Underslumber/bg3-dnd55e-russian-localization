@@ -42,3 +42,11 @@
 1. Установите оригинальный мод **DnD 5.5e All-in-One BEYOND**.
 2. Установите русскую локализацию через [mod.io](https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization) или из релизов репозитория.
 3. Убедитесь, что в игре активны и основной мод, и русификатор.
+
+## Публикация
+
+Релизы по тегам `v*` автоматически собираются в GitHub Actions и публикуются на mod.io через официальный **Baldur's Gate 3 Toolkit** на self-hosted Windows runner с меткой `bg3-toolkit`.
+
+Перед первым запуском runner нужно один раз открыть Toolkit, войти в Larian/mod.io и проверить, что проект публикуется вручную. Путь к Toolkit можно задать переменной окружения или GitHub variable `BG3TOOL_PATH`; по умолчанию используется `C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe`.
+
+Файл для mod.io создаёт и загружает Toolkit. После загрузки GitHub Actions использует secret `MODIO_ACCESS_TOKEN`, чтобы через официальный mod.io API дождаться сканирования, выставить платформы `windows,mac,xboxseriesx,ps5` и сделать новый файл live.
