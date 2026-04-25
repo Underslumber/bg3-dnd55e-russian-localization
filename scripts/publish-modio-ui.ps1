@@ -34,8 +34,11 @@ using System;
 using System.Runtime.InteropServices;
 public static class Bg3PublishWin32 {
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     [DllImport("user32.dll")] public static extern bool SetCursorPos(int X, int Y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, UIntPtr dwExtraInfo);
+    public const int SW_RESTORE = 9;
     public const uint LEFTDOWN = 0x0002;
     public const uint LEFTUP = 0x0004;
 }
@@ -82,7 +85,14 @@ function Set-ToolkitForeground {
 
     $process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
     if ($process -and $process.MainWindowHandle -ne 0) {
+        [Bg3PublishWin32]::ShowWindow($process.MainWindowHandle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+        [Bg3PublishWin32]::BringWindowToTop($process.MainWindowHandle) | Out-Null
         [Bg3PublishWin32]::SetForegroundWindow($process.MainWindowHandle) | Out-Null
+        try {
+            (New-Object -ComObject WScript.Shell).AppActivate($ProcessId) | Out-Null
+        } catch {
+            Write-Diagnostic "WScript AppActivate failed: $($_.Exception.Message)"
+        }
         Start-Sleep -Milliseconds 500
     }
 }
@@ -145,6 +155,7 @@ function Select-ToolkitProjectFromBrowser {
     }
 
     Write-Diagnostic "Selecting Toolkit project from browser by fallback coordinates."
+    Set-ToolkitForeground -ProcessId $Window.Current.ProcessId
     Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width * 0.64)) -Y 177 -Label "Project browser search"
     Start-Sleep -Milliseconds 300
     Send-KeyToForeground -Key "^(a)"
