@@ -81,6 +81,41 @@ function Find-WindowByProcessId {
     return $null
 }
 
+function Get-ToolkitProcess {
+    param([string]$Path)
+
+    $fullPath = [System.IO.Path]::GetFullPath($Path)
+    return Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $fullPath) } |
+        Sort-Object StartTime -Descending |
+        Select-Object -First 1
+}
+
+function Find-ToolkitWindow {
+    param(
+        [string]$Path,
+        [int]$TimeoutSeconds
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $toolkitProcess = Get-ToolkitProcess -Path $Path
+        if ($toolkitProcess) {
+            try {
+                $window = Find-WindowByProcessId -ProcessId $toolkitProcess.Id -TimeoutSeconds 5
+                if ($window) {
+                    return @{ Process = $toolkitProcess; Window = $window }
+                }
+            } catch {
+                Write-Diagnostic "Toolkit process lookup skipped: $($_.Exception.Message)"
+            }
+        }
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $deadline)
+
+    return $null
+}
+
 function Set-ToolkitForeground {
     param([int]$ProcessId)
 
@@ -534,19 +569,23 @@ try {
             Invoke-Element -Element $selectProject -Label "Select project"
             Start-Sleep -Seconds 20
 
-            $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
-            if (-not $window) {
+            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90
+            if (-not $toolkitSession) {
                 throw "Toolkit main window was not found after project selection."
             }
+            $process = $toolkitSession.Process
+            $window = $toolkitSession.Window
 
             Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
         } else {
             Write-Diagnostic "Project path field was not visible; using browser coordinate fallback."
             Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
-            $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
-            if (-not $window) {
+            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90
+            if (-not $toolkitSession) {
                 throw "Toolkit main window was not found after coordinate project selection."
             }
+            $process = $toolkitSession.Process
+            $window = $toolkitSession.Window
             Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
         }
     }
