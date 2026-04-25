@@ -161,6 +161,7 @@ function Send-KeyToForeground {
 function Select-ToolkitProjectFromBrowser {
     param(
         [System.Windows.Automation.AutomationElement]$Window,
+        [int]$ProcessId,
         [string]$ProjectName,
         [string]$ProjectPath
     )
@@ -171,8 +172,8 @@ function Select-ToolkitProjectFromBrowser {
     }
 
     Write-Diagnostic "Selecting Toolkit project from browser by fallback coordinates."
-    Minimize-OtherWindows -KeepProcessId $Window.Current.ProcessId
-    Set-ToolkitForeground -ProcessId $Window.Current.ProcessId
+    Minimize-OtherWindows -KeepProcessId $ProcessId
+    Set-ToolkitForeground -ProcessId $ProcessId
     Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width * 0.64)) -Y 177 -Label "Project browser search"
     Start-Sleep -Milliseconds 300
     Send-KeyToForeground -Key "^(a)"
@@ -533,7 +534,7 @@ try {
             Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
         } else {
             Write-Diagnostic "Project path field was not visible; using browser coordinate fallback."
-            Select-ToolkitProjectFromBrowser -Window $window -ProjectName $ProjectName -ProjectPath $ProjectPath
+            Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
             $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
             if (-not $window) {
                 throw "Toolkit main window was not found after coordinate project selection."
