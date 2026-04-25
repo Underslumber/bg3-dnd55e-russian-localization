@@ -237,7 +237,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [build, upload_to_nexusmods]
     runs-on: [self-hosted, Windows, bg3-toolkit]
-    environment: ModIO
+    environment: Mod.io
 
     defaults:
       run:
