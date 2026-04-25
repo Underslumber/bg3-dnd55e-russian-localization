@@ -118,6 +118,48 @@ function Invoke-WindowRelativeClick {
     Invoke-MouseClick -X ([int]($rect.Left + $X)) -Y ([int]($rect.Top + $Y))
 }
 
+function Send-TextToForeground {
+    param([string]$Text)
+
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait($Text)
+}
+
+function Send-KeyToForeground {
+    param([string]$Key)
+
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait($Key)
+}
+
+function Select-ToolkitProjectFromBrowser {
+    param(
+        [System.Windows.Automation.AutomationElement]$Window,
+        [string]$ProjectName,
+        [string]$ProjectPath
+    )
+
+    $rect = $Window.Current.BoundingRectangle
+    if ($rect.IsEmpty) {
+        throw "Cannot select Toolkit project because Toolkit window bounds are unavailable."
+    }
+
+    Write-Diagnostic "Selecting Toolkit project from browser by fallback coordinates."
+    Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width * 0.64)) -Y 177 -Label "Project browser search"
+    Start-Sleep -Milliseconds 300
+    Send-KeyToForeground -Key "^(a)"
+    Start-Sleep -Milliseconds 100
+
+    $searchText = if ($ProjectPath) { $ProjectPath } else { $ProjectName }
+    Send-TextToForeground -Text $searchText
+    Start-Sleep -Seconds 3
+
+    Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width * 0.50)) -Y 320 -Label "Project card"
+    Start-Sleep -Milliseconds 500
+    Invoke-WindowRelativeClick -Window $Window -X ([int]($rect.Width - 75)) -Y ([int]($rect.Height - 120)) -Label "Select project button"
+    Start-Sleep -Seconds 20
+}
+
 function Find-DescendantByName {
     param(
         [System.Windows.Automation.AutomationElement]$Root,
@@ -461,7 +503,13 @@ try {
 
             Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
         } else {
-            Write-Diagnostic "Project path field was not visible; continuing with the current Toolkit window."
+            Write-Diagnostic "Project path field was not visible; using browser coordinate fallback."
+            Select-ToolkitProjectFromBrowser -Window $window -ProjectName $ProjectName -ProjectPath $ProjectPath
+            $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
+            if (-not $window) {
+                throw "Toolkit main window was not found after coordinate project selection."
+            }
+            Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
         }
     }
 

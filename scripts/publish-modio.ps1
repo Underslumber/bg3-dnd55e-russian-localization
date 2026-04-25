@@ -358,6 +358,10 @@ if (-not $ModioModId) {
         $ModioModId = [int]$ModPublishHandle
     }
 }
+if ($ModioGameId -eq [int]$ModPublishHandle -and $ModioModId -eq [int]$ModPublishHandle) {
+    Write-Warning "[publish-modio] MODIO_GAME_ID appears to contain the mod id. Using BG3 game id 6715."
+    $ModioGameId = 6715
+}
 
 Write-Host "[publish-modio] VersionTag=$VersionTag Version64=$resolvedVersion64"
 Write-Host "[publish-modio] mod.io expected version=$modioExpectedVersion"
