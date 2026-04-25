@@ -134,7 +134,7 @@ function Get-ModioFiles {
             $response = Invoke-ModioRequest -Method "GET" -Uri $uri
         } catch {
             if ($platformStatus) {
-                Write-Host "[finalize-modio-file] Could not read files with platform_status=$platformStatus; continuing with other file views."
+                Write-Host "[finalize-modio-file] Optional platform_status=$platformStatus file view is unavailable; continuing."
                 continue
             }
             throw

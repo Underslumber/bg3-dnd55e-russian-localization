@@ -6,6 +6,9 @@ param(
     [string]$Bg3ToolPath = "",
     [string]$ModFolder = "DnD 5.5e AIO Russian",
     [string]$ProjectName = "DnD 5.5e All-in-One BEYOND Russian Localization",
+    [string]$ParentModRepoPath = "",
+    [string]$ParentModFolder = "DnD2024_897914ef-5c96-053c-44af-0be823f895fe",
+    [string]$ParentModBranch = "main",
     [UInt64]$ModPublishHandle = 5965149,
     [UInt64]$DependencyPublishHandle = 4419649,
     [int]$CliTimeoutSeconds = 120,
@@ -19,6 +22,7 @@ param(
     [switch]$UseGuiFallback,
     [switch]$NoGuiFallback,
     [switch]$SkipModioApiFinalize,
+    [switch]$SkipParentModSync,
     [switch]$SkipAuthCheck,
     [switch]$WhatIf,
     [switch]$KeepStaging
@@ -193,6 +197,38 @@ function Copy-CleanDirectory {
     Copy-Item -LiteralPath $Source -Destination $Destination -Recurse -Force
 }
 
+function Invoke-ParentModUpdate {
+    param(
+        [string]$RepoPath,
+        [string]$Branch
+    )
+
+    if (-not (Test-Path -LiteralPath (Join-Path $RepoPath ".git"))) {
+        throw "Parent mod repository was not found or is not a git repository: '$RepoPath'."
+    }
+
+    $status = git -C $RepoPath status --porcelain
+    if ($status) {
+        throw "Parent mod repository has local changes. Refusing to overwrite '$RepoPath'."
+    }
+
+    Write-Host "[publish-modio] Updating parent mod repo '$RepoPath' branch '$Branch'."
+    git -C $RepoPath fetch origin $Branch
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to fetch parent mod branch '$Branch'."
+    }
+
+    git -C $RepoPath checkout $Branch
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to checkout parent mod branch '$Branch'."
+    }
+
+    git -C $RepoPath reset --hard "origin/$Branch"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to reset parent mod repo to origin/$Branch."
+    }
+}
+
 function Invoke-ToolkitCliPublish {
     param(
         [string]$ToolPath,
@@ -236,6 +272,17 @@ if (-not $Bg3ToolPath) {
     $Bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe"
 }
 $resolvedBg3ToolPath = Resolve-FullPath $Bg3ToolPath
+
+if (-not $ParentModRepoPath) {
+    $ParentModRepoPath = $env:BG3_PARENT_MOD_REPO
+}
+if (-not $ParentModRepoPath) {
+    $ParentModRepoPath = "D:\Project\dnd55e"
+}
+if ($env:BG3_PARENT_MOD_BRANCH) {
+    $ParentModBranch = $env:BG3_PARENT_MOD_BRANCH
+}
+$resolvedParentModRepoPath = Resolve-FullPath $ParentModRepoPath
 
 foreach ($requiredPath in @($metaPath, $localizationPath, $projectMetaPath, $thumbnailPath)) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
@@ -287,6 +334,8 @@ $stagedModPath = Join-Path $stagingPath "Mods\$ModFolder"
 $stagedProjectPath = Join-Path $stagingPath "Projects"
 $targetModPath = Join-Path $gameModsRoot $ModFolder
 $targetProjectPath = Join-Path $toolkitProjectsRoot $ProjectName
+$parentModSourcePath = Join-Path $resolvedParentModRepoPath "Mods\$ParentModFolder"
+$parentModTargetPath = Join-Path $gameModsRoot $ParentModFolder
 $resolvedModioPlatforms = Resolve-ModioPlatforms -Value $ModioPlatforms
 
 if (-not $ModioApiBase) {
@@ -315,15 +364,32 @@ Write-Host "[publish-modio] mod.io expected version=$modioExpectedVersion"
 Write-Host "[publish-modio] Toolkit=$resolvedBg3ToolPath"
 Write-Host "[publish-modio] Mod target=$targetModPath"
 Write-Host "[publish-modio] Project target=$targetProjectPath"
+Write-Host "[publish-modio] Parent mod repo=$resolvedParentModRepoPath branch=$ParentModBranch"
+Write-Host "[publish-modio] Parent mod target=$parentModTargetPath"
 Write-Host "[publish-modio] mod.io ApiBase=$ModioApiBase GameId=$ModioGameId ModId=$ModioModId Platforms=$($resolvedModioPlatforms -join ',')"
 
 if ($WhatIf) {
+    if (-not $SkipParentModSync) {
+        if (-not (Test-Path -LiteralPath $parentModSourcePath)) {
+            throw "Parent mod source was not found: '$parentModSourcePath'."
+        }
+    }
     $authMessage = if ($SkipAuthCheck) { "auth check skipped" } else { "auth signal validated" }
     Write-Host "[publish-modio] WhatIf completed: inputs, publish handles, $authMessage, and staging metadata were validated."
     if (-not $KeepStaging -and (Test-Path -LiteralPath $stagingRoot)) {
         Remove-Item -LiteralPath $stagingRoot -Recurse -Force
     }
     exit 0
+}
+
+if (-not $SkipParentModSync) {
+    Invoke-ParentModUpdate -RepoPath $resolvedParentModRepoPath -Branch $ParentModBranch
+    if (-not (Test-Path -LiteralPath $parentModSourcePath)) {
+        throw "Parent mod source was not found after update: '$parentModSourcePath'."
+    }
+    Copy-CleanDirectory -Source $parentModSourcePath -Destination $parentModTargetPath
+} else {
+    Write-Host "[publish-modio] Skipping parent mod sync by request."
 }
 
 Copy-CleanDirectory -Source $stagedModPath -Destination $targetModPath

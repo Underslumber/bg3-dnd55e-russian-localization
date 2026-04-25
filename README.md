@@ -50,3 +50,5 @@
 Перед первым запуском runner нужно один раз открыть Toolkit, войти в Larian/mod.io и проверить, что проект публикуется вручную. Путь к Toolkit можно задать переменной окружения или GitHub variable `BG3TOOL_PATH`; по умолчанию используется `C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe`.
 
 Файл для mod.io создаёт и загружает Toolkit. После загрузки GitHub Actions использует secret `MODIO_ACCESS_TOKEN`, чтобы через официальный mod.io API дождаться сканирования, выставить платформы `windows,mac,xboxseriesx,ps5` и сделать новый файл live.
+
+Перед запуском Toolkit скрипт обновляет локальный репозиторий родительского мода `D:\Project\dnd55e` и заменяет его папку в `C:\Users\Admin\AppData\Local\Larian Studios\Baldur's Gate 3\Mods`, чтобы Toolkit видел актуальную зависимость.

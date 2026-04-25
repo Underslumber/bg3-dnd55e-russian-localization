@@ -250,6 +250,8 @@ jobs:
       MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
       MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
       MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
+      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
 
     steps:
       - name: Checkout

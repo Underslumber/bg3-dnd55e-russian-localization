@@ -72,11 +72,12 @@ Top-level (never package): `.git`, `.github`, `.cache`, `.tools`, `build`, stagi
 - Publish job: `publish_to_modio`, tag `v*` only, after GitHub release and Nexus upload.
 - Runner: self-hosted Windows with label `bg3-toolkit`.
 - Tool: official BG3 Toolkit/Bg3Tool only; default path `C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe`.
-- Config vars: `BG3TOOL_PATH` optional, `BG3_MODS_PATH` optional, `BG3_TOOLKIT_PROJECTS_PATH` optional, `MODIO_API_BASE` optional, `MODIO_GAME_ID=6715`, `MODIO_MOD_ID=5965149`, `MODIO_PLATFORMS=windows,mac,xboxseriesx,ps5`.
+- Config vars: `BG3TOOL_PATH` optional, `BG3_MODS_PATH` optional, `BG3_TOOLKIT_PROJECTS_PATH` optional, `BG3_PARENT_MOD_REPO=D:\Project\dnd55e`, `BG3_PARENT_MOD_BRANCH=main`, `MODIO_API_BASE` optional, `MODIO_GAME_ID=6715`, `MODIO_MOD_ID=5965149`, `MODIO_PLATFORMS=windows,mac,xboxseriesx,ps5`.
 - Secrets: `MODIO_ACCESS_TOKEN` required for API finalization; never print it or store it outside GitHub Environment secrets / local `.env.local`.
 - Auth: preconfigured Larian/mod.io session on runner; never store account credentials in repo.
 - First publish from runner requires manual auth verification in Toolkit.
 - Source: Toolkit creates/publishes mod.io package; do not upload build ZIP as mod.io source.
+- Parent dependency: before Toolkit publish, update `BG3_PARENT_MOD_REPO`, require clean worktree, reset to `origin/BG3_PARENT_MOD_BRANCH`, then replace the parent mod folder in BG3 Mods.
 - Finalization: after Toolkit upload, API marks the uploaded modfile live via `active=true`; API never uploads the archive.
 - Fallback: `scripts/publish-modio-ui.ps1` may automate official Toolkit GUI if CLI publish is unavailable.
 - Required handles: mod `PublishHandle=5965149`, dependency `PublishHandle=4419649`.
