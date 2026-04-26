@@ -482,7 +482,22 @@ function Select-ToolkitProjectFromBrowser {
     Start-Sleep -Milliseconds 500
     Write-Diagnostic "Clicking 'Select project button' at absolute coordinates $selectX,$selectY."
     Invoke-MouseClick -X $selectX -Y $selectY
-    Start-Sleep -Seconds 20
+
+    $waitStart = Get-Date
+    $waitDeadline = $waitStart.AddSeconds(30)
+    do {
+        Start-Sleep -Seconds 5
+        $allGlasses = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue)
+        $elapsed = [int]((Get-Date) - $waitStart).TotalSeconds
+        if ($allGlasses.Count -eq 0) {
+            Write-Diagnostic "[$($elapsed)s post-Select] No Glasses processes running."
+        } else {
+            foreach ($g in $allGlasses) {
+                $visibleCount = @(Get-VisibleWindowSnapshot -ProcessId $g.Id).Count
+                Write-Diagnostic "[$($elapsed)s post-Select] Glasses pid=$($g.Id) path='$($g.Path)' visible_windows=$visibleCount"
+            }
+        }
+    } while ((Get-Date) -lt $waitDeadline)
 }
 
 function Find-DescendantByName {
@@ -837,8 +852,25 @@ try {
         Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
         $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90 -ProjectName $ProjectName
         if (-not $toolkitSession) {
-            Write-Diagnostic "Project-name window search timed out; falling back to any Toolkit window."
+            Write-Diagnostic "Project-name window search timed out; falling back to any Toolkit window by path."
             $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 60
+        }
+        if (-not $toolkitSession) {
+            Write-Diagnostic "Path-matched search timed out; trying any Glasses process regardless of path."
+            $deadline = (Get-Date).AddSeconds(60)
+            do {
+                $anyGlasses = Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+                    Sort-Object StartTime -Descending | Select-Object -First 1
+                if ($anyGlasses) {
+                    Write-Diagnostic "Found Glasses pid=$($anyGlasses.Id) path='$($anyGlasses.Path)'."
+                    $anyWindow = Find-WindowByProcessId -ProcessId $anyGlasses.Id -TimeoutSeconds 10
+                    if ($anyWindow) {
+                        $toolkitSession = @{ Process = $anyGlasses; Window = $anyWindow }
+                        break
+                    }
+                }
+                Start-Sleep -Seconds 5
+            } while ((Get-Date) -lt $deadline)
         }
         if (-not $toolkitSession) {
             throw "Toolkit main window was not found after coordinate project selection."
