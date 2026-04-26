@@ -33,6 +33,19 @@ Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
 public static class Bg3PublishWin32 {
+    public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+    [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+    [DllImport("user32.dll")] public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
     [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr hWnd);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
@@ -58,23 +71,14 @@ function Find-WindowByProcessId {
             throw "Toolkit process $ProcessId exited before its main window was available."
         }
 
-        $condition = New-Object System.Windows.Automation.PropertyCondition(
-            [System.Windows.Automation.AutomationElement]::ProcessIdProperty,
-            $ProcessId
-        )
-        $window = $null
-        try {
-            $window = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst(
-                [System.Windows.Automation.TreeScope]::Children,
-                $condition
-            )
-        } catch [System.Windows.Automation.ElementNotAvailableException] {
-            Start-Sleep -Seconds 2
-            continue
+        $windowSnapshot = Get-VisibleWindowSnapshot -ProcessId $ProcessId |
+            Where-Object { $_.Width -gt 300 -and $_.Height -gt 200 } |
+            Sort-Object @{ Expression = { if ($_.Title -like "Glasses*") { 0 } else { 1 } } }, Width -Descending |
+            Select-Object -First 1
+        if ($windowSnapshot) {
+            return [System.Windows.Automation.AutomationElement]::FromHandle($windowSnapshot.Handle)
         }
-        if ($window) {
-            return $window
-        }
+
         Start-Sleep -Seconds 2
     } while ((Get-Date) -lt $deadline)
 
@@ -84,24 +88,41 @@ function Find-WindowByProcessId {
 function Get-ToolkitProcess {
     param([string]$Path)
 
+    return Get-ToolkitProcesses -Path $Path | Select-Object -First 1
+}
+
+function Get-ToolkitProcesses {
+    param([string]$Path)
+
     $fullPath = [System.IO.Path]::GetFullPath($Path)
-    return Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+    return @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
         Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $fullPath) } |
-        Sort-Object StartTime -Descending |
-        Select-Object -First 1
+        Sort-Object StartTime -Descending)
 }
 
 function Find-ToolkitWindow {
     param(
         [string]$Path,
-        [int]$TimeoutSeconds
+        [int]$TimeoutSeconds,
+        [string]$ProjectName = ""
     )
 
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     do {
-        $toolkitProcess = Get-ToolkitProcess -Path $Path
-        if ($toolkitProcess) {
+        $toolkitProcesses = Get-ToolkitProcesses -Path $Path
+        foreach ($toolkitProcess in $toolkitProcesses) {
             try {
+                if ($ProjectName) {
+                    $projectWindow = Get-VisibleWindowSnapshot -ProcessId $toolkitProcess.Id |
+                        Where-Object { $_.Title -like "Glasses*" -and $_.Title.Contains($ProjectName) } |
+                        Select-Object -First 1
+                    if ($projectWindow) {
+                        $window = [System.Windows.Automation.AutomationElement]::FromHandle($projectWindow.Handle)
+                        return @{ Process = $toolkitProcess; Window = $window }
+                    }
+                    continue
+                }
+
                 $window = Find-WindowByProcessId -ProcessId $toolkitProcess.Id -TimeoutSeconds 5
                 if ($window) {
                     return @{ Process = $toolkitProcess; Window = $window }
@@ -131,6 +152,103 @@ function Set-ToolkitForeground {
         }
         Start-Sleep -Milliseconds 500
     }
+}
+
+function Get-VisibleWindowSnapshot {
+    param([int]$ProcessId)
+
+    $windows = New-Object System.Collections.Generic.List[object]
+    $callback = [Bg3PublishWin32+EnumWindowsProc]{
+        param([IntPtr]$Handle, [IntPtr]$Param)
+
+        [int]$windowProcessId = 0
+        [Bg3PublishWin32]::GetWindowThreadProcessId($Handle, [ref]$windowProcessId) | Out-Null
+        if ([int]$windowProcessId -eq $ProcessId -and [Bg3PublishWin32]::IsWindowVisible($Handle)) {
+            $titleBuilder = New-Object System.Text.StringBuilder 512
+            [Bg3PublishWin32]::GetWindowText($Handle, $titleBuilder, $titleBuilder.Capacity) | Out-Null
+            $rect = New-Object Bg3PublishWin32+RECT
+            [Bg3PublishWin32]::GetWindowRect($Handle, [ref]$rect) | Out-Null
+            $windows.Add([pscustomobject]@{
+                Handle = $Handle
+                Title = $titleBuilder.ToString()
+                Left = $rect.Left
+                Top = $rect.Top
+                Right = $rect.Right
+                Bottom = $rect.Bottom
+                Width = $rect.Right - $rect.Left
+                Height = $rect.Bottom - $rect.Top
+            }) | Out-Null
+        }
+
+        return $true
+    }
+
+    [Bg3PublishWin32]::EnumWindows($callback, [IntPtr]::Zero) | Out-Null
+    return @($windows.ToArray())
+}
+
+function Find-BrowserWindow {
+    param([int]$ProcessId)
+
+    return Get-VisibleWindowSnapshot -ProcessId $ProcessId |
+        Where-Object { $_.Title -eq "Browser" -and $_.Width -gt 500 -and $_.Height -gt 300 } |
+        Sort-Object Width -Descending |
+        Select-Object -First 1
+}
+
+function Dismiss-LevelSelector {
+    param(
+        [int]$ProcessId,
+        [int]$TimeoutSeconds = 60
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $browserSeen = $false
+    $missingSince = $null
+    do {
+        $browser = Find-BrowserWindow -ProcessId $ProcessId
+        if (-not $browser) {
+            if ($browserSeen) {
+                Write-Diagnostic "Level selector browser is not visible."
+                return $true
+            }
+
+            if (-not $missingSince) {
+                $missingSince = Get-Date
+            }
+            if (((Get-Date) - $missingSince).TotalSeconds -ge 30) {
+                Write-Diagnostic "Level selector browser did not appear during settle wait."
+                return $true
+            }
+
+            Start-Sleep -Seconds 1
+            continue
+        }
+
+        $browserSeen = $true
+        Write-Diagnostic "Closing level selector browser at $($browser.Left),$($browser.Top),$($browser.Right),$($browser.Bottom)."
+        [Bg3PublishWin32]::ShowWindow($browser.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+        [Bg3PublishWin32]::BringWindowToTop($browser.Handle) | Out-Null
+        [Bg3PublishWin32]::SetForegroundWindow($browser.Handle) | Out-Null
+        Start-Sleep -Milliseconds 500
+
+        Send-KeyToForeground -Key "{ESC}"
+        Start-Sleep -Seconds 2
+
+        $browser = Find-BrowserWindow -ProcessId $ProcessId
+        if (-not $browser) {
+            Write-Diagnostic "Level selector closed after Escape."
+            return $true
+        }
+
+        $cancelX = [Math]::Max($browser.Left + 100, $browser.Right - 170)
+        $cancelY = [Math]::Max($browser.Top + 100, $browser.Bottom - 35)
+        Write-Diagnostic "Clicking level selector Cancel at absolute coordinates $cancelX,$cancelY."
+        Invoke-MouseClick -X ([int]$cancelX) -Y ([int]$cancelY)
+        Start-Sleep -Seconds 3
+    } while ((Get-Date) -lt $deadline)
+
+    return -not (Find-BrowserWindow -ProcessId $ProcessId)
 }
 
 function Minimize-OtherWindows {
@@ -179,6 +297,127 @@ function Invoke-WindowRelativeClick {
     Invoke-MouseClick -X ([int]($rect.Left + $X)) -Y ([int]($rect.Top + $Y))
 }
 
+function Invoke-ToolkitRelativeClick {
+    param(
+        [int]$ProcessId,
+        [int]$X,
+        [int]$Y,
+        [string]$Label
+    )
+
+    $mainWindow = Get-VisibleWindowSnapshot -ProcessId $ProcessId |
+        Where-Object { $_.Title -like "Glasses*" -and $_.Width -gt 600 -and $_.Height -gt 400 } |
+        Sort-Object Width -Descending |
+        Select-Object -First 1
+    if (-not $mainWindow) {
+        throw "Cannot click '$Label' because Toolkit main window bounds are unavailable."
+    }
+
+    $absoluteX = [int]($mainWindow.Left + $X)
+    $absoluteY = [int]($mainWindow.Top + $Y)
+    Write-Diagnostic "Clicking '$Label' at Toolkit-relative coordinates $X,$Y."
+    Invoke-MouseClick -X $absoluteX -Y $absoluteY
+}
+
+function Find-ProjectSettingsWindow {
+    param(
+        [int]$ProcessId,
+        [int]$TimeoutSeconds = 30
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $settingsWindow = Get-VisibleWindowSnapshot -ProcessId $ProcessId |
+            Where-Object { $_.Title -eq "Project Settings" -and $_.Width -gt 500 -and $_.Height -gt 400 } |
+            Sort-Object Width -Descending |
+            Select-Object -First 1
+        if ($settingsWindow) {
+            return $settingsWindow
+        }
+
+        Start-Sleep -Seconds 1
+    } while ((Get-Date) -lt $deadline)
+
+    return $null
+}
+
+function Invoke-ProjectSettingsRelativeClick {
+    param(
+        [int]$ProcessId,
+        [int]$X,
+        [int]$Y,
+        [string]$Label
+    )
+
+    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 10
+    if (-not $settingsWindow) {
+        throw "Cannot click '$Label' because Project Settings window bounds are unavailable."
+    }
+
+    [Bg3PublishWin32]::ShowWindow($settingsWindow.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+    [Bg3PublishWin32]::BringWindowToTop($settingsWindow.Handle) | Out-Null
+    [Bg3PublishWin32]::SetForegroundWindow($settingsWindow.Handle) | Out-Null
+    Start-Sleep -Milliseconds 300
+
+    $absoluteX = [int]($settingsWindow.Left + $X)
+    $absoluteY = [int]($settingsWindow.Top + $Y)
+    Write-Diagnostic "Clicking '$Label' at Project Settings-relative coordinates $X,$Y."
+    Invoke-MouseClick -X $absoluteX -Y $absoluteY
+}
+
+function Invoke-ProjectSettingsFooterButton {
+    param(
+        [int]$ProcessId,
+        [ValidateSet("Save", "Cancel", "PublishLocal", "Publish")]
+        [string]$Button
+    )
+
+    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 10
+    if (-not $settingsWindow) {
+        throw "Project Settings window was not found for '$Button'."
+    }
+
+    $buttonY = [int]($settingsWindow.Bottom - $settingsWindow.Top - 24)
+    switch ($Button) {
+        "Save" {
+            $buttonX = [int]($settingsWindow.Right - $settingsWindow.Left - 57)
+            $label = "Project Settings Save"
+        }
+        "Cancel" {
+            $buttonX = [int]($settingsWindow.Right - $settingsWindow.Left - 162)
+            $label = "Project Settings Cancel"
+        }
+        "PublishLocal" {
+            $buttonX = 57
+            $label = "Publish Local"
+        }
+        "Publish" {
+            $buttonX = 160
+            $label = "Publish"
+        }
+    }
+
+    Invoke-ProjectSettingsRelativeClick -ProcessId $ProcessId -X $buttonX -Y $buttonY -Label $label
+}
+
+function Wait-ProjectSettingsClosed {
+    param(
+        [int]$ProcessId,
+        [int]$TimeoutSeconds = 20
+    )
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        if (-not (Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 1)) {
+            return $true
+        }
+
+        Start-Sleep -Seconds 1
+    } while ((Get-Date) -lt $deadline)
+
+    return $false
+}
+
 function Send-TextToForeground {
     param([string]$Text)
 
@@ -205,14 +444,28 @@ function Select-ToolkitProjectFromBrowser {
     Minimize-OtherWindows -KeepProcessId $ProcessId
     Set-ToolkitForeground -ProcessId $ProcessId
 
-    $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-    Write-Diagnostic "Using screen fallback $($screen.Width)x$($screen.Height)."
-    $searchX = [int]($screen.Width * 0.64)
-    $searchY = 170
-    $cardX = [int]($screen.Width * 0.50)
-    $cardY = 312
-    $selectX = [int]($screen.Width - 420)
-    $selectY = [int]($screen.Height - 175)
+    $browser = Find-BrowserWindow -ProcessId $ProcessId
+    if ($browser) {
+        Write-Diagnostic "Using project browser bounds $($browser.Left),$($browser.Top),$($browser.Right),$($browser.Bottom)."
+        [Bg3PublishWin32]::ShowWindow($browser.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+        [Bg3PublishWin32]::BringWindowToTop($browser.Handle) | Out-Null
+        [Bg3PublishWin32]::SetForegroundWindow($browser.Handle) | Out-Null
+        $searchX = [int]($browser.Right - 340)
+        $searchY = [int]($browser.Top + 85)
+        $cardX = [int]($browser.Left + ($browser.Width / 2))
+        $cardY = [int]($browser.Top + 228)
+        $selectX = [int]($browser.Right - 62)
+        $selectY = [int]($browser.Bottom - 32)
+    } else {
+        $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+        Write-Diagnostic "Using screen fallback $($screen.Width)x$($screen.Height)."
+        $searchX = [int]($screen.Width * 0.64)
+        $searchY = 170
+        $cardX = [int]($screen.Width * 0.50)
+        $cardY = 312
+        $selectX = [int]($screen.Width - 420)
+        $selectY = [int]($screen.Height - 175)
+    }
 
     Write-Diagnostic "Clicking 'Project browser search' at absolute coordinates $searchX,$searchY."
     Invoke-MouseClick -X $searchX -Y $searchY
@@ -220,7 +473,7 @@ function Select-ToolkitProjectFromBrowser {
     Send-KeyToForeground -Key "^(a)"
     Start-Sleep -Milliseconds 100
 
-    $searchText = if ($ProjectPath) { $ProjectPath } else { $ProjectName }
+    $searchText = if ($ProjectName) { $ProjectName } else { $ProjectPath }
     Send-TextToForeground -Text $searchText
     Start-Sleep -Seconds 3
 
@@ -376,25 +629,9 @@ function Open-ProjectSettings {
     Minimize-OtherWindows -KeepProcessId $ProcessId
     Set-ToolkitForeground -ProcessId $ProcessId
 
-    $projectMenu = Find-DescendantByName -Root $Window -Names @("Project", "_Project")
-    if ($projectMenu) {
-        Invoke-Element -Element $projectMenu -Label "Project"
-        Start-Sleep -Seconds 1
-    } else {
-        Invoke-WindowRelativeClick -Window $Window -X 255 -Y 40 -Label "Project menu"
-    }
-
-    $projectSettings = Find-DescendantByName -Root ([System.Windows.Automation.AutomationElement]::RootElement) -Names @(
-        "Project Settings...",
-        "Project Settings",
-        "Project settings",
-        "Settings"
-    )
-    if ($projectSettings) {
-        Invoke-Element -Element $projectSettings -Label "Project Settings"
-    } else {
-        Invoke-WindowRelativeClick -Window $Window -X 320 -Y 64 -Label "Project Settings menu item"
-    }
+    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 255 -Y 47 -Label "Project menu"
+    Start-Sleep -Seconds 1
+    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 320 -Y 70 -Label "Project Settings menu item"
 
     Start-Sleep -Seconds 5
 }
@@ -413,6 +650,41 @@ function Invoke-OptionalButton {
 
     Invoke-Element -Element $button -Label $Label
     return $true
+}
+
+function Wait-ForLocalPublish {
+    param(
+        [string]$ProjectPath,
+        [datetime]$StartedAt,
+        [int]$TimeoutSeconds
+    )
+
+    if (-not $ProjectPath) {
+        return $false
+    }
+
+    $projectRoot = Split-Path -Parent $ProjectPath
+    $modsRoot = Split-Path -Parent $projectRoot
+    if (-not (Test-Path -LiteralPath $modsRoot)) {
+        Write-Diagnostic "BG3 Mods root was not found for local publish detection: $modsRoot"
+        return $false
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        $pak = Get-ChildItem -LiteralPath $modsRoot -Filter "*.pak" -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.LastWriteTime -ge $StartedAt } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($pak) {
+            Write-Diagnostic "Detected local publish package: $($pak.FullName)"
+            return $true
+        }
+
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $deadline)
+
+    return $false
 }
 
 function Wait-ForLogSuccess {
@@ -556,41 +828,66 @@ try {
     if (-not $window) {
         throw "Toolkit main window was not found."
     }
+    Write-Diagnostic "Toolkit initial window detected."
 
     Start-Sleep -Seconds 10
 
     if ($ProjectPath) {
-        $projectPathInput = Find-DescendantByAutomationId -Root $window -AutomationId "m_LoadPath"
-        if ($projectPathInput) {
-            Set-ElementValue -Element $projectPathInput -Value $ProjectPath -Label "Project path"
-            Start-Sleep -Seconds 2
-
-            $selectProject = Find-DescendantByAutomationId -Root $window -AutomationId "m_OpenButton"
-            Invoke-Element -Element $selectProject -Label "Select project"
-            Start-Sleep -Seconds 20
-
-            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90
-            if (-not $toolkitSession) {
-                throw "Toolkit main window was not found after project selection."
-            }
-            $process = $toolkitSession.Process
-            $window = $toolkitSession.Window
-
-            Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
-        } else {
-            Write-Diagnostic "Project path field was not visible; using browser coordinate fallback."
-            Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
-            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90
-            if (-not $toolkitSession) {
-                throw "Toolkit main window was not found after coordinate project selection."
-            }
-            $process = $toolkitSession.Process
-            $window = $toolkitSession.Window
-            Invoke-OptionalButton -Names @("Cancel", "Отмена") -Label "Level selector cancel" | Out-Null
+        Write-Diagnostic "Using browser coordinate fallback for Toolkit project selection."
+        Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
+        $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90 -ProjectName $ProjectName
+        if (-not $toolkitSession) {
+            throw "Toolkit main window was not found after coordinate project selection."
+        }
+        $process = $toolkitSession.Process
+        $window = $toolkitSession.Window
+        if (-not (Dismiss-LevelSelector -ProcessId $process.Id -TimeoutSeconds 60)) {
+            throw "Toolkit level selector browser did not close after coordinate project selection."
         }
     }
 
     Open-ProjectSettings -Window $window -ProcessId $process.Id
+
+    if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
+        throw "Project Settings window did not open."
+    }
+
+    Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Save
+    Start-Sleep -Seconds 8
+
+    if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 3)) {
+        Write-Diagnostic "Project Settings closed after Save; reopening."
+        $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
+        Open-ProjectSettings -Window $window -ProcessId $process.Id
+        if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
+            throw "Project Settings window did not reopen after Save."
+        }
+    }
+
+    Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button PublishLocal
+    $localPublishTimeout = [Math]::Min($TimeoutSeconds, 180)
+    $localPublishSucceeded = Wait-ForLocalPublish -ProjectPath $ProjectPath -StartedAt $startedAt -TimeoutSeconds $localPublishTimeout
+    if (-not $localPublishSucceeded) {
+        $localPublishSucceeded = Wait-ForLogSuccess -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $localPublishTimeout
+    }
+    if (-not $localPublishSucceeded) {
+        throw "Toolkit did not report a successful local publish. Diagnostic log: $script:DiagnosticPath"
+    }
+
+    Minimize-OtherWindows -KeepProcessId $process.Id
+    Set-ToolkitForeground -ProcessId $process.Id
+    Start-Sleep -Seconds 5
+
+    if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 5)) {
+        Open-ProjectSettings -Window $window -ProcessId $process.Id
+        if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
+            throw "Project Settings window did not reopen before Publish."
+        }
+    }
+
+    Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Publish
+
+    if ($false) {
 
     if (Invoke-OptionalButton -Names @("Save", "Сохранить") -Label "Project settings save") {
         Start-Sleep -Seconds 5
@@ -622,11 +919,19 @@ try {
     )
     Invoke-Element -Element $publish -Label "Publish"
 
+    }
+
     if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds)) {
         throw "Toolkit did not hand off a new upload to mod.io within $TimeoutSeconds seconds. Diagnostic log: $script:DiagnosticPath"
     }
 
     Write-Diagnostic "Toolkit upload handoff completed; API finalization should verify scan and live status."
+} catch {
+    Write-Diagnostic "GUI automation failed: $($_.Exception.GetType().FullName): $($_.Exception.Message)"
+    if ($_.ScriptStackTrace) {
+        Write-Diagnostic "PowerShell stack: $($_.ScriptStackTrace)"
+    }
+    throw
 } finally {
     if ($process -and -not $process.HasExited) {
         try {

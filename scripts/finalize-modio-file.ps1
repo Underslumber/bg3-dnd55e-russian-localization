@@ -233,6 +233,40 @@ function Get-ActiveModfileId {
     return $null
 }
 
+function Write-FinalizeDiagnostic {
+    param(
+        [string]$Reason,
+        [object]$File,
+        [string]$Uri,
+        [string[]]$Platforms,
+        [string]$ErrorMessage
+    )
+
+    $diagnosticRoot = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { (Get-Location).Path }
+    $diagnosticPath = Join-Path $diagnosticRoot ("modio-finalize-diagnostic-{0}.json" -f (Get-Date -Format "yyyyMMdd-HHmmss"))
+    $diagnostic = [ordered]@{
+        reason = $Reason
+        api_base = $script:ApiBase
+        game_id = $script:GameId
+        mod_id = $script:ModId
+        uri = $Uri
+        platforms = @($Platforms)
+        file = [ordered]@{
+            id = $File.id
+            filename = $File.filename
+            version = $File.version
+            virus_status = $File.virus_status
+            virus_positive = $File.virus_positive
+            date_added = $File.date_added
+            date_updated = $File.date_updated
+        }
+        error = $ErrorMessage
+    }
+
+    $diagnostic | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $diagnosticPath -Encoding utf8
+    Write-Host "[finalize-modio-file] Diagnostic written: $diagnosticPath"
+}
+
 $ApiBase = (Resolve-Setting -Value $ApiBase -EnvironmentName "MODIO_API_BASE" -DefaultValue "https://g-6715.modapi.io/v1").TrimEnd("/")
 if (-not $GameId) {
     $gameIdSetting = Resolve-Setting -Value "" -EnvironmentName "MODIO_GAME_ID" -DefaultValue "6715"
@@ -281,8 +315,13 @@ if ($WhatIf) {
 }
 
 $platformUri = "{0}/games/{1}/mods/{2}/files/{3}/platforms" -f $ApiBase, $GameId, $ModId, $file.id
-$platformResponse = Invoke-ModioRequest -Method "POST" -Uri $platformUri -Payload @{
-    approved = @($Platforms)
+try {
+    $platformResponse = Invoke-ModioRequest -Method "POST" -Uri $platformUri -Payload @{
+        approved = @($Platforms)
+    }
+} catch {
+    Write-FinalizeDiagnostic -Reason "platform_status_update_failed" -File $file -Uri $platformUri -Platforms $Platforms -ErrorMessage $_.Exception.Message
+    throw
 }
 $platformSummary = ""
 if ($platformResponse -and ($platformResponse.PSObject.Properties.Name -contains "platforms")) {
