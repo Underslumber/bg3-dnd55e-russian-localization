@@ -252,12 +252,25 @@ jobs:
       MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
       BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
       BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Notify Telegram about mod.io publish start
+        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $text = "⏳ <b>Публикация на mod.io начата</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Publish release to mod.io
         run: |
@@ -271,3 +284,25 @@ jobs:
             -VersionTag "${{ github.ref_name }}" `
             -Workspace "${{ github.workspace }}" `
             -Bg3ToolPath $bg3ToolPath
+
+      - name: Notify Telegram about mod.io publish success
+        if: success() && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $modioUrl = "https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization"
+          $text = "✅ <b>Опубликовано на mod.io</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$modioUrl`">Открыть страницу мода</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+
+      - name: Notify Telegram about mod.io publish failure
+        if: failure() && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
