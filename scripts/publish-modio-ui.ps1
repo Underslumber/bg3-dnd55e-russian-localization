@@ -837,6 +837,10 @@ try {
         Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
         $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90 -ProjectName $ProjectName
         if (-not $toolkitSession) {
+            Write-Diagnostic "Project-name window search timed out; falling back to any Toolkit window."
+            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 60
+        }
+        if (-not $toolkitSession) {
             throw "Toolkit main window was not found after coordinate project selection."
         }
         $process = $toolkitSession.Process
