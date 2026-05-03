@@ -34,17 +34,17 @@
   <content contentuid="hd724f72fgcda8gb6acgb5c4gd95d169dd0b4" version="1">Топорик, короткий лук, рапира, короткий меч, одноручный арбалет, пистолет</content>
   <content contentuid="h6e0a316bg6ce3gc18fgb7c0ge96c73d6dfa0" version="1">Мастерство владения оружием</content>
   <content contentuid="h8c28362ag369agee34gc8d4g6ccec5460b53" version="1">Благодаря тренировкам с оружием вы получаете доступ к свойствам мастерства владения оружием.&lt;br&gt;&lt;br&gt;По достижении определённых уровней в вашем классе вы обретаете возможность использовать свойства мастерства для дополнительных типов оружия.</content>
-  <content contentuid="he54ffab7g9288g792age85bg3fc0a39a63db" version="1">1 уровень: Ярость</content>
+  <content contentuid="he54ffab7g9288g792age85bg3fc0a39a63db" version="1">Уровень 1: Ярость</content>
   <content contentuid="ha33a602cg9bb2gec42g889dg5983a5346c84" version="1">Вы можете наполниться первозданной силой, называемой Яростью, — мощью, дарующей вам невероятную силу и стойкость. Вы можете войти в это состояние, используя Бонусное действие, если не носите тяжелую броню.&lt;br&gt;&lt;br&gt;Вы можете впадать в Ярость количество раз, указанное для вашего уровня варвара в колонке «Ярости» таблицы способностей варвара. Вы восстанавливаете одно использование после того, как завершите Короткий привал, и все использования после того, как завершите Долгий отдых.</content>
-  <content contentuid="h8abec533g47afgabaag5370ga724a70ed863" version="1">1 уровень: Безоружная защита</content>
-  <content contentuid="hfc1b8fd5g336eg3648g3224g9cae0aaac491" version="1">2 уровень: Чувство опасности</content>
-  <content contentuid="hb6dea583g9359gddf3g2360g74669f67b1a6" version="1">3 уровень: Первозданное знание</content>
+  <content contentuid="h8abec533g47afgabaag5370ga724a70ed863" version="1">Уровень 1: Безоружная защита</content>
+  <content contentuid="hfc1b8fd5g336eg3648g3224g9cae0aaac491" version="1">Уровень 2: Чувство опасности</content>
+  <content contentuid="hb6dea583g9359gddf3g2360g74669f67b1a6" version="1">Уровень 3: Первозданное знание</content>
   <content contentuid="h860b399bg558cg749fgb64bg707d53758400" version="2">Вы получаете владение ещё одним навыком на ваш выбор из списка навыков, доступных варварам на 1 уровне.&lt;br&gt;&lt;br&gt;Кроме того, пока активна ваша Ярость, вы можете направлять первозданную силу при выполнении определённых задач; когда вы совершаете проверку характеристики с использованием одного из следующих навыков, вы можете выполнить её как проверку Силы, даже если обычно она опирается на другую характеристику: Акробатика, Запугивание, Внимание, Скрытность или Выживание. При использовании этой способности ваша Сила отражает первозданную энергию, текущую внутри вас, оттачивая вашу ловкость, выправку и чувства.</content>
   <content contentuid="h3fa58ccfg135bg7a66g14degc3c8b5bb8261" version="1">Уровень 5: Быстрое движение</content>
-  <content contentuid="h7c047839g4177g2aaega022g36a5cb07886a" version="1">7 уровень: Дикий инстинкт</content>
-  <content contentuid="h28d4b453gc36cg810egf9e2g1dbff5d018d8" version="1">7 уровень: Интуитивный рывок</content>
+  <content contentuid="h7c047839g4177g2aaega022g36a5cb07886a" version="1">Уровень 7: Дикий инстинкт</content>
+  <content contentuid="h28d4b453gc36cg810egf9e2g1dbff5d018d8" version="1">Уровень 7: Интуитивный рывок</content>
   <content contentuid="hdb025275gf26dg03dfg7370g4dddf3f0ffb9" version="1">В рамках Бонусного действия, которое вы тратите на впадение в Ярость, вы можете переместиться на расстояние до половины вашей Скорости.</content>
-  <content contentuid="hb6144726g336aga60cg63d6gf6c4bc669e6a" version="1">9 уровень: Жестокий удар</content>
+  <content contentuid="hb6144726g336aga60cg63d6gf6c4bc669e6a" version="1">Уровень 9: Жестокий удар</content>
   <content contentuid="h3a320da8g90b9g9714ge237g45c9782afbd0" version="1">Если вы используете Безрассудную атаку, цель получает дополнительный урон 1к10 того же типа, что наносят оружие или Безоружный удар, и вы можете вызвать один эффект Жестокого удара на ваш выбор.&lt;br&gt;&lt;br&gt;Мощный удар. Цель отталкивается на [1] прямо от вас. После этого вы можете переместиться на расстояние до половины вашей Скорости прямо к цели, не провоцируя атак по возможности.&lt;br&gt;Удар по ногам. Скорость цели уменьшается на [1] до начала вашего следующего хода. На цель может влиять только один Удар по ногам одновременно — самый последний из наложенных.</content>
   <content contentuid="hf41a9d96ge143g36f0g9f1eg51d9ca5a4cee" version="1">Безрассудная атака: Мощный удар</content>
   <content contentuid="hab5f59ebgf7a8g70bag4453g8c9195f80563" version="1">Цель отталкивается на [1] прямо от вас. После этого вы можете переместиться на расстояние до половины вашей Скорости прямо к цели, не провоцируя атак по возможности.</content>
@@ -583,27 +583,27 @@
   <content contentuid="ha94435d8g091cgce68gaca4gc20e3eea7844" version="1">Требование: Колдун 5+ уровня, посвящение «Пакт цепи»</content>
   <content contentuid="h5c3434c5ge1cfg2712gf301g25080935ac60" version="1">Требование: Колдун 5+ уровня, посвящение «Пакт книги»</content>
   <content contentuid="h79064293gdc22g33fcgf577g81a7411a9720" version="1">Требование: Колдун 9+ уровня</content>
-  <content contentuid="hb8aec518g6d45g1454g58cbgbac23fec6617" version="1">9 уровень: Пожиратель душ</content>
+  <content contentuid="hb8aec518g6d45g1454g58cbgbac23fec6617" version="1">Уровень 9: Пожиратель душ</content>
   <content contentuid="h35551526g84e1g78f3g1277g241f3a6077bb" version="2">Раз в ход, когда вы попадаете по существу своим пактовым оружием, вы можете нанести этому существу дополнительные 1d6 некротического урона. Вы также восстанавливаете количество ОЗ, равное 1d6 плюс ваш модификатор Телосложения.</content>
   <content contentuid="hb7444fe8g6554g6a31ged37g03cc050ef8d3" version="1">Требование: Колдун 9+ уровня, посвящение «Пакт клинка»</content>
-  <content contentuid="hd69af339g9d2bg91b6gba38g8dbeb8503f7b" version="1">12 уровень: Поглощающий клинок</content>
+  <content contentuid="hd69af339g9d2bg91b6gba38g8dbeb8503f7b" version="1">Уровень 12: Поглощающий клинок</content>
   <content contentuid="haf78a66bg2f9bg5fb7g8c9ag5da07aa459f4" version="1">Свойство «Дополнительная атака» вашего посвящения «Жаждущий клинка» дает две дополнительные атаки вместо одной.</content>
   <content contentuid="hc579ca24g72d1g35dfg46c5g5274d47b30cc" version="1">Требование: Колдун 12+ уровня, посвящение «Жаждущий клинка»</content>
-  <content contentuid="h007cf464gd375gf74bg38ccgdc14ddbc38cf" version="1">1 уровень: Речь зверей</content>
-  <content contentuid="h0f9d1ae5g4592g2f49gb8c7g87c552837f15" version="1">1 уровень: Обольстительное влияние</content>
-  <content contentuid="h6657b78egb581g0244g06feg115830c4d5fe" version="1">2 уровень: Вор пяти судеб</content>
+  <content contentuid="h007cf464gd375gf74bg38ccgdc14ddbc38cf" version="1">Уровень 1: Речь зверей</content>
+  <content contentuid="h0f9d1ae5g4592g2f49gb8c7g87c552837f15" version="1">Уровень 1: Обольстительное влияние</content>
+  <content contentuid="h6657b78egb581g0244g06feg115830c4d5fe" version="1">Уровень 2: Вор пяти судеб</content>
   <content contentuid="h96b23ed5g9f6eg5ed9gc731gf83643845844" version="1">Требование: Колдун 2+ уровня</content>
-  <content contentuid="hda228a0eg1468g0defg7675gfa912f042658" version="1">5 уровень: Помутнение рассудка</content>
+  <content contentuid="hda228a0eg1468g0defg7675gfa912f042658" version="1">Уровень 5: Помутнение рассудка</content>
   <content contentuid="h8dd81e23g9a97gc012g10f6g34aea3e1b3be" version="1">Требование: Колдун 5+ уровня</content>
-  <content contentuid="hdb88100cgafa2g940ag4433gb000edb33a07" version="1">5 уровень: Дурное знамение</content>
+  <content contentuid="hdb88100cgafa2g940ag4433gb000edb33a07" version="1">Уровень 5: Дурное знамение</content>
   <content contentuid="h1b7fb0eag8d29g4cf4g04fag91b2e056cf0c" version="1">Требование: Колдун 5+ уровня</content>
-  <content contentuid="hda504259gf2e4g3266g40fdge92c642b1182" version="1">5 уровень: Книга древних тайн</content>
+  <content contentuid="hda504259gf2e4g3266g40fdge92c642b1182" version="1">Уровень 5: Книга древних тайн</content>
   <content contentuid="hdc954407ge07fg170agc027gb3ac7e6afda9" version="1">Требование: Колдун 5+ уровня</content>
-  <content contentuid="h0738ad5cg28e2g4092gfc87gc94c75bc8f5b" version="1">7 уровень: Слово ужаса</content>
+  <content contentuid="h0738ad5cg28e2g4092gfc87gc94c75bc8f5b" version="1">Уровень 7: Слово ужаса</content>
   <content contentuid="h1e82dd96g79f2g67a9g365dgc089cab1b728" version="1">Требование: Колдун 7+ уровня</content>
-  <content contentuid="h1fb30dc3ge20dgcb22g34d0gcdd0e387793b" version="1">7 уровень: Ваятель плоти</content>
+  <content contentuid="h1fb30dc3ge20dgcb22g34d0gcdd0e387793b" version="1">Уровень 7: Ваятель плоти</content>
   <content contentuid="hd6f07d39ge321g7e13gcdabgbcbf12aaa406" version="1">Требование: Колдун 7+ уровня</content>
-  <content contentuid="h5ebc0953g6724g72fageab4g7f5682f9fb32" version="1">9 уровень: Прислужники хаоса</content>
+  <content contentuid="h5ebc0953g6724g72fageab4g7f5682f9fb32" version="1">Уровень 9: Прислужники хаоса</content>
   <content contentuid="hf1a63187g9766gc5aeg0b86g693324a45025" version="1">Требование: Колдун 9+ уровня</content>
   <content contentuid="h3098d03bg9b76gd04eg7ef8g689022ec62ad" version="1">Посвящение: Дар защитников</content>
   <content contentuid="had9ee1e5g5369g47b5g65c4g37b956523a59" version="1">Расщепление разума</content>
@@ -639,18 +639,18 @@
   <content contentuid="h801bf2a6g08cfgac63gc48fgdc1a93297403" version="1">Один раз за ход при попадании по существу вашим договорным оружием вы можете израсходовать ячейку заклинания магии договора, чтобы нанести цели дополнительные 1к8 силового урона плюс ещё 1к8 за каждый уровень ячейки заклинания. Вы также можете наложить на цель состояние «Распластанность», если её размер — огромный или меньше.</content>
   <content contentuid="heb8d0bd4gf518g09cbgdf04g875209dd858a" version="1">Один раз за ход, когда вы попадаете по существу своим договорным оружием, вы можете потратить Ячейку заклинания магии договора, чтобы нанести цели дополнительные 1d8 силового урона, плюс еще 1d8 за каждый уровень ячейки, и вы можете наложить на цель состояние «Сбит с ног», если ее размер — «Огромный» или меньше.</content>
   <content contentuid="hd23c4cc6g5a99gc62eg7220ge0f7cee47aba" version="1">Один раз за ход при попадании по существу вашим договорным оружием вы можете израсходовать ячейку заклинания магии договора, чтобы нанести цели дополнительные 1к8 урона силовым полем плюс ещё 1к8 за каждый уровень ячейки заклинания. Вы также можете наложить на цель состояние «Сбит с ног», если её размер — огромный или меньше.</content>
-  <content contentuid="h24650f10g65f0gdad5g30cdg3e4777297c7c" version="1">2 уровень: Учёный</content>
+  <content contentuid="h24650f10g65f0gdad5g30cdg3e4777297c7c" version="1">Уровень 2: Учёный</content>
   <content contentuid="h32ed567egee36g91e1g2accgb992c0f4d730" version="1">Изучая магию, вы также специализировались в другой области. Выберите один из следующих навыков, в котором у вас есть владение: Магия, История, Анализ, Медицина, Природа или Религия. Вы получаете экспертность в выбранном навыке.</content>
-  <content contentuid="h2f5671feg10a3g6221g9db1gcd1af3a88f5b" version="1">2 уровень: Экспертность</content>
+  <content contentuid="h2f5671feg10a3g6221g9db1gcd1af3a88f5b" version="1">Уровень 2: Экспертность</content>
   <content contentuid="h9e315a90g0705gb2c6g1a8eg13de362924de" version="1">Вы получаете экспертность (см. глоссарий правил) в двух выбранных навыках, которыми владеете. Если у вас есть владение навыками Исполнение или Убеждение, рекомендуется выбрать их.&lt;br&gt;&lt;br&gt;На 9-м уровне барда вы получаете экспертность ещё в двух навыках на ваш выбор.</content>
-  <content contentuid="h1d573d0cg0ef8gc58cg5d87gf7b0ce7fc23d" version="1">10 уровень: Магические секреты</content>
+  <content contentuid="h1d573d0cg0ef8gc58cg5d87gf7b0ce7fc23d" version="1">Уровень 10: Магические секреты</content>
   <content contentuid="hd5715a4dge184g890agee7ag4f904fb90c6b" version="1">Вы постигли тайны различных магических традиций. Каждый раз, достигая уровня барда (включая данный) и когда количество подготовленных заклинаний в таблице особенностей барда увеличивается, вы можете выбрать любое новое подготовленное заклинание из списков заклинаний барда, жреца, друида и волшебника. Выбранные заклинания считаются для вас заклинаниями барда (списки заклинаний см. в разделе соответствующего класса). Кроме того, заменяя подготовленное заклинание этого класса, вы можете заменить его заклинанием из тех же списков.</content>
-  <content contentuid="hd4f3b039g6204g1bbagd21fgb72f806b54d8" version="1">3 уровень: Боевое вдохновение</content>
-  <content contentuid="hd0e61f8bg955fgda33g3e08gc99c259c8a16" version="1">3 уровень: Благословение знаний</content>
+  <content contentuid="hd4f3b039g6204g1bbagd21fgb72f806b54d8" version="1">Уровень 3: Боевое вдохновение</content>
+  <content contentuid="hd0e61f8bg955fgda33g3e08gc99c259c8a16" version="1">Уровень 3: Благословение знаний</content>
   <content contentuid="hc9341211ge6c1g1fd9gddbeg13315817fedb" version="1">Вы получаете владение двумя навыками на ваш выбор из следующих: Магия, История, Природа или Религия. Вы обладаете экспертностью в этих двух навыках.</content>
-  <content contentuid="ha8b64524g7467g0f1eg9214gbd3da8ce6302" version="1">1 уровень: Экспертность</content>
+  <content contentuid="ha8b64524g7467g0f1eg9214gbd3da8ce6302" version="1">Уровень 1: Экспертность</content>
   <content contentuid="h75d54fe5g6285g141fgd2b8gca722e196ecc" version="1">Вы получаете экспертность в двух навыках на ваш выбор, которыми владеете. Ловкость рук и Скрытность рекомендуются, если у вас есть владение ими.&lt;br&gt;&lt;br&gt;На 6-м уровне плута вы получаете экспертность ещё в двух навыках на ваш выбор.</content>
-  <content contentuid="hac07bd19g5886gc2efgf8dfgb838d23ca0bd" version="1">5 уровень: Коварный удар</content>
+  <content contentuid="hac07bd19g5886gc2efgf8dfgb838d23ca0bd" version="1">Уровень 5: Коварный удар</content>
   <content contentuid="h4c3e9164gb5c2g35d0g405dgb887921e3e3a" version="1">Вы разработали хитроумные способы применения своей Скрытой атаки. Когда вы наносите урон от Скрытой атаки, вы можете добавить один из следующих эффектов Коварного удара.&lt;br&gt;&lt;br&gt;Если эффект Коварного удара требует Испытания, его СЛ равна 8 + модификатор Ловкости + Бонус умения.</content>
   <content contentuid="h2d4d8d0bgd8f1g3ea1g0101ga6595c40a70f" version="1">Коварный удар: Яд</content>
   <content contentuid="h88c13810gba24gc873gb1c9ge3c3fe8cb917" version="2">Вы добавляете в удар токсин, заставляя цель совершить Испытание Телосложения. При провале цель получает состояние «Отравлен» на 1 минуту. В конце каждого своего хода отравленная цель повторяет Испытание, снимая эффект при успехе.</content>
