@@ -976,25 +976,62 @@ function Open-ProjectSettings {
 
     Write-Diagnostic "Opening Project Settings via UIA menu invoke (no foreground required)..."
 
-    $projectMenu = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project", "Проект")
-    if (-not $projectMenu) {
-        throw "Project menu item was not found via UIA in Toolkit window."
+    $mainWin = Find-ToolkitMainWindowElement -ProcessId $ProcessId
+    if (-not $mainWin) {
+        throw "Toolkit main window UIA element not found for menu invoke."
     }
-    Write-Diagnostic "Found 'Project' menu item via UIA."
 
+    # Find MenuBar fast (Children scope first), then Project menu among MenuBar children.
+    $mbCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::MenuBar)
+    $menuBar = $mainWin.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $mbCond)
+    if (-not $menuBar) {
+        throw "Toolkit MenuBar UIA element not found."
+    }
+
+    $projectMenu = $null
+    foreach ($name in @("Project", "Проект")) {
+        $cond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $name)
+        $candidate = $menuBar.FindFirst([System.Windows.Automation.TreeScope]::Children, $cond)
+        if ($candidate -and $candidate.Current.ControlType -eq [System.Windows.Automation.ControlType]::MenuItem) {
+            $projectMenu = $candidate
+            break
+        }
+    }
+    if (-not $projectMenu) {
+        throw "Project menu item was not found via UIA in MenuBar."
+    }
+    Write-Diagnostic "Found 'Project' menu item via UIA: '$($projectMenu.Current.Name)'."
+
+    # Expand Project menu
     try {
         $expand = $projectMenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
         $expand.Expand()
     } catch {
-        Write-Diagnostic "ExpandPattern failed; trying InvokePattern: $($_.Exception.Message)"
+        Write-Diagnostic "ExpandPattern failed; trying InvokePattern on Project: $($_.Exception.Message)"
         $invoke = $projectMenu.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
         $invoke.Invoke()
     }
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds 300
 
-    $settingsItem = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project Settings", "Настройки проекта") -Substring
+    # Find Project Settings IMMEDIATELY among Project menu's children (fast — submenu may auto-close).
+    $settingsItem = $null
+    $miCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::MenuItem)
+    $subItems = $projectMenu.FindAll([System.Windows.Automation.TreeScope]::Children, $miCond)
+    Write-Diagnostic "Project submenu has $($subItems.Count) MenuItem children."
+    foreach ($item in $subItems) {
+        $itemName = $item.Current.Name
+        if ($itemName -like "*Project Settings*" -or $itemName -like "*Настройки проекта*") {
+            $settingsItem = $item
+            break
+        }
+    }
     if (-not $settingsItem) {
-        throw "Project Settings menu item was not found via UIA after expanding Project menu."
+        throw "Project Settings menu item was not found in Project submenu (children: $(@($subItems | ForEach-Object { $_.Current.Name }) -join ', '))."
     }
     Write-Diagnostic "Found 'Project Settings' menu item via UIA: '$($settingsItem.Current.Name)'."
 
