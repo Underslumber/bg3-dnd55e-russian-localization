@@ -1035,9 +1035,13 @@ function Open-ProjectSettings {
     }
     Write-Diagnostic "Found 'Project Settings' menu item via UIA: '$($settingsItem.Current.Name)'."
 
-    $invoke = $settingsItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
-    $invoke.Invoke()
-    Write-Diagnostic "Project Settings menu item invoked."
+    # InvokePattern.Invoke() blocks waiting for UI response and times out (66s observed) when
+    # Toolkit takes a while to react. Click the menu item via mouse on UIA-resolved coords.
+    $sRect = $settingsItem.Current.BoundingRectangle
+    $sX = [int]($sRect.X + $sRect.Width / 2)
+    $sY = [int]($sRect.Y + $sRect.Height / 2)
+    Write-Diagnostic "Clicking 'Project Settings...' at UIA-resolved coords ($sX,$sY)."
+    Invoke-MouseClick -X $sX -Y $sY
 
     Start-Sleep -Seconds 3
 }
