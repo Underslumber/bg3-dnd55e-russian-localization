@@ -142,15 +142,20 @@ function Get-LinkTargetPath {
         [System.IO.FileSystemInfo]$Item
     )
 
-    if (-not $Item.LinkTarget) {
+    $target = $Item.LinkTarget
+    if (-not $target -and $Item.Target) {
+        $target = $Item.Target | Select-Object -First 1
+    }
+
+    if (-not $target) {
         return $null
     }
 
-    if ([System.IO.Path]::IsPathRooted($Item.LinkTarget)) {
-        return Get-NormalizedPath -Path $Item.LinkTarget
+    if ([System.IO.Path]::IsPathRooted($target)) {
+        return Get-NormalizedPath -Path $target
     }
 
-    $combined = Join-Path $Item.DirectoryName $Item.LinkTarget
+    $combined = Join-Path $Item.DirectoryName $target
     return Get-NormalizedPath -Path $combined
 }
 
