@@ -1438,14 +1438,28 @@ try {
     }
     throw
 } finally {
-    if ($process -and -not $process.HasExited) {
+    # Force-close ALL Glasses processes from this Toolkit path. Earlier we tried
+    # CloseMainWindow + WaitForExit(30s), but Toolkit can show a 'Save before exit?'
+    # popup or otherwise refuse to close gracefully — the wait blocked the
+    # orchestrator and finalize-modio-file.ps1 never ran. Hard kill is reliable.
+    Write-Diagnostic "Cleanup: stopping all Glasses processes for path '$resolvedBg3ToolPath'."
+    $glassesToKill = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $resolvedBg3ToolPath) })
+    foreach ($g in $glassesToKill) {
         try {
-            $process.CloseMainWindow() | Out-Null
-            if (-not $process.WaitForExit(30000)) {
-                $process.Kill()
-            }
+            Write-Diagnostic "Cleanup: Stop-Process -Force pid=$($g.Id) title='$($g.MainWindowTitle)'."
+            $g | Stop-Process -Force -ErrorAction Stop
         } catch {
-            Write-Diagnostic "Failed to close Toolkit process cleanly: $($_.Exception.Message)"
+            Write-Diagnostic "Cleanup: Stop-Process pid=$($g.Id) failed: $($_.Exception.Message)"
         }
+    }
+    # Brief wait to let processes fully exit before script returns to orchestrator.
+    Start-Sleep -Seconds 2
+    $stillAlive = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+        Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $resolvedBg3ToolPath) })
+    if ($stillAlive.Count -gt 0) {
+        Write-Diagnostic "Cleanup WARNING: $($stillAlive.Count) Glasses process(es) still alive after Stop-Process: $(($stillAlive | ForEach-Object { $_.Id }) -join ', ')."
+    } else {
+        Write-Diagnostic "Cleanup OK: all Glasses instances stopped."
     }
 }
