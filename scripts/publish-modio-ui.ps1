@@ -20,6 +20,33 @@ function Write-Diagnostic {
     }
 }
 
+function Save-DiagnosticScreenshot {
+    param([string]$Tag)
+
+    if (-not $script:ScreenshotDir) { return }
+    try {
+        Add-Type -AssemblyName System.Drawing -ErrorAction SilentlyContinue
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+
+        $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+        $bitmap = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
+
+        $script:ScreenshotIndex++
+        $stamp = (Get-Date).ToString("HHmmss-fff")
+        $safeTag = ($Tag -replace '[^a-zA-Z0-9_-]', '_')
+        $fileName = "{0:000}-{1}-{2}.png" -f $script:ScreenshotIndex, $stamp, $safeTag
+        $path = Join-Path $script:ScreenshotDir $fileName
+        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+        $graphics.Dispose()
+        $bitmap.Dispose()
+        Write-Diagnostic "Screenshot[$($script:ScreenshotIndex)]: $fileName"
+    } catch {
+        Write-Diagnostic "Save-DiagnosticScreenshot('$Tag') failed: $($_.Exception.Message)"
+    }
+}
+
 function Test-InteractiveDesktop {
     try {
         Add-Type -AssemblyName System.Windows.Forms
@@ -1057,6 +1084,12 @@ $script:DiagnosticPath = $DiagnosticPath
 New-Item -ItemType Directory -Path (Split-Path -Parent $script:DiagnosticPath) -Force | Out-Null
 Set-Content -LiteralPath $script:DiagnosticPath -Value "" -Encoding utf8
 
+$script:ScreenshotDir = Join-Path (Split-Path -Parent $script:DiagnosticPath) "modio-publish-screens"
+$script:ScreenshotIndex = 0
+New-Item -ItemType Directory -Path $script:ScreenshotDir -Force | Out-Null
+Get-ChildItem -Path $script:ScreenshotDir -Filter "*.png" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+Write-Diagnostic "Diagnostic screenshots will be saved to: $script:ScreenshotDir"
+
 if (-not (Test-InteractiveDesktop)) {
     throw "BG3 Toolkit GUI publishing requires an interactive Windows desktop. Run the self-hosted runner in an interactive user session."
 }
@@ -1106,10 +1139,12 @@ try {
         throw "Toolkit main window was not found."
     }
     Write-Diagnostic "Toolkit initial window detected."
+    Save-DiagnosticScreenshot -Tag "01-toolkit-initial-window"
 
     if ($ProjectPath) {
         Write-Diagnostic "Using browser coordinate fallback for Toolkit project selection."
         Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
+        Save-DiagnosticScreenshot -Tag "02-after-select-project"
         $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 45 -ProjectName $ProjectName
         if (-not $toolkitSession) {
             Write-Diagnostic "Project-name window search timed out; falling back to any Toolkit window by path."
@@ -1137,30 +1172,41 @@ try {
         }
         $process = $toolkitSession.Process
         $window = $toolkitSession.Window
+        Save-DiagnosticScreenshot -Tag "03-toolkit-window-resolved"
         if (-not (Dismiss-LevelSelector -ProcessId $process.Id -TimeoutSeconds 60)) {
             throw "Toolkit level selector browser did not close after coordinate project selection."
         }
+        Save-DiagnosticScreenshot -Tag "04-after-dismiss-level-selector"
     }
 
+    Save-DiagnosticScreenshot -Tag "05-before-open-project-settings"
     Open-ProjectSettings -Window $window -ProcessId $process.Id
+    Save-DiagnosticScreenshot -Tag "06-after-open-project-settings"
 
     if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
+        Save-DiagnosticScreenshot -Tag "07-project-settings-NOT-FOUND"
         throw "Project Settings window did not open."
     }
+    Save-DiagnosticScreenshot -Tag "07-project-settings-found"
 
+    Save-DiagnosticScreenshot -Tag "08-before-save-click"
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Save
     Start-Sleep -Seconds 8
+    Save-DiagnosticScreenshot -Tag "09-after-save-click"
 
     if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 3)) {
         Write-Diagnostic "Project Settings closed after Save; reopening."
         $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
         Open-ProjectSettings -Window $window -ProcessId $process.Id
+        Save-DiagnosticScreenshot -Tag "10-after-reopen-project-settings"
         if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
             throw "Project Settings window did not reopen after Save."
         }
     }
 
+    Save-DiagnosticScreenshot -Tag "11-before-publish-local-click"
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button PublishLocal
+    Save-DiagnosticScreenshot -Tag "12-after-publish-local-click"
     $localPublishTimeout = [Math]::Min($TimeoutSeconds, 180)
     $localPublishSucceeded = Wait-ForLocalPublish -ProjectPath $ProjectPath -StartedAt $startedAt -TimeoutSeconds $localPublishTimeout
     if (-not $localPublishSucceeded) {
@@ -1189,15 +1235,20 @@ try {
         Write-Diagnostic "Pre-Publish baseline mod.io windows ($($handoffBaseline.Count)): $($handoffBaseline -join ' | ')"
     }
 
+    Save-DiagnosticScreenshot -Tag "13-before-publish-click"
     Write-Diagnostic "Publish button enabled — clicking."
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Publish
+    Save-DiagnosticScreenshot -Tag "14-after-publish-click"
 
     if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds -BaselineTitles $handoffBaseline)) {
+        Save-DiagnosticScreenshot -Tag "15-handoff-FAILED"
         throw "Toolkit did not hand off a new upload to mod.io within $TimeoutSeconds seconds. Diagnostic log: $script:DiagnosticPath"
     }
+    Save-DiagnosticScreenshot -Tag "15-handoff-detected"
 
     Write-Diagnostic "Toolkit upload handoff completed; API finalization should verify scan and live status."
 } catch {
+    Save-DiagnosticScreenshot -Tag "99-EXCEPTION"
     Write-Diagnostic "GUI automation failed: $($_.Exception.GetType().FullName): $($_.Exception.Message)"
     if ($_.ScriptStackTrace) {
         Write-Diagnostic "PowerShell stack: $($_.ScriptStackTrace)"
