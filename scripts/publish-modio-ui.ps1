@@ -324,7 +324,7 @@ function Dismiss-LevelSelector {
             if (-not $missingSince) {
                 $missingSince = Get-Date
             }
-            if (((Get-Date) - $missingSince).TotalSeconds -ge 30) {
+            if (((Get-Date) - $missingSince).TotalSeconds -ge 5) {
                 Write-Diagnostic "Level selector browser did not appear during settle wait."
                 return $true
             }
@@ -647,11 +647,40 @@ function Find-BrowserProjectCard {
 function Find-ToolkitMenuItem {
     param(
         [int]$ProcessId,
-        [string[]]$Names
+        [string[]]$Names,
+        [switch]$Substring
     )
 
     $mainWin = Find-ToolkitMainWindowElement -ProcessId $ProcessId
     if (-not $mainWin) { return $null }
+
+    $miCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::MenuItem)
+
+    if ($Substring) {
+        # Substring match — enumerate all MenuItems in main window AND in any popup windows of same process.
+        $allMenuItems = @($mainWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $miCond))
+        # Also check sibling top-level popups (submenu often lives in a separate Window)
+        $pidCond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $ProcessId)
+        $tops = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+            [System.Windows.Automation.TreeScope]::Children, $pidCond)
+        foreach ($t in $tops) {
+            if ($t.Current.NativeWindowHandle -ne $mainWin.Current.NativeWindowHandle) {
+                $allMenuItems += @($t.FindAll([System.Windows.Automation.TreeScope]::Descendants, $miCond))
+            }
+        }
+        foreach ($item in $allMenuItems) {
+            $itemName = $item.Current.Name
+            foreach ($name in $Names) {
+                if ($itemName -like "*$name*") {
+                    return $item
+                }
+            }
+        }
+        return $null
+    }
 
     foreach ($name in $Names) {
         $cond = New-Object System.Windows.Automation.PropertyCondition(
@@ -963,11 +992,11 @@ function Open-ProjectSettings {
     }
     Start-Sleep -Milliseconds 500
 
-    $settingsItem = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project Settings", "Настройки проекта")
+    $settingsItem = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project Settings", "Настройки проекта") -Substring
     if (-not $settingsItem) {
         throw "Project Settings menu item was not found via UIA after expanding Project menu."
     }
-    Write-Diagnostic "Found 'Project Settings' menu item via UIA."
+    Write-Diagnostic "Found 'Project Settings' menu item via UIA: '$($settingsItem.Current.Name)'."
 
     $invoke = $settingsItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
     $invoke.Invoke()
