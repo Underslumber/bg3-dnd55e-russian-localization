@@ -245,30 +245,31 @@ function Wait-ForBrowserContent {
 
 function Wait-ForPublishButtonEnabled {
     param(
-        [Parameter(Mandatory)] [int]$ButtonX,
-        [Parameter(Mandatory)] [int]$ButtonY,
+        [Parameter(Mandatory)] [int]$ProcessId,
         [int]$TimeoutSeconds = 60,
         [int]$PollIntervalMs = 500
     )
 
-    Write-Diagnostic "Waiting for Publish button to become enabled at ($ButtonX,$ButtonY) (timeout=${TimeoutSeconds}s)..."
+    Write-Diagnostic "Waiting for Publish button (UIA Name lookup) to become enabled (timeout=${TimeoutSeconds}s)..."
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     $lastState = $null
     do {
         try {
-            $point = New-Object System.Windows.Point($ButtonX, $ButtonY)
-            $elem = [System.Windows.Automation.AutomationElement]::FromPoint($point)
-            if ($elem) {
-                $isEnabled = $elem.GetCurrentPropertyValue(
-                    [System.Windows.Automation.AutomationElement]::IsEnabledProperty)
-                if ($isEnabled -ne $lastState) {
-                    Write-Diagnostic "Publish button IsEnabled=$isEnabled at ($ButtonX,$ButtonY)."
-                    $lastState = $isEnabled
+            $dialog = Find-ProjectSettingsDialogElement -ProcessId $ProcessId -TimeoutSeconds 1
+            if ($dialog) {
+                $btn = Find-ProjectSettingsFooterButtonElement -Dialog $dialog -Button Publish
+                if ($btn) {
+                    $isEnabled = $btn.Current.IsEnabled
+                    if ($isEnabled -ne $lastState) {
+                        $rect = $btn.Current.BoundingRectangle
+                        Write-Diagnostic "Publish button IsEnabled=$isEnabled (rect: $($rect.X),$($rect.Y) $($rect.Width)x$($rect.Height))."
+                        $lastState = $isEnabled
+                    }
+                    if ($isEnabled) { return $true }
                 }
-                if ($isEnabled) { return $true }
             }
         } catch {
-            Write-Diagnostic "FromPoint check failed: $($_.Exception.Message)"
+            Write-Diagnostic "Wait-ForPublishButtonEnabled UIA error: $($_.Exception.Message)"
         }
         Start-Sleep -Milliseconds $PollIntervalMs
     } while ((Get-Date) -lt $deadline)
@@ -445,6 +446,67 @@ function Invoke-ProjectSettingsRelativeClick {
     Invoke-MouseClick -X $absoluteX -Y $absoluteY
 }
 
+function Find-ProjectSettingsDialogElement {
+    param(
+        [int]$ProcessId,
+        [int]$TimeoutSeconds = 10
+    )
+
+    Add-Type -AssemblyName UIAutomationClient -ErrorAction SilentlyContinue
+    $nameCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::NameProperty, "Project Settings")
+    if ($ProcessId -gt 0) {
+        $pidCond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $ProcessId)
+        $cond = New-Object System.Windows.Automation.AndCondition($nameCond, $pidCond)
+    } else {
+        $cond = $nameCond
+    }
+
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        try {
+            $elem = [System.Windows.Automation.AutomationElement]::RootElement.FindFirst(
+                [System.Windows.Automation.TreeScope]::Children, $cond)
+            if ($elem) { return $elem }
+        } catch {
+            Write-Diagnostic "Find-ProjectSettingsDialogElement UIA error: $($_.Exception.Message)"
+        }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $deadline)
+
+    return $null
+}
+
+function Find-ProjectSettingsFooterButtonElement {
+    param(
+        [Parameter(Mandatory)] [System.Windows.Automation.AutomationElement]$Dialog,
+        [ValidateSet("Save", "Cancel", "PublishLocal", "Publish")]
+        [string]$Button
+    )
+
+    $names = switch ($Button) {
+        "Save"         { @("Save", "Сохранить") }
+        "Cancel"       { @("Cancel", "Отмена") }
+        "PublishLocal" { @("Publish Local", "Опубликовать локально") }
+        "Publish"      { @("Publish", "Опубликовать") }
+    }
+
+    foreach ($name in $names) {
+        $cond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $name)
+        try {
+            $elem = $Dialog.FindFirst(
+                [System.Windows.Automation.TreeScope]::Descendants, $cond)
+            if ($elem) { return $elem }
+        } catch {
+            Write-Diagnostic "Find-ProjectSettingsFooterButtonElement '$name' UIA error: $($_.Exception.Message)"
+        }
+    }
+
+    return $null
+}
+
 function Get-ProjectSettingsFooterButtonCoords {
     param(
         [int]$ProcessId,
@@ -452,22 +514,20 @@ function Get-ProjectSettingsFooterButtonCoords {
         [string]$Button
     )
 
-    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 10
-    if (-not $settingsWindow) {
-        throw "Project Settings window was not found for '$Button' coord lookup."
+    $dialog = Find-ProjectSettingsDialogElement -ProcessId $ProcessId -TimeoutSeconds 10
+    if (-not $dialog) {
+        throw "Project Settings UIA dialog was not found for '$Button' coord lookup."
     }
 
-    $relY = [int]($settingsWindow.Bottom - $settingsWindow.Top - 24)
-    switch ($Button) {
-        "Save"         { $relX = [int]($settingsWindow.Right - $settingsWindow.Left - 57) }
-        "Cancel"       { $relX = [int]($settingsWindow.Right - $settingsWindow.Left - 162) }
-        "PublishLocal" { $relX = 57 }
-        "Publish"      { $relX = 160 }
+    $btn = Find-ProjectSettingsFooterButtonElement -Dialog $dialog -Button $Button
+    if (-not $btn) {
+        throw "Project Settings footer button '$Button' was not found via UIA."
     }
 
+    $rect = $btn.Current.BoundingRectangle
     return [pscustomobject]@{
-        X = [int]($settingsWindow.Left + $relX)
-        Y = [int]($settingsWindow.Top + $relY)
+        X = [int]($rect.X + $rect.Width / 2)
+        Y = [int]($rect.Y + $rect.Height / 2)
     }
 }
 
@@ -478,32 +538,18 @@ function Invoke-ProjectSettingsFooterButton {
         [string]$Button
     )
 
-    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 10
-    if (-not $settingsWindow) {
-        throw "Project Settings window was not found for '$Button'."
+    $coords = Get-ProjectSettingsFooterButtonCoords -ProcessId $ProcessId -Button $Button
+
+    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 5
+    if ($settingsWindow) {
+        [Bg3PublishWin32]::ShowWindow($settingsWindow.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+        [Bg3PublishWin32]::BringWindowToTop($settingsWindow.Handle) | Out-Null
+        [Bg3PublishWin32]::SetForegroundWindow($settingsWindow.Handle) | Out-Null
+        Start-Sleep -Milliseconds 300
     }
 
-    $buttonY = [int]($settingsWindow.Bottom - $settingsWindow.Top - 24)
-    switch ($Button) {
-        "Save" {
-            $buttonX = [int]($settingsWindow.Right - $settingsWindow.Left - 57)
-            $label = "Project Settings Save"
-        }
-        "Cancel" {
-            $buttonX = [int]($settingsWindow.Right - $settingsWindow.Left - 162)
-            $label = "Project Settings Cancel"
-        }
-        "PublishLocal" {
-            $buttonX = 57
-            $label = "Publish Local"
-        }
-        "Publish" {
-            $buttonX = 160
-            $label = "Publish"
-        }
-    }
-
-    Invoke-ProjectSettingsRelativeClick -ProcessId $ProcessId -X $buttonX -Y $buttonY -Label $label
+    Write-Diagnostic "Clicking '$Button' at UIA-resolved coordinates ($($coords.X),$($coords.Y))."
+    Invoke-MouseClick -X $coords.X -Y $coords.Y
 }
 
 function Wait-ProjectSettingsClosed {
@@ -1134,8 +1180,7 @@ try {
         }
     }
 
-    $publishCoords = Get-ProjectSettingsFooterButtonCoords -ProcessId $process.Id -Button Publish
-    if (-not (Wait-ForPublishButtonEnabled -ButtonX $publishCoords.X -ButtonY $publishCoords.Y -TimeoutSeconds 60)) {
+    if (-not (Wait-ForPublishButtonEnabled -ProcessId $process.Id -TimeoutSeconds 60)) {
         throw "Publish button never became enabled within 60s after PublishLocal."
     }
 
