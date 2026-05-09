@@ -930,11 +930,20 @@ function Wait-ForLogSuccess {
     return $false
 }
 
+function Get-ModioHandoffCandidateTitles {
+    return @(
+        Get-Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.MainWindowTitle -and $_.MainWindowTitle -match 'mod\.io|File manager|File Manager|Edit .*mod' } |
+            ForEach-Object { $_.MainWindowTitle }
+    ) | Sort-Object -Unique
+}
+
 function Wait-ForUploadHandoff {
     param(
         [string]$ToolkitDirectory,
         [datetime]$StartedAt,
-        [int]$TimeoutSeconds
+        [int]$TimeoutSeconds,
+        [string[]]$BaselineTitles = @()
     )
 
     $logPatterns = @(
@@ -944,13 +953,23 @@ function Wait-ForUploadHandoff {
         'publish.*success'
     )
 
+    $baselineSet = @{}
+    foreach ($t in $BaselineTitles) { $baselineSet[$t] = $true }
+    if ($BaselineTitles.Count -gt 0) {
+        Write-Diagnostic "Wait-ForUploadHandoff baseline: $($BaselineTitles.Count) pre-existing matching window(s) will be ignored: $($BaselineTitles -join ' | ')"
+    }
+
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     do {
         $browserWindow = Get-Process -ErrorAction SilentlyContinue |
-            Where-Object { $_.MainWindowTitle -match 'mod\.io|File manager|File Manager|Edit .*mod' } |
+            Where-Object {
+                $_.MainWindowTitle -and
+                $_.MainWindowTitle -match 'mod\.io|File manager|File Manager|Edit .*mod' -and
+                -not $baselineSet.ContainsKey($_.MainWindowTitle)
+            } |
             Select-Object -First 1
         if ($browserWindow) {
-            Write-Diagnostic "Detected mod.io browser handoff: $($browserWindow.MainWindowTitle)"
+            Write-Diagnostic "Detected mod.io browser handoff (new title): $($browserWindow.MainWindowTitle)"
             return $true
         }
 
@@ -1119,10 +1138,16 @@ try {
     if (-not (Wait-ForPublishButtonEnabled -ButtonX $publishCoords.X -ButtonY $publishCoords.Y -TimeoutSeconds 60)) {
         throw "Publish button never became enabled within 60s after PublishLocal."
     }
+
+    $handoffBaseline = Get-ModioHandoffCandidateTitles
+    if ($handoffBaseline.Count -gt 0) {
+        Write-Diagnostic "Pre-Publish baseline mod.io windows ($($handoffBaseline.Count)): $($handoffBaseline -join ' | ')"
+    }
+
     Write-Diagnostic "Publish button enabled — clicking."
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Publish
 
-    if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds)) {
+    if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds -BaselineTitles $handoffBaseline)) {
         throw "Toolkit did not hand off a new upload to mod.io within $TimeoutSeconds seconds. Diagnostic log: $script:DiagnosticPath"
     }
 
