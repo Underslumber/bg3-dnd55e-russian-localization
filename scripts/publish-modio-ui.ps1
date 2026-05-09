@@ -1339,6 +1339,13 @@ try {
             throw "Toolkit level selector browser did not close after coordinate project selection."
         }
         Save-DiagnosticScreenshot -Tag "04-after-dismiss-level-selector"
+
+        # Toolkit needs time to load project meta.lsx into memory after the project window appears.
+        # Without this wait, Project Settings opens with empty Mandatory fields (Save stays disabled).
+        # Manually verified: ~15-30s is enough on a fresh Toolkit launch.
+        Write-Diagnostic "Waiting 30s for Toolkit to fully load project meta..."
+        Start-Sleep -Seconds 30
+        Save-DiagnosticScreenshot -Tag "04b-after-meta-load-wait"
     }
 
     Save-DiagnosticScreenshot -Tag "05-before-open-project-settings"
