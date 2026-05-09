@@ -215,6 +215,7 @@ function Wait-ForBrowserContent {
 
     Write-Diagnostic "Waiting for browser project list to load (timeout=${TimeoutSeconds}s, threshold=$MinDescendantCount descendants)..."
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastBucket = -1
     do {
         try {
             $elem = [System.Windows.Automation.AutomationElement]::FromHandle($Browser.Handle)
@@ -223,7 +224,11 @@ function Wait-ForBrowserContent {
                 [System.Windows.Automation.Condition]::TrueCondition
             )
             $count = $all.Count
-            Write-Diagnostic "Browser UIA descendants: $count."
+            $bucket = if ($count -lt 5) { 0 } elseif ($count -lt $MinDescendantCount) { 1 } else { 2 }
+            if ($bucket -ne $lastBucket) {
+                Write-Diagnostic "Browser UIA descendants: $count."
+                $lastBucket = $bucket
+            }
             if ($count -ge $MinDescendantCount) {
                 Write-Diagnostic "Browser content ready ($count descendants)."
                 return $true
@@ -231,10 +236,43 @@ function Wait-ForBrowserContent {
         } catch {
             Write-Diagnostic "Browser UIA check error: $($_.Exception.Message)"
         }
-        Start-Sleep -Seconds 3
+        Start-Sleep -Milliseconds 750
     } while ((Get-Date) -lt $deadline)
 
     Write-Diagnostic "Browser content wait timed out after ${TimeoutSeconds}s; proceeding anyway."
+    return $false
+}
+
+function Wait-ForPublishButtonEnabled {
+    param(
+        [Parameter(Mandatory)] [int]$ButtonX,
+        [Parameter(Mandatory)] [int]$ButtonY,
+        [int]$TimeoutSeconds = 60,
+        [int]$PollIntervalMs = 500
+    )
+
+    Write-Diagnostic "Waiting for Publish button to become enabled at ($ButtonX,$ButtonY) (timeout=${TimeoutSeconds}s)..."
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    $lastState = $null
+    do {
+        try {
+            $point = New-Object System.Windows.Point($ButtonX, $ButtonY)
+            $elem = [System.Windows.Automation.AutomationElement]::FromPoint($point)
+            if ($elem) {
+                $isEnabled = $elem.GetCurrentPropertyValue(
+                    [System.Windows.Automation.AutomationElement]::IsEnabledProperty)
+                if ($isEnabled -ne $lastState) {
+                    Write-Diagnostic "Publish button IsEnabled=$isEnabled at ($ButtonX,$ButtonY)."
+                    $lastState = $isEnabled
+                }
+                if ($isEnabled) { return $true }
+            }
+        } catch {
+            Write-Diagnostic "FromPoint check failed: $($_.Exception.Message)"
+        }
+        Start-Sleep -Milliseconds $PollIntervalMs
+    } while ((Get-Date) -lt $deadline)
+
     return $false
 }
 
@@ -405,6 +443,32 @@ function Invoke-ProjectSettingsRelativeClick {
     $absoluteY = [int]($settingsWindow.Top + $Y)
     Write-Diagnostic "Clicking '$Label' at Project Settings-relative coordinates $X,$Y."
     Invoke-MouseClick -X $absoluteX -Y $absoluteY
+}
+
+function Get-ProjectSettingsFooterButtonCoords {
+    param(
+        [int]$ProcessId,
+        [ValidateSet("Save", "Cancel", "PublishLocal", "Publish")]
+        [string]$Button
+    )
+
+    $settingsWindow = Find-ProjectSettingsWindow -ProcessId $ProcessId -TimeoutSeconds 10
+    if (-not $settingsWindow) {
+        throw "Project Settings window was not found for '$Button' coord lookup."
+    }
+
+    $relY = [int]($settingsWindow.Bottom - $settingsWindow.Top - 24)
+    switch ($Button) {
+        "Save"         { $relX = [int]($settingsWindow.Right - $settingsWindow.Left - 57) }
+        "Cancel"       { $relX = [int]($settingsWindow.Right - $settingsWindow.Left - 162) }
+        "PublishLocal" { $relX = 57 }
+        "Publish"      { $relX = 160 }
+    }
+
+    return [pscustomobject]@{
+        X = [int]($settingsWindow.Left + $relX)
+        Y = [int]($settingsWindow.Top + $relY)
+    }
 }
 
 function Invoke-ProjectSettingsFooterButton {
@@ -587,19 +651,25 @@ function Select-ToolkitProjectFromBrowser {
 
     $waitStart = Get-Date
     $waitDeadline = $waitStart.AddSeconds(30)
+    $projectWindowFound = $false
     do {
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 1
         $allGlasses = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue)
         $elapsed = [int]((Get-Date) - $waitStart).TotalSeconds
-        if ($allGlasses.Count -eq 0) {
-            Write-Diagnostic "[$($elapsed)s post-Select] No Glasses processes running."
-        } else {
-            foreach ($g in $allGlasses) {
-                $visibleCount = @(Get-VisibleWindowSnapshot -ProcessId $g.Id).Count
-                Write-Diagnostic "[$($elapsed)s post-Select] Glasses pid=$($g.Id) path='$($g.Path)' visible_windows=$visibleCount"
+        foreach ($g in $allGlasses) {
+            $windows = @(Get-VisibleWindowSnapshot -ProcessId $g.Id)
+            $match = $windows | Where-Object { $_.Title -like "*$ProjectName*" } | Select-Object -First 1
+            if ($match) {
+                Write-Diagnostic "[$($elapsed)s post-Select] Project window detected pid=$($g.Id) title='$($match.Title)' — exiting wait loop."
+                $projectWindowFound = $true
+                break
             }
         }
+        if ($projectWindowFound) { break }
     } while ((Get-Date) -lt $waitDeadline)
+    if (-not $projectWindowFound) {
+        Write-Diagnostic "[30s post-Select] Project window not detected within budget — falling through to Find-ToolkitWindow."
+    }
 }
 
 function Find-DescendantByName {
@@ -972,19 +1042,17 @@ try {
     }
     Write-Diagnostic "Toolkit initial window detected."
 
-    Start-Sleep -Seconds 10
-
     if ($ProjectPath) {
         Write-Diagnostic "Using browser coordinate fallback for Toolkit project selection."
         Select-ToolkitProjectFromBrowser -Window $window -ProcessId $process.Id -ProjectName $ProjectName -ProjectPath $ProjectPath
-        $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 90 -ProjectName $ProjectName
+        $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 45 -ProjectName $ProjectName
         if (-not $toolkitSession) {
             Write-Diagnostic "Project-name window search timed out; falling back to any Toolkit window by path."
-            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 60
+            $toolkitSession = Find-ToolkitWindow -Path $resolvedBg3ToolPath -TimeoutSeconds 20
         }
         if (-not $toolkitSession) {
             Write-Diagnostic "Path-matched search timed out; trying any Glasses process regardless of path."
-            $deadline = (Get-Date).AddSeconds(60)
+            $deadline = (Get-Date).AddSeconds(15)
             do {
                 $anyGlasses = Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
                     Sort-Object StartTime -Descending | Select-Object -First 1
@@ -996,7 +1064,7 @@ try {
                         break
                     }
                 }
-                Start-Sleep -Seconds 5
+                Start-Sleep -Seconds 2
             } while ((Get-Date) -lt $deadline)
         }
         if (-not $toolkitSession) {
@@ -1039,7 +1107,6 @@ try {
 
     Minimize-OtherWindows -KeepProcessId $process.Id
     Set-ToolkitForeground -ProcessId $process.Id
-    Start-Sleep -Seconds 5
 
     if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 5)) {
         Open-ProjectSettings -Window $window -ProcessId $process.Id
@@ -1048,41 +1115,12 @@ try {
         }
     }
 
+    $publishCoords = Get-ProjectSettingsFooterButtonCoords -ProcessId $process.Id -Button Publish
+    if (-not (Wait-ForPublishButtonEnabled -ButtonX $publishCoords.X -ButtonY $publishCoords.Y -TimeoutSeconds 60)) {
+        throw "Publish button never became enabled within 60s after PublishLocal."
+    }
+    Write-Diagnostic "Publish button enabled — clicking."
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Publish
-
-    if ($false) {
-
-    if (Invoke-OptionalButton -Names @("Save", "Сохранить") -Label "Project settings save") {
-        Start-Sleep -Seconds 5
-        $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
-        if (-not $window) {
-            throw "Toolkit main window was not found after saving project settings."
-        }
-        Open-ProjectSettings -Window $window -ProcessId $process.Id
-    }
-
-    $publishLocal = Find-ButtonByName -Root ([System.Windows.Automation.AutomationElement]::RootElement) -Names @(
-        "Publish Local",
-        "Publish locally",
-        "Опубликовать локально"
-    )
-    Invoke-Element -Element $publishLocal -Label "Publish Local"
-    if (-not (Wait-ForLogSuccess -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds ([Math]::Min($TimeoutSeconds, 180)))) {
-        throw "Toolkit did not report a successful local publish. Diagnostic log: $script:DiagnosticPath"
-    }
-
-    Set-ToolkitForeground -ProcessId $process.Id
-    Start-Sleep -Seconds 5
-
-    $publish = Find-ButtonByName -Root ([System.Windows.Automation.AutomationElement]::RootElement) -Names @(
-        "Publish",
-        "Publish to Mod.io",
-        "Publish to mod.io",
-        "Опубликовать"
-    )
-    Invoke-Element -Element $publish -Label "Publish"
-
-    }
 
     if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds)) {
         throw "Toolkit did not hand off a new upload to mod.io within $TimeoutSeconds seconds. Diagnostic log: $script:DiagnosticPath"
