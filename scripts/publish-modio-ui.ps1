@@ -71,7 +71,17 @@ function Find-WindowByProcessId {
             throw "Toolkit process $ProcessId exited before its main window was available."
         }
 
-        $windowSnapshot = Get-VisibleWindowSnapshot -ProcessId $ProcessId |
+        $allSnapshots = @(Get-VisibleWindowSnapshot -ProcessId $ProcessId)
+
+        # Detect and dismiss small error/blocker dialogs (e.g. "Can't run 2 editor instances")
+        # before they prevent the main window from appearing.
+        $errorDialogs = $allSnapshots | Where-Object { $_.Title -in @("Error", "Warning", "Glasses") -and $_.Height -lt 200 }
+        foreach ($dlg in $errorDialogs) {
+            Write-Diagnostic "Dismissing blocker dialog pid=$ProcessId title='$($dlg.Title)' rect=$($dlg.Left),$($dlg.Top),$($dlg.Right),$($dlg.Bottom)."
+            [Bg3PublishWin32]::PostMessage($dlg.Handle, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero) | Out-Null
+        }
+
+        $windowSnapshot = $allSnapshots |
             Where-Object { $_.Width -gt 300 -and $_.Height -gt 200 } |
             Sort-Object @{ Expression = { if ($_.Title -like "Glasses*") { 0 } else { 1 } } }, Width -Descending |
             Select-Object -First 1
@@ -194,6 +204,38 @@ function Find-BrowserWindow {
         Where-Object { $_.Title -eq "Browser" -and $_.Width -gt 500 -and $_.Height -gt 300 } |
         Sort-Object Width -Descending |
         Select-Object -First 1
+}
+
+function Wait-ForBrowserContent {
+    param(
+        [pscustomobject]$Browser,
+        [int]$TimeoutSeconds = 90,
+        [int]$MinDescendantCount = 15
+    )
+
+    Write-Diagnostic "Waiting for browser project list to load (timeout=${TimeoutSeconds}s, threshold=$MinDescendantCount descendants)..."
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    do {
+        try {
+            $elem = [System.Windows.Automation.AutomationElement]::FromHandle($Browser.Handle)
+            $all = $elem.FindAll(
+                [System.Windows.Automation.TreeScope]::Descendants,
+                [System.Windows.Automation.Condition]::TrueCondition
+            )
+            $count = $all.Count
+            Write-Diagnostic "Browser UIA descendants: $count."
+            if ($count -ge $MinDescendantCount) {
+                Write-Diagnostic "Browser content ready ($count descendants)."
+                return $true
+            }
+        } catch {
+            Write-Diagnostic "Browser UIA check error: $($_.Exception.Message)"
+        }
+        Start-Sleep -Seconds 3
+    } while ((Get-Date) -lt $deadline)
+
+    Write-Diagnostic "Browser content wait timed out after ${TimeoutSeconds}s; proceeding anyway."
+    return $false
 }
 
 function Dismiss-LevelSelector {
@@ -444,12 +486,29 @@ function Select-ToolkitProjectFromBrowser {
     Minimize-OtherWindows -KeepProcessId $ProcessId
     Set-ToolkitForeground -ProcessId $ProcessId
 
-    $browser = Find-BrowserWindow -ProcessId $ProcessId
+    # Wait for the browser window to appear (it is a separate popup from the main window)
+    $browser = $null
+    $browserAppearDeadline = (Get-Date).AddSeconds(30)
+    do {
+        $browser = Find-BrowserWindow -ProcessId $ProcessId
+        if ($browser) { break }
+        Start-Sleep -Seconds 2
+    } while ((Get-Date) -lt $browserAppearDeadline)
+
     if ($browser) {
         Write-Diagnostic "Using project browser bounds $($browser.Left),$($browser.Top),$($browser.Right),$($browser.Bottom)."
         [Bg3PublishWin32]::ShowWindow($browser.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
         [Bg3PublishWin32]::BringWindowToTop($browser.Handle) | Out-Null
         [Bg3PublishWin32]::SetForegroundWindow($browser.Handle) | Out-Null
+
+        # Wait for the project list inside the browser to populate before clicking
+        $null = Wait-ForBrowserContent -Browser $browser -TimeoutSeconds 90 -MinDescendantCount 15
+
+        # Re-bring browser to foreground after the content wait
+        [Bg3PublishWin32]::ShowWindow($browser.Handle, [Bg3PublishWin32]::SW_RESTORE) | Out-Null
+        [Bg3PublishWin32]::BringWindowToTop($browser.Handle) | Out-Null
+        [Bg3PublishWin32]::SetForegroundWindow($browser.Handle) | Out-Null
+
         $searchX = [int]($browser.Right - 340)
         $searchY = [int]($browser.Top + 85)
         $cardX = [int]($browser.Left + ($browser.Width / 2))
@@ -458,7 +517,7 @@ function Select-ToolkitProjectFromBrowser {
         $selectY = [int]($browser.Bottom - 32)
     } else {
         $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-        Write-Diagnostic "Using screen fallback $($screen.Width)x$($screen.Height)."
+        Write-Diagnostic "Browser window not found after 30s; using screen fallback $($screen.Width)x$($screen.Height)."
         $searchX = [int]($screen.Width * 0.64)
         $searchY = 170
         $cardX = [int]($screen.Width * 0.50)
@@ -474,12 +533,55 @@ function Select-ToolkitProjectFromBrowser {
     Start-Sleep -Milliseconds 100
 
     $searchText = if ($ProjectName) { $ProjectName } else { $ProjectPath }
-    Send-TextToForeground -Text $searchText
-    Start-Sleep -Seconds 3
+    Write-Diagnostic "Pasting search text via clipboard: '$searchText'."
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.Clipboard]::SetText($searchText)
+    Send-KeyToForeground -Key "^v"
+    Start-Sleep -Seconds 5
+    Write-Diagnostic "Search text sent; waiting for filter to apply."
 
     Write-Diagnostic "Clicking 'Project card' at absolute coordinates $cardX,$cardY."
     Invoke-MouseClick -X $cardX -Y $cardY
     Start-Sleep -Milliseconds 500
+
+    # Check if Select button is enabled using FromPoint (avoids stale-handle errors from FromHandle).
+    # Retry the card click if Select button remains disabled.
+    $selectEnabled = $false
+    $retryDeadline = (Get-Date).AddSeconds(25)
+    do {
+        try {
+            # Log what element is under the card coordinates
+            $cardPoint = New-Object System.Windows.Point($cardX, $cardY)
+            $elemAtCard = [System.Windows.Automation.AutomationElement]::FromPoint($cardPoint)
+            if ($elemAtCard) {
+                Write-Diagnostic "Element at card ($cardX,$cardY): Name='$($elemAtCard.Current.Name)' Type=$($elemAtCard.Current.ControlType.ProgrammaticName)."
+            }
+
+            # Check if Select button is enabled
+            $selectPoint = New-Object System.Windows.Point($selectX, $selectY)
+            $elemAtSelect = [System.Windows.Automation.AutomationElement]::FromPoint($selectPoint)
+            if ($elemAtSelect -and $elemAtSelect.Current.Name -eq "Select" -and $elemAtSelect.Current.IsEnabled) {
+                $selectEnabled = $true
+                Write-Diagnostic "Project card selected (Select button is enabled)."
+            } else {
+                $sName = if ($elemAtSelect) { $elemAtSelect.Current.Name } else { "(not found)" }
+                $sEnabled = if ($elemAtSelect) { "$($elemAtSelect.Current.IsEnabled)" } else { "n/a" }
+                Write-Diagnostic "Select button: Name='$sName' IsEnabled=$sEnabled."
+            }
+        } catch {
+            Write-Diagnostic "UIA FromPoint error: $($_.Exception.Message)"
+        }
+        if (-not $selectEnabled) {
+            Write-Diagnostic "Retrying card click at $cardX,$cardY."
+            Invoke-MouseClick -X $cardX -Y $cardY
+            Start-Sleep -Seconds 2
+        }
+    } while (-not $selectEnabled -and (Get-Date) -lt $retryDeadline)
+
+    if (-not $selectEnabled) {
+        Write-Diagnostic "Could not confirm card selection via UIA; clicking Select anyway."
+    }
+
     Write-Diagnostic "Clicking 'Select project button' at absolute coordinates $selectX,$selectY."
     Invoke-MouseClick -X $selectX -Y $selectY
 
@@ -830,6 +932,31 @@ Add-Type -AssemblyName UIAutomationTypes
 $toolkitDirectory = Split-Path -Parent $resolvedBg3ToolPath
 $startedAt = Get-Date
 $arguments = @()
+
+# Close any lingering Glasses instances before starting a fresh one.
+# An existing instance causes a "Can't run 2 editor instances" dialog on the new PID,
+# which the window-detection loop never catches (dialog is too small).
+$existingGlasses = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+    Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $resolvedBg3ToolPath) })
+if ($existingGlasses.Count -gt 0) {
+    Write-Diagnostic "Found $($existingGlasses.Count) existing Glasses instance(s); closing before fresh start."
+    foreach ($eg in $existingGlasses) {
+        Write-Diagnostic "Closing existing Glasses pid=$($eg.Id) title='$($eg.MainWindowTitle)'."
+        $eg.CloseMainWindow() | Out-Null
+    }
+    $closeDeadline = (Get-Date).AddSeconds(10)
+    do {
+        Start-Sleep -Seconds 1
+        $existingGlasses = @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $resolvedBg3ToolPath) })
+    } while ($existingGlasses.Count -gt 0 -and (Get-Date) -lt $closeDeadline)
+    foreach ($eg in @(Get-Process -Name "Glasses" -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -and ([System.IO.Path]::GetFullPath($_.Path) -eq $resolvedBg3ToolPath) })) {
+        Write-Diagnostic "Force-killing lingering Glasses pid=$($eg.Id)."
+        $eg | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Seconds 2
+}
 
 Write-Diagnostic "Starting Toolkit: $resolvedBg3ToolPath $($arguments -join ' ')"
 if ($arguments.Count -gt 0) {
