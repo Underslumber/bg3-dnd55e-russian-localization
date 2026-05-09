@@ -270,38 +270,50 @@ function Wait-ForBrowserContent {
     return $false
 }
 
-function Wait-ForPublishButtonEnabled {
+function Wait-ForFooterButtonEnabled {
     param(
         [Parameter(Mandatory)] [int]$ProcessId,
+        [Parameter(Mandatory)]
+        [ValidateSet("Save", "Cancel", "PublishLocal", "Publish")]
+        [string]$Button,
         [int]$TimeoutSeconds = 60,
         [int]$PollIntervalMs = 500
     )
 
-    Write-Diagnostic "Waiting for Publish button (UIA Name lookup) to become enabled (timeout=${TimeoutSeconds}s)..."
+    Write-Diagnostic "Waiting for '$Button' footer button (UIA) to become enabled (timeout=${TimeoutSeconds}s)..."
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
     $lastState = $null
     do {
         try {
             $dialog = Find-ProjectSettingsDialogElement -ProcessId $ProcessId -TimeoutSeconds 1
             if ($dialog) {
-                $btn = Find-ProjectSettingsFooterButtonElement -Dialog $dialog -Button Publish
+                $btn = Find-ProjectSettingsFooterButtonElement -Dialog $dialog -Button $Button
                 if ($btn) {
                     $isEnabled = $btn.Current.IsEnabled
                     if ($isEnabled -ne $lastState) {
                         $rect = $btn.Current.BoundingRectangle
-                        Write-Diagnostic "Publish button IsEnabled=$isEnabled (rect: $($rect.X),$($rect.Y) $($rect.Width)x$($rect.Height))."
+                        Write-Diagnostic "'$Button' IsEnabled=$isEnabled (rect: $([int]$rect.X),$([int]$rect.Y) $([int]$rect.Width)x$([int]$rect.Height))."
                         $lastState = $isEnabled
                     }
                     if ($isEnabled) { return $true }
                 }
             }
         } catch {
-            Write-Diagnostic "Wait-ForPublishButtonEnabled UIA error: $($_.Exception.Message)"
+            Write-Diagnostic "Wait-ForFooterButtonEnabled('$Button') UIA error: $($_.Exception.Message)"
         }
         Start-Sleep -Milliseconds $PollIntervalMs
     } while ((Get-Date) -lt $deadline)
 
     return $false
+}
+
+function Wait-ForPublishButtonEnabled {
+    param(
+        [Parameter(Mandatory)] [int]$ProcessId,
+        [int]$TimeoutSeconds = 60,
+        [int]$PollIntervalMs = 500
+    )
+    return Wait-ForFooterButtonEnabled -ProcessId $ProcessId -Button Publish -TimeoutSeconds $TimeoutSeconds -PollIntervalMs $PollIntervalMs
 }
 
 function Dismiss-LevelSelector {
@@ -1339,6 +1351,14 @@ try {
     }
     Save-DiagnosticScreenshot -Tag "07-project-settings-found"
 
+    # Toolkit needs time to populate Project Settings fields from project meta.lsx.
+    # Save button stays disabled (Mandatory fields red) until metadata fully loads.
+    if (-not (Wait-ForFooterButtonEnabled -ProcessId $process.Id -Button Save -TimeoutSeconds 60)) {
+        Save-DiagnosticScreenshot -Tag "07b-save-never-enabled"
+        throw "Project Settings 'Save' button never became enabled — fields likely empty (metadata not loaded)."
+    }
+    Save-DiagnosticScreenshot -Tag "07c-save-enabled"
+
     Save-DiagnosticScreenshot -Tag "08-before-save-click"
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Save
     Start-Sleep -Seconds 8
@@ -1352,6 +1372,12 @@ try {
         if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
             throw "Project Settings window did not reopen after Save."
         }
+    }
+
+    # PublishLocal becomes enabled only after Save succeeded and project is in valid state.
+    if (-not (Wait-ForFooterButtonEnabled -ProcessId $process.Id -Button PublishLocal -TimeoutSeconds 60)) {
+        Save-DiagnosticScreenshot -Tag "10b-publish-local-never-enabled"
+        throw "PublishLocal button never became enabled within 60s after Save."
     }
 
     Save-DiagnosticScreenshot -Tag "11-before-publish-local-click"
