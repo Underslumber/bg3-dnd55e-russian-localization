@@ -597,6 +597,75 @@ function Wait-ProjectSettingsClosed {
     return $false
 }
 
+function Find-ToolkitMainWindowElement {
+    param([int]$ProcessId)
+
+    Add-Type -AssemblyName UIAutomationClient -ErrorAction SilentlyContinue
+    $pidCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $ProcessId)
+    return [System.Windows.Automation.AutomationElement]::RootElement.FindFirst(
+        [System.Windows.Automation.TreeScope]::Children, $pidCond)
+}
+
+function Find-BrowserProjectCard {
+    param(
+        [int]$ProcessId,
+        [string]$ProjectName
+    )
+
+    $mainWin = Find-ToolkitMainWindowElement -ProcessId $ProcessId
+    if (-not $mainWin) { return $null }
+
+    $browser = $mainWin.FindFirst([System.Windows.Automation.TreeScope]::Children,
+        (New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::NameProperty, "Browser")))
+    if (-not $browser) { return $null }
+
+    $rbCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+        [System.Windows.Automation.ControlType]::RadioButton)
+    $cards = $browser.FindAll([System.Windows.Automation.TreeScope]::Descendants, $rbCond)
+
+    foreach ($card in $cards) {
+        $editCond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::ControlTypeProperty,
+            [System.Windows.Automation.ControlType]::Edit)
+        $editChild = $card.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $editCond)
+        if ($editChild) {
+            try {
+                $vp = $editChild.GetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern)
+                $val = $vp.Current.Value
+                if ($val -eq $ProjectName) {
+                    return $card
+                }
+            } catch {}
+        }
+    }
+    return $null
+}
+
+function Find-ToolkitMenuItem {
+    param(
+        [int]$ProcessId,
+        [string[]]$Names
+    )
+
+    $mainWin = Find-ToolkitMainWindowElement -ProcessId $ProcessId
+    if (-not $mainWin) { return $null }
+
+    foreach ($name in $Names) {
+        $cond = New-Object System.Windows.Automation.PropertyCondition(
+            [System.Windows.Automation.AutomationElement]::NameProperty, $name)
+        $candidates = $mainWin.FindAll([System.Windows.Automation.TreeScope]::Descendants, $cond)
+        foreach ($c in $candidates) {
+            if ($c.Current.ControlType -eq [System.Windows.Automation.ControlType]::MenuItem) {
+                return $c
+            }
+        }
+    }
+    return $null
+}
+
 function Send-TextToForeground {
     param([string]$Text)
 
@@ -646,70 +715,60 @@ function Select-ToolkitProjectFromBrowser {
         [Bg3PublishWin32]::BringWindowToTop($browser.Handle) | Out-Null
         [Bg3PublishWin32]::SetForegroundWindow($browser.Handle) | Out-Null
 
-        $searchX = [int]($browser.Right - 340)
-        $searchY = [int]($browser.Top + 85)
-        $cardX = [int]($browser.Left + ($browser.Width / 2))
-        $cardY = [int]($browser.Top + 228)
         $selectX = [int]($browser.Right - 62)
         $selectY = [int]($browser.Bottom - 32)
     } else {
         $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
         Write-Diagnostic "Browser window not found after 30s; using screen fallback $($screen.Width)x$($screen.Height)."
-        $searchX = [int]($screen.Width * 0.64)
-        $searchY = 170
-        $cardX = [int]($screen.Width * 0.50)
-        $cardY = 312
         $selectX = [int]($screen.Width - 420)
         $selectY = [int]($screen.Height - 175)
     }
 
-    Write-Diagnostic "Clicking 'Project browser search' at absolute coordinates $searchX,$searchY."
-    Invoke-MouseClick -X $searchX -Y $searchY
-    Start-Sleep -Milliseconds 300
-    Send-KeyToForeground -Key "^(a)"
-    Start-Sleep -Milliseconds 100
+    # Find the project card via UIA (RadioButton whose inner Edit Value matches ProjectName).
+    # This works regardless of browser window size or DPI — no hardcoded card coordinates.
+    $card = $null
+    $cardSearchDeadline = (Get-Date).AddSeconds(15)
+    do {
+        $card = Find-BrowserProjectCard -ProcessId $ProcessId -ProjectName $ProjectName
+        if ($card) { break }
+        Start-Sleep -Milliseconds 500
+    } while ((Get-Date) -lt $cardSearchDeadline)
 
-    $searchText = if ($ProjectName) { $ProjectName } else { $ProjectPath }
-    Write-Diagnostic "Pasting search text via clipboard: '$searchText'."
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.Clipboard]::SetText($searchText)
-    Send-KeyToForeground -Key "^v"
-    Start-Sleep -Seconds 5
-    Write-Diagnostic "Search text sent; waiting for filter to apply."
+    if (-not $card) {
+        throw "Project card '$ProjectName' was not found in Toolkit Browser via UIA after 15s."
+    }
+    $cardRect = $card.Current.BoundingRectangle
+    $cardX = [int]($cardRect.X + $cardRect.Width / 2)
+    $cardY = [int]($cardRect.Y + $cardRect.Height / 2)
+    Write-Diagnostic "Project card found via UIA: rect=($([int]$cardRect.X),$([int]$cardRect.Y)) $([int]$cardRect.Width)x$([int]$cardRect.Height) center=($cardX,$cardY)."
 
-    Write-Diagnostic "Clicking 'Project card' at absolute coordinates $cardX,$cardY."
+    Write-Diagnostic "Selecting project card via UIA + mouse click at ($cardX,$cardY)."
+    try {
+        $sip = $card.GetCurrentPattern([System.Windows.Automation.SelectionItemPattern]::Pattern)
+        $sip.Select()
+        Write-Diagnostic "Card SelectionItemPattern.Select() succeeded."
+    } catch {
+        Write-Diagnostic "Card SelectionItemPattern not available: $($_.Exception.Message)"
+    }
     Invoke-MouseClick -X $cardX -Y $cardY
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds 800
 
-    # Check if Select button is enabled using FromPoint (avoids stale-handle errors from FromHandle).
-    # Retry the card click if Select button remains disabled.
+    # Verify Select button is enabled (re-check via UIA on the card itself).
     $selectEnabled = $false
-    $retryDeadline = (Get-Date).AddSeconds(25)
+    $retryDeadline = (Get-Date).AddSeconds(15)
     do {
         try {
-            # Log what element is under the card coordinates
-            $cardPoint = New-Object System.Windows.Point($cardX, $cardY)
-            $elemAtCard = [System.Windows.Automation.AutomationElement]::FromPoint($cardPoint)
-            if ($elemAtCard) {
-                Write-Diagnostic "Element at card ($cardX,$cardY): Name='$($elemAtCard.Current.Name)' Type=$($elemAtCard.Current.ControlType.ProgrammaticName)."
-            }
-
-            # Check if Select button is enabled
             $selectPoint = New-Object System.Windows.Point($selectX, $selectY)
             $elemAtSelect = [System.Windows.Automation.AutomationElement]::FromPoint($selectPoint)
             if ($elemAtSelect -and $elemAtSelect.Current.Name -eq "Select" -and $elemAtSelect.Current.IsEnabled) {
                 $selectEnabled = $true
                 Write-Diagnostic "Project card selected (Select button is enabled)."
-            } else {
-                $sName = if ($elemAtSelect) { $elemAtSelect.Current.Name } else { "(not found)" }
-                $sEnabled = if ($elemAtSelect) { "$($elemAtSelect.Current.IsEnabled)" } else { "n/a" }
-                Write-Diagnostic "Select button: Name='$sName' IsEnabled=$sEnabled."
             }
         } catch {
             Write-Diagnostic "UIA FromPoint error: $($_.Exception.Message)"
         }
         if (-not $selectEnabled) {
-            Write-Diagnostic "Retrying card click at $cardX,$cardY."
+            Write-Diagnostic "Re-clicking card at ($cardX,$cardY)."
             Invoke-MouseClick -X $cardX -Y $cardY
             Start-Sleep -Seconds 2
         }
@@ -886,14 +945,35 @@ function Open-ProjectSettings {
         [int]$ProcessId
     )
 
-    Minimize-OtherWindows -KeepProcessId $ProcessId
-    Set-ToolkitForeground -ProcessId $ProcessId
+    Write-Diagnostic "Opening Project Settings via UIA menu invoke (no foreground required)..."
 
-    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 255 -Y 47 -Label "Project menu"
-    Start-Sleep -Seconds 1
-    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 320 -Y 70 -Label "Project Settings menu item"
+    $projectMenu = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project", "Проект")
+    if (-not $projectMenu) {
+        throw "Project menu item was not found via UIA in Toolkit window."
+    }
+    Write-Diagnostic "Found 'Project' menu item via UIA."
 
-    Start-Sleep -Seconds 5
+    try {
+        $expand = $projectMenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
+        $expand.Expand()
+    } catch {
+        Write-Diagnostic "ExpandPattern failed; trying InvokePattern: $($_.Exception.Message)"
+        $invoke = $projectMenu.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+        $invoke.Invoke()
+    }
+    Start-Sleep -Milliseconds 500
+
+    $settingsItem = Find-ToolkitMenuItem -ProcessId $ProcessId -Names @("Project Settings", "Настройки проекта")
+    if (-not $settingsItem) {
+        throw "Project Settings menu item was not found via UIA after expanding Project menu."
+    }
+    Write-Diagnostic "Found 'Project Settings' menu item via UIA."
+
+    $invoke = $settingsItem.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern)
+    $invoke.Invoke()
+    Write-Diagnostic "Project Settings menu item invoked."
+
+    Start-Sleep -Seconds 3
 }
 
 function Invoke-OptionalButton {
