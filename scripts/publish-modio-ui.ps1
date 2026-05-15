@@ -4,8 +4,14 @@
 
     [string]$ProjectName = "DnD 5.5e All-in-One BEYOND Russian Localization",
     [string]$ProjectPath = "",
+    [string]$ModuleVersion = "",
+    [string]$ModioApiBase = "",
+    [int]$ModioGameId = 0,
+    [int]$ModioModId = 0,
+    [string]$ModioAccessToken = "",
     [int]$TimeoutSeconds = 900,
-    [string]$DiagnosticPath = ""
+    [string]$DiagnosticPath = "",
+    [switch]$InspectOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -980,6 +986,140 @@ function Invoke-Element {
     throw "UI element '$Label' does not expose InvokePattern or SelectionItemPattern."
 }
 
+function Write-UiaTreeDump {
+    param(
+        [System.Windows.Automation.AutomationElement]$Root,
+        [string]$Label
+    )
+
+    if (-not $Root) {
+        Write-Diagnostic "UIA DUMP '$Label': root element is null."
+        return
+    }
+
+    Write-Diagnostic "=== UIA TREE DUMP: $Label ==="
+    $all = $null
+    try {
+        $all = $Root.FindAll(
+            [System.Windows.Automation.TreeScope]::Descendants,
+            [System.Windows.Automation.Condition]::TrueCondition)
+    } catch {
+        Write-Diagnostic "UIA DUMP '$Label': FindAll error: $($_.Exception.Message)"
+        return
+    }
+
+    Write-Diagnostic "UIA DUMP '$Label': $($all.Count) descendant element(s)."
+    foreach ($element in $all) {
+        try {
+            $info = $element.Current
+            $valueSupported = $false
+            $valueText = ""
+            $valuePattern = $null
+            if ($element.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$valuePattern)) {
+                $valueSupported = $true
+                $valueText = $valuePattern.Current.Value
+            }
+            $rect = $info.BoundingRectangle
+            Write-Diagnostic ("UIA| type={0} name='{1}' autoId='{2}' class='{3}' enabled={4} value?={5} value='{6}' rect=({7},{8} {9}x{10})" -f `
+                $info.ControlType.ProgrammaticName, $info.Name, $info.AutomationId, $info.ClassName, `
+                $info.IsEnabled, $valueSupported, $valueText, `
+                [int]$rect.X, [int]$rect.Y, [int]$rect.Width, [int]$rect.Height)
+        } catch {
+            Write-Diagnostic "UIA| (element read error: $($_.Exception.Message))"
+        }
+    }
+    Write-Diagnostic "=== END UIA TREE DUMP: $Label ==="
+}
+
+function Set-ProjectSettingsVersion {
+    param(
+        [int]$ProcessId,
+        [string]$Version
+    )
+
+    $parts = @($Version -split '\.')
+    if ($parts.Count -ne 4 -or @($parts | Where-Object { $_ -notmatch '^\d+$' }).Count -gt 0) {
+        throw "ModuleVersion '$Version' must be four numeric parts: major.minor.revision.build."
+    }
+    $labels = @('Major', 'Minor', 'Revision', 'Build')
+
+    $dialog = Find-ProjectSettingsDialogElement -ProcessId $ProcessId -TimeoutSeconds 10
+    if (-not $dialog) {
+        throw "Project Settings dialog was not found for version assignment."
+    }
+
+    # The 4 version fields are disabled while 'Auto-increment' is checked — the Toolkit
+    # then owns the Build number and ignores any manual value. Uncheck it so the
+    # requested -VersionTag actually reaches the published .pak.
+    $nameCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::NameProperty, 'Auto-increment')
+    $autoInc = $null
+    foreach ($cand in @($dialog.FindAll([System.Windows.Automation.TreeScope]::Descendants, $nameCond))) {
+        if ($cand.Current.ControlType -eq [System.Windows.Automation.ControlType]::CheckBox) {
+            $autoInc = $cand
+            break
+        }
+    }
+    if (-not $autoInc) {
+        throw "'Auto-increment' checkbox was not found in Project Settings."
+    }
+    $togglePattern = $null
+    if ($autoInc.TryGetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern, [ref]$togglePattern)) {
+        Write-Diagnostic "Auto-increment ToggleState=$($togglePattern.Current.ToggleState)."
+        if ($togglePattern.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {
+            $cbRect = $autoInc.Current.BoundingRectangle
+            $cbX = [int]($cbRect.X + 6)
+            $cbY = [int]($cbRect.Y + $cbRect.Height / 2)
+            Write-Diagnostic "Unchecking 'Auto-increment' via mouse click at ($cbX,$cbY)."
+            Invoke-MouseClick -X $cbX -Y $cbY
+            Start-Sleep -Milliseconds 700
+            Write-Diagnostic "Auto-increment ToggleState after click=$($togglePattern.Current.ToggleState)."
+            if ($togglePattern.Current.ToggleState -ne [System.Windows.Automation.ToggleState]::Off) {
+                throw "Could not uncheck 'Auto-increment'; version fields stay locked."
+            }
+        }
+    } else {
+        Write-Diagnostic "Auto-increment checkbox exposes no TogglePattern; assuming fields are editable."
+    }
+
+    # The 4 version inputs are the IntegerUpDown inner text boxes (AutomationId='PART_TextBox').
+    $tbCond = New-Object System.Windows.Automation.PropertyCondition(
+        [System.Windows.Automation.AutomationElement]::AutomationIdProperty, 'PART_TextBox')
+    $boxes = @($dialog.FindAll([System.Windows.Automation.TreeScope]::Descendants, $tbCond))
+    if ($boxes.Count -ne 4) {
+        throw "Expected 4 version fields (PART_TextBox); found $($boxes.Count)."
+    }
+    $ordered = @($boxes | Sort-Object { [int]$_.Current.BoundingRectangle.X })
+
+    for ($i = 0; $i -lt 4; $i++) {
+        $box = $ordered[$i]
+        if (-not $box.Current.IsEnabled) {
+            throw "Version field '$($labels[$i])' is still disabled after unchecking Auto-increment."
+        }
+        $valuePattern = $null
+        if (-not $box.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$valuePattern)) {
+            throw "Version field '$($labels[$i])' does not expose ValuePattern."
+        }
+        $before = $valuePattern.Current.Value
+        $valuePattern.SetValue($parts[$i])
+        Start-Sleep -Milliseconds 250
+        Write-Diagnostic "Version field '$($labels[$i])': '$before' -> '$($parts[$i])'."
+    }
+
+    Start-Sleep -Milliseconds 400
+    $verify = @($dialog.FindAll([System.Windows.Automation.TreeScope]::Descendants, $tbCond) |
+        Sort-Object { [int]$_.Current.BoundingRectangle.X } |
+        ForEach-Object {
+            $vp = $null
+            if ($_.TryGetCurrentPattern([System.Windows.Automation.ValuePattern]::Pattern, [ref]$vp)) { $vp.Current.Value } else { '?' }
+        })
+    $actual = $verify -join '.'
+    Write-Diagnostic "Project Settings version fields now: $actual (target $($parts -join '.'))."
+    if ($actual -ne ($parts -join '.')) {
+        throw "Version fields did not accept the target value (got '$actual', want '$($parts -join '.'))."
+    }
+}
+
 function Open-ProjectSettings {
     param(
         [System.Windows.Automation.AutomationElement]$Window,
@@ -1178,9 +1318,55 @@ function Wait-ForUploadHandoff {
         [string]$ToolkitDirectory,
         [datetime]$StartedAt,
         [int]$TimeoutSeconds,
-        [string[]]$BaselineTitles = @()
+        [string[]]$BaselineTitles = @(),
+        [string]$ModioApiBase = "",
+        [int]$ModioGameId = 0,
+        [int]$ModioModId = 0,
+        [string]$ModioAccessToken = ""
     )
 
+    # Primary, deterministic detection: poll the mod.io API for a file uploaded after the
+    # Toolkit launched. Window-title detection is unreliable — the upload opens in an
+    # existing browser tab whose MainWindowTitle does not reliably change.
+    $apiEnabled = [bool]($ModioApiBase -and $ModioGameId -gt 0 -and $ModioModId -gt 0 -and $ModioAccessToken)
+    if ($apiEnabled) {
+        [Net.ServicePointManager]::SecurityProtocol = `
+            [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $epoch = [datetime]::new(1970, 1, 1, 0, 0, 0, [DateTimeKind]::Utc)
+        # 120s margin absorbs minor client/server clock skew.
+        $afterUnix = [int64][Math]::Floor(($StartedAt.ToUniversalTime() - $epoch).TotalSeconds) - 120
+        $filesUri = "{0}/games/{1}/mods/{2}/files" -f $ModioApiBase.TrimEnd("/"), $ModioGameId, $ModioModId
+        $headers = @{ Authorization = "Bearer $ModioAccessToken"; Accept = "application/json" }
+        Write-Diagnostic "Wait-ForUploadHandoff: polling mod.io API ($filesUri) for a file uploaded after $($StartedAt.ToString('o'))."
+
+        $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+        do {
+            try {
+                $response = Invoke-RestMethod -Method GET -Uri $filesUri -Headers $headers -TimeoutSec 30
+                $files = @()
+                if ($response -and ($response.PSObject.Properties.Name -contains "data")) {
+                    $files = @($response.data)
+                }
+                $newFile = $files |
+                    Where-Object { $_.date_added -ge $afterUnix } |
+                    Sort-Object -Property date_added -Descending |
+                    Select-Object -First 1
+                if ($newFile) {
+                    Write-Diagnostic "mod.io upload confirmed via API: file id=$($newFile.id) filename='$($newFile.filename)' version='$($newFile.version)' date_added=$($newFile.date_added)."
+                    return $true
+                }
+            } catch {
+                Write-Diagnostic "Wait-ForUploadHandoff: mod.io API poll error (will retry): $($_.Exception.Message)"
+            }
+            Start-Sleep -Seconds 5
+        } while ((Get-Date) -lt $deadline)
+
+        Write-Diagnostic "Wait-ForUploadHandoff: no new mod.io file appeared within $TimeoutSeconds seconds."
+        return $false
+    }
+
+    # Fallback (no mod.io API config): window-title + Toolkit-log heuristics.
+    Write-Diagnostic "Wait-ForUploadHandoff: mod.io API params absent — using window-title/log fallback."
     $logPatterns = @(
         'mod\.io',
         'file manager',
@@ -1366,6 +1552,24 @@ try {
     }
     Save-DiagnosticScreenshot -Tag "07c-save-enabled"
 
+    if ($InspectOnly) {
+        $psDialog = Find-ProjectSettingsDialogElement -ProcessId $process.Id -TimeoutSeconds 10
+        Write-UiaTreeDump -Root $psDialog -Label "Project Settings dialog (before)"
+        if ($ModuleVersion) {
+            Write-Diagnostic "InspectOnly: dry-run version assignment to '$ModuleVersion' (no Save, no upload)."
+            Set-ProjectSettingsVersion -ProcessId $process.Id -Version $ModuleVersion
+            Save-DiagnosticScreenshot -Tag "07d-inspect-version-set"
+        }
+        Write-Diagnostic "InspectOnly mode — exiting before Save/Publish (no upload)."
+        exit 0
+    }
+
+    if ($ModuleVersion) {
+        Write-Diagnostic "Setting Project Settings version to '$ModuleVersion' before Save."
+        Set-ProjectSettingsVersion -ProcessId $process.Id -Version $ModuleVersion
+        Save-DiagnosticScreenshot -Tag "07e-version-set"
+    }
+
     Save-DiagnosticScreenshot -Tag "08-before-save-click"
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Save
     Start-Sleep -Seconds 8
@@ -1423,7 +1627,8 @@ try {
     Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Publish
     Save-DiagnosticScreenshot -Tag "14-after-publish-click"
 
-    if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds -BaselineTitles $handoffBaseline)) {
+    if (-not (Wait-ForUploadHandoff -ToolkitDirectory $toolkitDirectory -StartedAt $startedAt -TimeoutSeconds $TimeoutSeconds -BaselineTitles $handoffBaseline `
+            -ModioApiBase $ModioApiBase -ModioGameId $ModioGameId -ModioModId $ModioModId -ModioAccessToken $ModioAccessToken)) {
         Save-DiagnosticScreenshot -Tag "15-handoff-FAILED"
         throw "Toolkit did not hand off a new upload to mod.io within $TimeoutSeconds seconds. Diagnostic log: $script:DiagnosticPath"
     }

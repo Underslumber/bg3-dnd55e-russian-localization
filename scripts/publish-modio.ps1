@@ -400,6 +400,7 @@ Copy-CleanDirectory -Source $stagedModPath -Destination $targetModPath
 Copy-CleanDirectory -Source $stagedProjectPath -Destination $targetProjectPath
 
 $uploadedAfter = Get-Date
+$modioAccessToken = $env:MODIO_ACCESS_TOKEN
 $cliSucceeded = $false
 if (-not $UseGuiFallback) {
     try {
@@ -418,11 +419,15 @@ if (-not $cliSucceeded) {
         -Bg3ToolPath $resolvedBg3ToolPath `
         -ProjectName $ProjectName `
         -ProjectPath $targetProjectPath `
+        -ModuleVersion $modioExpectedVersion `
+        -ModioApiBase $ModioApiBase `
+        -ModioGameId $ModioGameId `
+        -ModioModId $ModioModId `
+        -ModioAccessToken $modioAccessToken `
         -TimeoutSeconds $TimeoutSeconds
 }
 
 if (-not $SkipModioApiFinalize) {
-    $modioAccessToken = $env:MODIO_ACCESS_TOKEN
     if (-not $modioAccessToken) {
         throw "MODIO_ACCESS_TOKEN is required after Toolkit upload. Set it as a GitHub Environment secret or pass -SkipModioApiFinalize for manual finalization."
     }

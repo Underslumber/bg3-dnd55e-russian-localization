@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$ApiBase = "",
     [int]$GameId = 0,
     [int]$ModId = 0,
@@ -280,6 +280,57 @@ function Test-ModioForbidden {
     return ($message -match '\(HTTP 403\)')
 }
 
+function Send-ManualEnableRequest {
+    param(
+        [object]$File,
+        [string]$ExpectedVersion,
+        [string]$Reason
+    )
+
+    $modName = "mod $script:ModId"
+    $modProfileUrl = ""
+    try {
+        $modUri = "{0}/games/{1}/mods/{2}" -f $script:ApiBase, $script:GameId, $script:ModId
+        $mod = Invoke-ModioRequest -Method "GET" -Uri $modUri
+        if (($mod.PSObject.Properties.Name -contains "name") -and $mod.name) {
+            $modName = [string]$mod.name
+        }
+        if (($mod.PSObject.Properties.Name -contains "profile_url") -and $mod.profile_url) {
+            $modProfileUrl = [string]$mod.profile_url
+        }
+    } catch {
+        Write-Host "[finalize-modio-file] Could not read mod profile for the manual-enable request: $($_.Exception.Message)"
+    }
+
+    $lines = @(
+        "<b>mod.io: требуется ручное включение файла</b>",
+        "",
+        "Мод: $modName",
+        "Версия: $ExpectedVersion (файл: $($File.version))",
+        "Файл: id=$($File.id), $($File.filename)",
+        "",
+        "Причина: $Reason",
+        "Откройте mod.io и сделайте этот файл активным (live) вручную."
+    )
+    if ($modProfileUrl) {
+        $lines += ""
+        $lines += $modProfileUrl
+    }
+    $message = ($lines -join "`n")
+
+    $telegramScript = Join-Path $PSScriptRoot "send-telegram-notification.ps1"
+    if (-not (Test-Path -LiteralPath $telegramScript)) {
+        Write-Warning "[finalize-modio-file] send-telegram-notification.ps1 not found; manual-enable request not sent."
+        return
+    }
+    try {
+        & $telegramScript -Text $message
+        Write-Host "[finalize-modio-file] Manual-enable request sent to Telegram."
+    } catch {
+        Write-Warning "[finalize-modio-file] Telegram manual-enable request not sent (check TG_BOT_TOKEN/TG_CHAT_ID/TG_THREAD_ID): $($_.Exception.Message)"
+    }
+}
+
 $ApiBase = (Resolve-Setting -Value $ApiBase -EnvironmentName "MODIO_API_BASE" -DefaultValue "https://g-6715.modapi.io/v1").TrimEnd("/")
 if (-not $GameId) {
     $gameIdSetting = Resolve-Setting -Value "" -EnvironmentName "MODIO_GAME_ID" -DefaultValue "6715"
@@ -328,23 +379,26 @@ if ($WhatIf) {
 }
 
 $platformUri = "{0}/games/{1}/mods/{2}/files/{3}/platforms" -f $ApiBase, $GameId, $ModId, $file.id
+$platformResponse = $null
+$platformApprovalFailed = $false
 try {
     $platformResponse = Invoke-ModioRequest -Method "POST" -Uri $platformUri -Payload @{
         approved = @($Platforms)
     }
 } catch {
+    # The platform-status endpoint is not available to this publisher token (HTTP 403).
+    # It is not required to make the modfile live, so record the failure and continue
+    # to the live/version update instead of aborting the whole finalization.
+    $platformApprovalFailed = $true
     Write-FinalizeDiagnostic -Reason "platform_status_update_failed" -File $file -Uri $platformUri -Platforms $Platforms -ErrorMessage $_.Exception.Message
     if (Test-ModioForbidden -ErrorRecord $_) {
         Write-Warning "[finalize-modio-file] Platform status update returned HTTP 403; continuing to live activation because platform approval can be unavailable to this token."
     } else {
-        throw
+        Write-Warning "[finalize-modio-file] Platform status update failed; continuing to live update: $($_.Exception.Message)"
     }
 }
-$platformSummary = ""
 if ($platformResponse -and ($platformResponse.PSObject.Properties.Name -contains "platforms")) {
     $platformSummary = @($platformResponse.platforms | ForEach-Object { "$($_.platform):$($_.status)" }) -join ","
-}
-if ($platformResponse) {
     Write-Host "[finalize-modio-file] Platform status updated for file id=$($file.id): $platformSummary"
 }
 
@@ -363,11 +417,15 @@ $updatedFile = Invoke-ModioRequest -Method "PUT" -Uri $editUri -Payload $editPay
 Write-Host "[finalize-modio-file] Live update requested for file id=$($updatedFile.id) filename=$($updatedFile.filename) version=$($updatedFile.version)"
 
 $activeModfileId = Get-ActiveModfileId
-if ($activeModfileId) {
-    if ($activeModfileId -ne [int64]$file.id) {
-        throw "mod.io did not report file id=$($file.id) as the active modfile. Current active modfile id=$activeModfileId."
-    }
+$isLive = ($null -ne $activeModfileId) -and ([int64]$activeModfileId -eq [int64]$file.id)
+if ($isLive) {
     Write-Host "[finalize-modio-file] Live status confirmed: active modfile id=$activeModfileId."
 } else {
-    Write-Host "[finalize-modio-file] Live status requested; parent mod response did not expose an active modfile id."
+    $manualReason = if ($platformApprovalFailed) {
+        "platform approval via the mod.io API was rejected (HTTP 403); the modfile must be enabled by hand."
+    } else {
+        "mod.io has not reported this file as the active modfile."
+    }
+    Write-Host "[finalize-modio-file] File id=$($file.id) is uploaded but NOT live: $manualReason"
+    Send-ManualEnableRequest -File $file -ExpectedVersion $ExpectedVersion -Reason $manualReason
 }
