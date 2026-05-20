@@ -223,6 +223,8 @@ jobs:
           "zip_name=$zipName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Upload release to Nexus Mods
+        id: nexus_upload_1
+        continue-on-error: true
         uses: Nexus-Mods/upload-action@v1.0.0-beta.4
         with:
           api_key: ${{ secrets.NEXUSMODS_API_KEY }}
@@ -232,6 +234,58 @@ jobs:
           display_name: ${{ steps.vars.outputs.zip_name }}
           description: GitHub release ${{ github.ref_name }}
           file_category: main
+
+      - name: Wait before Nexus Mods upload retry
+        if: steps.nexus_upload_1.outcome == 'failure'
+        shell: pwsh
+        run: Start-Sleep -Seconds 30
+
+      - name: Retry Nexus Mods upload after transient failure
+        id: nexus_upload_2
+        if: steps.nexus_upload_1.outcome == 'failure'
+        continue-on-error: true
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.4
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: ${{ vars.NEXUSMODS_FILE_GROUP_ID }}
+          filename: ${{ steps.vars.outputs.zip_path }}
+          version: ${{ steps.vars.outputs.version }}
+          display_name: ${{ steps.vars.outputs.zip_name }}
+          description: GitHub release ${{ github.ref_name }}
+          file_category: main
+
+      - name: Wait before final Nexus Mods upload retry
+        if: steps.nexus_upload_1.outcome == 'failure' && steps.nexus_upload_2.outcome == 'failure'
+        shell: pwsh
+        run: Start-Sleep -Seconds 60
+
+      - name: Retry Nexus Mods upload one last time
+        id: nexus_upload_3
+        if: steps.nexus_upload_1.outcome == 'failure' && steps.nexus_upload_2.outcome == 'failure'
+        continue-on-error: true
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.4
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_group_id: ${{ vars.NEXUSMODS_FILE_GROUP_ID }}
+          filename: ${{ steps.vars.outputs.zip_path }}
+          version: ${{ steps.vars.outputs.version }}
+          display_name: ${{ steps.vars.outputs.zip_name }}
+          description: GitHub release ${{ github.ref_name }}
+          file_category: main
+
+      - name: Confirm Nexus Mods upload
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $outcomes = @(
+            "${{ steps.nexus_upload_1.outcome }}",
+            "${{ steps.nexus_upload_2.outcome }}",
+            "${{ steps.nexus_upload_3.outcome }}"
+          )
+
+          if ($outcomes -notcontains "success") {
+              throw "Nexus Mods upload failed after 3 attempts."
+          }
 
   publish_to_modio:
     if: startsWith(github.ref, 'refs/tags/v')
