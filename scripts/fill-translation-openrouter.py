@@ -256,10 +256,13 @@ def extract_russian_term_fragments(term: str) -> list[str]:
     for word in re.findall(r"[а-я]+", normalized):
         if len(word) < 5:
             continue
-        # Allow common Russian inflections such as "магия" -> "магию" while still
-        # requiring a meaningful shared stem in the translated text.
-        fragment_length = max(4, len(word) - 2)
-        fragment = word[:fragment_length]
+        # Allow common Russian inflections such as "магия" -> "магию" and
+        # status noun/adjective pairs such as "невидимость" -> "невидимым".
+        if word.endswith("ость") and len(word) > 7:
+            fragment = word[:-4]
+        else:
+            fragment_length = max(4, len(word) - 2)
+            fragment = word[:fragment_length]
         if fragment not in fragments:
             fragments.append(fragment)
     return fragments
