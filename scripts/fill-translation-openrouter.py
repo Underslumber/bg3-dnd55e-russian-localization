@@ -31,6 +31,7 @@ FREE_DEFAULT_BATCH_SIZE = 10
 FREE_DEFAULT_MAX_BATCH_CHARS = 3000
 FREE_DEFAULT_RETRIES = 4
 REQUEST_TIMEOUT_SECONDS = 120
+FLEXIBLE_ONE_WORD_GLOSSARY_SOURCES = {"Movement"}
 
 SYSTEM_PROMPT = (
     "You are a professional video game translator.\n\n"
@@ -583,10 +584,10 @@ def assert_translation_quality(
         if (
             len(source_words) == 1
             and len(target_words) == 1
-            and len(source_words[0]) <= 5
+            and (len(source_words[0]) <= 5 or source_words[0] in FLEXIBLE_ONE_WORD_GLOSSARY_SOURCES)
             and "<" not in source_term
         ):
-            # Short generic one-word glossary entries like "Push" or "Magic" are
+            # Generic one-word glossary entries like "Push", "Magic", or "Movement" are
             # useful prompt hints, but enforcing their exact noun form in running
             # text causes false negatives for valid Russian inflections/paraphrases.
             continue

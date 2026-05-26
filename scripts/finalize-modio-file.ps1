@@ -267,6 +267,19 @@ function Write-FinalizeDiagnostic {
     Write-Host "[finalize-modio-file] Diagnostic written: $diagnosticPath"
 }
 
+function Test-ModioForbidden {
+    param([object]$ErrorRecord)
+
+    $message = ""
+    if ($ErrorRecord -and $ErrorRecord.Exception) {
+        $message = [string]$ErrorRecord.Exception.Message
+    } elseif ($ErrorRecord) {
+        $message = [string]$ErrorRecord
+    }
+
+    return ($message -match '\(HTTP 403\)')
+}
+
 $ApiBase = (Resolve-Setting -Value $ApiBase -EnvironmentName "MODIO_API_BASE" -DefaultValue "https://g-6715.modapi.io/v1").TrimEnd("/")
 if (-not $GameId) {
     $gameIdSetting = Resolve-Setting -Value "" -EnvironmentName "MODIO_GAME_ID" -DefaultValue "6715"
@@ -321,13 +334,19 @@ try {
     }
 } catch {
     Write-FinalizeDiagnostic -Reason "platform_status_update_failed" -File $file -Uri $platformUri -Platforms $Platforms -ErrorMessage $_.Exception.Message
-    throw
+    if (Test-ModioForbidden -ErrorRecord $_) {
+        Write-Warning "[finalize-modio-file] Platform status update returned HTTP 403; continuing to live activation because platform approval can be unavailable to this token."
+    } else {
+        throw
+    }
 }
 $platformSummary = ""
 if ($platformResponse -and ($platformResponse.PSObject.Properties.Name -contains "platforms")) {
     $platformSummary = @($platformResponse.platforms | ForEach-Object { "$($_.platform):$($_.status)" }) -join ","
 }
-Write-Host "[finalize-modio-file] Platform status updated for file id=$($file.id): $platformSummary"
+if ($platformResponse) {
+    Write-Host "[finalize-modio-file] Platform status updated for file id=$($file.id): $platformSummary"
+}
 
 $editPayload = @{
     active = $true
