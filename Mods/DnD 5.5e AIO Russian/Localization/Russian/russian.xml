@@ -1284,12 +1284,12 @@
   <content contentuid="hb291dd01gaa36gf848g9cb2g11776f6a95ba" version="1">Вы касаетесь добровольного существа. Когда оно получает урон до окончания действия заклинания, оно уменьшает суммарный полученный урон на 1к4. Эффект срабатывает для существа только один раз за ход.</content>
   <content contentuid="h9d6a4e32g87edg4607g6cd5g19197e4e0034" version="1">Когда существо получает урон до окончания действия заклинания, оно уменьшает суммарный полученный урон на 1к4. Эффект срабатывает для существа только один раз за ход.</content>
   <content contentuid="h1e40a51eg6772g87d3ga8a6gd8b5dcc5e0f0" version="1">Когда существо получает урон до окончания действия заклинания, оно уменьшает суммарный полученный урон на 1к4. Эффект срабатывает для существа только один раз за ход.</content>
-  <content contentuid="h0fb46065g45fege74age2e5g0f1ff68942df" version="1">Погрузите существа в магический сон.</content>
-  <content contentuid="h4fcec4c9gde1eg19b6gebddg9af35fef4ff5" version="1">Погрузите существа в магический сон.</content>
-  <content contentuid="h2ba0acdeg33d2g33c7g5f83gb4c34e1444c0" version="1">Погрузите существа в магический сон.</content>
-  <content contentuid="ha765fffag4904gfe52g8d54gd4472a83f8fc" version="1">Погрузите существа в магический сон.</content>
-  <content contentuid="h804ad0f1g6cb1ge2ecg1066g91b9c7f2effa" version="1">Погрузите существа в магический сон.</content>
-  <content contentuid="h47a0106cg9a69g79a5g7f31g8c859cf2dd61" version="1">Погрузите существа в магический сон.</content>
+  <content contentuid="h0fb46065g45fege74age2e5g0f1ff68942df" version="2">Погрузите существа в магический сон.</content>
+  <content contentuid="h4fcec4c9gde1eg19b6gebddg9af35fef4ff5" version="2">Погрузите существа в магический сон.</content>
+  <content contentuid="h2ba0acdeg33d2g33c7g5f83gb4c34e1444c0" version="2">Погрузите существа в магический сон.</content>
+  <content contentuid="ha765fffag4904gfe52g8d54gd4472a83f8fc" version="2">Погрузите существа в магический сон.</content>
+  <content contentuid="h804ad0f1g6cb1ge2ecg1066g91b9c7f2effa" version="2">Погрузите существа в магический сон.</content>
+  <content contentuid="h47a0106cg9a69g79a5g7f31g8c859cf2dd61" version="2">Погрузите существа в магический сон.</content>
   <content contentuid="h36a49c70g93aeg56fag31d6g861694b3eca0" version="1">Превратите плоть существа в твёрдый, как камень, материал. Оно получает только &lt;LSTag Tooltip="Resistant"&gt;половину урона&lt;/LSTag&gt; от дробящего, колющего и режущего урона.</content>
   <content contentuid="hbd15ec06ga1begd062g730ega5c6e100ec6f" version="1">Превратите плоть существа в твёрдый, как камень, материал. Оно получает только &lt;LSTag Tooltip="Resistant"&gt;половину урона&lt;/LSTag&gt; от дробящего, колющего и режущего урона.</content>
   <content contentuid="h901059e2g5cefg4bbbg2e95g491ea1dbb812" version="1">Превратите плоть существа в твёрдый, как камень, материал. Оно получает только &lt;LSTag Tooltip="Resistant"&gt;половину урона&lt;/LSTag&gt; от дробящего, колющего и режущего урона.</content>
@@ -3375,4 +3375,5 @@
   <content contentuid="hf32997c7gc211gb313g3fbcg48944959ce8d" version="1">Уровень 3: Морская закалка</content>
   <content contentuid="h5a9a1666gd0c6gb6d5g9f5dga7c149830daa" version="1">Застигнут врасплох</content>
   <content contentuid="haa63297agabf6g8665gd863gccf514e607f5" version="1">Застигнут врасплох</content>
+  <content contentuid="hd31e4d13g939ag101eg9e56g93956331fc9c" version="1">Погрузите существа в магический сон.</content>
 </contentList>
