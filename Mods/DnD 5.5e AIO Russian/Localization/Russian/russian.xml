@@ -3435,7 +3435,8 @@
   <content contentuid="hf927d573g7918gf498g9bedg56f31a1a2e84" version="1">Наполнение: Кислота</content>
   <content contentuid="hfb4b4347g41f8gc00fg03eagf4da78649103" version="1">Проницательность</content>
   <content contentuid="h0805a747g80bagaf09g663ag5acb0587c8ac" version="1">Укус</content>
-  <content contentuid="h0df6bd7eg5ba4g8c7fg7e50g95072f249ac3" version="1">следующий бросок атаки по этой цели до начала следующего хода варга совершается с преимуществом.</content>
+  <content contentuid="h0df6bd7eg5ba4g8c7fg7e50g95072f249ac3" version="2">следующий бросок атаки по этой цели до начала следующего хода варга совершается с преимуществом.</content>
   <content contentuid="h71909c63g6997gca6eg3fd9gf0c3045cac19" version="1">Укус</content>
   <content contentuid="hf384310bg4b63gee6dga622g694c2ded1d00" version="1">Следующий бросок атаки по этой цели до начала следующего хода варга совершается с преимуществом.</content>
+  <content contentuid="h39511b28g3843gdb43gabc4g14a37310891b" version="1">Если цель является существом Среднего размера или меньше, она получает состояние Распластанность.</content>
 </contentList>
