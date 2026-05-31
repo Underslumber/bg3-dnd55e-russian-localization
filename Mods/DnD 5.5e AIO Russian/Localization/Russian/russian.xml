@@ -3384,4 +3384,54 @@
   <content contentuid="hc4299a96g2f91ge777g37f1gc3a5dae657c3" version="1">Ледяной эльф</content>
   <content contentuid="hde5c36edg5a0dgf6c3g4376g7f935d4d12ac" version="1">Ледяной эльф</content>
   <content contentuid="hebdf4ecbgcaabg1a81g42d5g735a9adcf945" version="2">Ледяной эльф</content>
+  <content contentuid="h020e73f6gf74eg8fa5ga3a2gc0e28b778b62" version="1">Поедание монстров углубляет ваше понимание их самих и их поведения. Вы получаете этот дополнительный эффект при употреблении порции монстра: в течение 1 минуты, когда вы совершаете атаку в рамках ответного действия, вы наносите дополнительные 1d6 урона.</content>
+  <content contentuid="h0332a04eg8429g6f00gada3gf49674ee7d97" version="1">Полет</content>
+  <content contentuid="h0cb6fe74ga523ge60dgf112g667d31b003f8" version="1">Трансмутирующий метаболизм</content>
+  <content contentuid="h14e14dcbg4d74gcb77g5954gf0d23d010934" version="1">Выберите один из следующих типов урона: кислота, холод, огонь, молния, яд или гром. В течение 10 минут каждый раз, когда вы попадаете атакой оружием, вы можете заставить ее наносить выбранный тип урона вместо обычного.</content>
+  <content contentuid="h14ef410eg91c7g8763gfe5bge988b17c4434" version="1">Устойчивость</content>
+  <content contentuid="h153b4fe6g72f3g247fg04f1g5e857e482941" version="1">В течение 1 минуты, когда вы совершаете атаку в рамках ответного действия, вы наносите дополнительные 1d6 урона.</content>
+  <content contentuid="h1865c71ag5eb9gf397gb7e8g3c4fd9f68123" version="1">В течение 1 часа вы получаете преимущество при проверках проницательности, запугивания и убеждения.</content>
+  <content contentuid="h18dea430g0a51g9ce2g9dc4g23ab4802a3ec" version="1">Кислотная кровь</content>
+  <content contentuid="h19df2915gdc32g0dd3g5c76gef59b78ad51f" version="1">Наполнение: Холод</content>
+  <content contentuid="h1a8a8630g2403gd97bg04dfg98e96ac14682" version="1">Синхронизированная реакция</content>
+  <content contentuid="h23fe18adga21bgcce1g94begc4e07deb93fe" version="1">Гильдия пожирателей</content>
+  <content contentuid="h2c602649g9292g91d9g709bg07327682e721" version="1">Выберите один из следующих типов урона: кислота, холод, огонь, молния, яд или гром. В течение 10 минут каждый раз, когда вы попадаете атакой оружием, вы можете заставить ее наносить выбранный тип урона вместо обычного.</content>
+  <content contentuid="h2eddaae5gd399g869eg1cdag9e9a178e24d8" version="1">Наполнение</content>
+  <content contentuid="h2f0d1be4g0c48gc8dag5d46gb63613816d4b" version="1">Кислотная кровь</content>
+  <content contentuid="h3f4646b9gb34dg645fg078cgf9f1a47d3ede" version="1">Мощь</content>
+  <content contentuid="h3fd3cd39g82cdg6ea4gad4age341508f8cce" version="1">Уровень 3: Трансмутирующий метаболизм</content>
+  <content contentuid="h529b8a58gb300g1753gdff4gbd3ce84b211c" version="1">Уровень 10: Гложущий голод</content>
+  <content contentuid="h55f2832cg60b4gcd10g11f2g30f9e75aa0b9" version="1">В течение 1 часа вы получаете преимущество при проверках проницательности, запугивания и убеждения.</content>
+  <content contentuid="h5b8f7438g5b18gdde5gc4dfga7996a555481" version="1">На 1 минуту ваша кровь становится кислотной. Каждый раз, когда существо в пределах 5 футов от вас попадает по вам атакой, оно получает 2d6 урона кислотой.</content>
+  <content contentuid="h5eb0c1fbg30ddg233fgb6c8gefbdb310cc80" version="1">Невидимость</content>
+  <content contentuid="h6537ee84g1c9egec99gef96g0dc4308fed8c" version="1">Наполнение: Гром</content>
+  <content contentuid="h65822f22g5c0agbed4ga2dfg8ecf26db28f0" version="1">Проницательность</content>
+  <content contentuid="h6c54c1b3g4767g3527g4d8dg0d550177f041" version="1">Гложущий голод</content>
+  <content contentuid="h76c971ebgee3fgbdf8gc480g5b0e87d2e46b" version="1">Наполнение: Молния</content>
+  <content contentuid="h7953e4c5g1403g5956g4511gc857d6b9ce40" version="1">Наполнение: Молния</content>
+  <content contentuid="h7954c79agf580gbf38gb998ga2c34ab9cde5" version="1">Наполнение: Холод</content>
+  <content contentuid="h803ef2b4g9d5fg6bf7gcdfbge5aa148caa9d" version="1">Полет</content>
+  <content contentuid="h8a5acea8g48afg5d80g2670g4f92b9e54c1e" version="1">Вы восстанавливаете ОЗ в количестве 2d8 плюс ваш уровень охотника на чудовищ.</content>
+  <content contentuid="h8bb68f75g3204gd036ge31dgd30865e8fc34" version="1">В течение 1 минуты вы получаете преимущество при проверках Силы и испытаниях. Вы также получаете преимущество при бросках атаки с использованием Силы и наносите 1d6 дополнительного урона целям, по которым попадаете атакой, основанной на Силе. Тип урона соответствует типу урона самой атаки.</content>
+  <content contentuid="h90ab5cd5g9998gb661g7d18ga57aad811d98" version="2">Жажда крови врага позволяет вам поглощать его сущность во время боя. Когда вы наносите урон существу атакой ближнего боя с использованием оружия, вы получаете 6 временных ОЗ.</content>
+  <content contentuid="h95627a66gf92eg2d99g31e2ge9a622a94222" version="1">В течение 1 минуты вы получаете преимущество при проверках Силы и испытаниях. Вы также получаете преимущество при бросках атаки с использованием Силы и наносите 1d6 дополнительного урона целям, по которым попадаете атакой, основанной на Силе. Тип урона соответствует типу урона самой атаки.</content>
+  <content contentuid="h9937e5c1g20b9gf010g9a9ag5025bbaebac2" version="1">Наполнение: Яд</content>
+  <content contentuid="h9dbb965ag2bcegf72bg5bb2gc4f359dca388" version="1">На 10 минут вы получаете состояние «Невидимость». Этот эффект заканчивается раньше, если вы отмените его (действие не требуется), атакуете или сотворите заклинание.</content>
+  <content contentuid="ha8f80da7g749dg53f7g250cgcb2b053e8257" version="1">Наполнение: Гром</content>
+  <content contentuid="ha9065fa0gda11g9fbag0a9fgd56f197c42ac" version="1">В течение 1 минуты вы получаете устойчивость к дробящему, колющему и рубящему урону.</content>
+  <content contentuid="haa67fd1eg0ed5g498egc4f2g2b0c0638ff09" version="1">Наполнение: Кислота</content>
+  <content contentuid="hae222c4fga6fbgac62g739fg68a9d81a56c3" version="1">Жители Этариса не всегда лестно отзываются об охотниках на чудовищ, и многие считают их такими же порочными и бесчеловечными, как и то зло, которое они истребляют. Многие ужасающие легенды об охотниках на чудовищ можно прямо или косвенно отнести к гильдии Пожирателей, которых обвиняют в чудовищном каннибализме.&lt;br&gt;&lt;br&gt;Правда едва ли лучше. Пожиратели проводят свои дни, поглощая плоть и кровь убитых ими монстров, и со временем их метаболизм изменился, чтобы переносить эту отвратительную практику. Пожиратели обретают мутации вскоре после поедания своей добычи.</content>
+  <content contentuid="hb78a3ecdg7a33g2a60g7ee1g414456631317" version="1">Наполнение: Огонь</content>
+  <content contentuid="hcae93600g722fg2de2g2f0fg60184d7ba2f0" version="1">На 1 минуту ваша кровь становится кислотной. Каждый раз, когда существо в пределах 5 футов от вас попадает по вам атакой, оно получает 2d6 урона кислотой.</content>
+  <content contentuid="hcd3296f0g5c52gf913g920agbba88bdced8b" version="1">Наполнение: Огонь</content>
+  <content contentuid="hd01b6b25g66b1g66d5gcfaag271f0d12728a" version="1">Мощь</content>
+  <content contentuid="hd356b0cdg39beg042eg81feg07e80f4dede3" version="1">На 10 минут у вас за спиной вырастают кожистые, пернатые или призрачные крылья. Вы получаете скорость полёта, равную вашей скорости. Вы не можете получать преимущества от этой мутации, если носите тяжёлые доспехи.</content>
+  <content contentuid="hdfb969fag7500g43bege6e0g5797aac03cfc" version="1">Жажда крови врага позволяет вам поглощать его сущность во время боя. Когда вы наносите урон существу атакой ближнего боя с использованием оружия, вы получаете 6 временных ОЗ.</content>
+  <content contentuid="hea98444ag27e9g0fbcg378bg8dec879945da" version="1">Наполнение: Яд</content>
+  <content contentuid="hf0deee58g3421g39e9ge698g864491958c4a" version="1">На 10 минут у вас за спиной вырастают кожистые, пернатые или призрачные крылья. Вы получаете скорость полёта, равную вашей скорости. Вы не можете получать преимущества от этой мутации, если носите тяжёлые доспехи.</content>
+  <content contentuid="hf664a7b1g2fffg549cgf62dgbca83b181e57" version="1">Вы получаете способность поглощать останки монстров, позволяя своему телу претерпевать мощные и ужасающие мутации. Вы можете получать пользу от поглощенных частей количество раз, равное 1 плюс ваш модификатор характеристики Интеллект (минимум 1). После завершения долгого отдыха вы восстанавливаете способность поглощать части. Вы можете получать пользу от нескольких частей одновременно, но не можете получить одну и ту же мутацию более одного раза одновременно.</content>
+  <content contentuid="hf72e3943ga838g8a6eg437fgf3e3b4cf0bde" version="1">Регенерация</content>
+  <content contentuid="hf7edd0e4gc93dg9a16ga571g3e0626bf6d67" version="1">Уровень 7: Синхронный ответ</content>
+  <content contentuid="hf927d573g7918gf498g9bedg56f31a1a2e84" version="1">Наполнение: Кислота</content>
+  <content contentuid="hfb4b4347g41f8gc00fg03eagf4da78649103" version="1">Проницательность</content>
 </contentList>
