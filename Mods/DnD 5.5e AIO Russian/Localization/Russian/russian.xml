@@ -3501,4 +3501,6 @@
   <content contentuid="h9191c661g0d83g945ag7a11gb64ae36d522c" version="2">Вольт-клинок</content>
   <content contentuid="he90d9b36g7ae9g73fcg730cg7f11303ec293" version="2">Этот раздвоенный клинок, выкованный из тронутой бурей стали, потрескивает от плененной молнии, неся в своей сияющей кромке ярость шторма.</content>
   <content contentuid="hfdadc829g334eg78cegcbaegac19146a68cc" version="1">Вы можете совершить действие Магия, чтобы выпустить из клинка концентрированный луч молнии в виде линии длиной 60 футов и шириной 5 футов. Каждое существо на этой линии должно пройти испытание ловкости со СЛ 15. При провале оно получает 4d6 урона молнией, а при успехе — лишь половину этого урона.</content>
+  <content contentuid="h5fe7400ag82f7g6073g3bcbgd343cec9bd16" version="1">Это оружие дает бонус +[1] к броскам атаки, броскам урона, &lt;LSTag Tooltip="SpellDifficultyClass"&gt;КС испытаний против заклинаний&lt;/LSTag&gt; и &lt;LSTag Tooltip="AttackRoll"&gt;броскам атаки&lt;/LSTag&gt; заклинаниями.</content>
+  <content contentuid="h99e76e2eg9ad8ge1c9g7478g77f49aa7113e" version="1">Это оружие дает бонус +[1] к броскам атаки, броскам урона, &lt;LSTag Tooltip="SpellDifficultyClass"&gt;КС испытаний против заклинаний&lt;/LSTag&gt; и &lt;LSTag Tooltip="AttackRoll"&gt;броскам атаки&lt;/LSTag&gt; заклинаниями.</content>
 </contentList>
