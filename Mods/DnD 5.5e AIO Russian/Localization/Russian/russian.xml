@@ -3569,4 +3569,6 @@
   <content contentuid="hcd558b81gae7eg26dag6eaegf0f7e3dd0197" version="1">Уровень 3: Заклинания нежити</content>
   <content contentuid="he206cdceg59e4gfa8cg4328gf3d7938622de" version="1">Уровень 10: Некротическая оболочка</content>
   <content contentuid="hf3e7b3e5gd803gdb85g050dg99a565121fbd" version="1">Уровень 3: Облик ужаса</content>
+  <content contentuid="h08797ed7gc753g8f41gd903g4ec54ed567d1" version="1">Вы направляете энергию Астрального моря, высвобождая поток магии в конусе длиной 30 футов. Каждое существо в области действия должно пройти испытание ловкости, иначе оно получит лучистый урон. Цель видит лишь в пределах 15 футов от себя, а на все, что находится за пределами этого расстояния, накладывается состояние «Слепота» до конца вашего следующего хода.</content>
+  <content contentuid="hcaaac561g47fbgc64dga290gc1f58fa033fa" version="1">Астральный поток</content>
 </contentList>
