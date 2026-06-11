@@ -1356,17 +1356,17 @@
   <content contentuid="h871f4affg0f96gce2fg8f99g76c6d4b04da1" version="2">Руководство игрока: Исходные подвиги</content>
   <content contentuid="hc54d8cd4g6034g8a1ag1af3g0f14cef04940" version="2">Руководство игрока: Общие подвиги</content>
   <content contentuid="hd28472dcg3ccag8ba5g3424g645e17f370db" version="1">Черта: Крушитель</content>
-  <content contentuid="h9ac2c1d5gd0dcga37bgf4d5gb17546182f77" version="2">Каждый раз, когда вы наносите дробящий урон, вы можете с определённой вероятностью наложить на цель состояние «Ошеломление».</content>
+  <content contentuid="h9ac2c1d5gd0dcga37bgf4d5gb17546182f77" version="3">Каждый раз, когда вы наносите дробящий урон, вы можете с определённой вероятностью наложить на цель состояние «Ошеломление».</content>
   <content contentuid="h0f24fc73ge6b5g8e1fg0b3eg4216fa3191e9" version="1">Черта: Пронзатель</content>
-  <content contentuid="h5f23ece1gd28eg37b5gb2f7g57554d7c8da9" version="1">Каждый раз, когда вы наносите колющий урон, вы можете с определённой вероятностью наложить на цель состояние «Зияющие раны».</content>
+  <content contentuid="h5f23ece1gd28eg37b5gb2f7g57554d7c8da9" version="2">Каждый раз, когда вы наносите колющий урон, вы можете с определённой вероятностью наложить на цель состояние «Зияющие раны».</content>
   <content contentuid="h540810fdg8dc8g2211g0121gd8e6f4397c51" version="1">Черта: Рассекатель</content>
-  <content contentuid="hfd222472gd8acg6b69g6068g2840b34f0315" version="2">Каждый раз, когда вы наносите режущий урон, вы можете с определённой вероятностью наложить на цель состояние «Кровотечение».</content>
+  <content contentuid="hfd222472gd8acg6b69g6068g2840b34f0315" version="4">Каждый раз, когда вы наносите режущий урон, вы можете с определённой вероятностью наложить на цель состояние «Кровотечение».</content>
   <content contentuid="h02827ffcg5d6bg438bg7f75g9b6516ac3842" version="1">Крушитель</content>
   <content contentuid="hdd11c1e7geb40g6616g906dgcfc584d52dda" version="1">Пронзатель</content>
   <content contentuid="h538ab943g74c6g0712gaaccgc23a7c3fb624" version="1">Рассекатель</content>
-  <content contentuid="he62f99bbgc9f2g862dg2430gdefa25e39624" version="1">Каждый раз, когда вы наносите дробящий урон, вы можете с определённой вероятностью наложить на цель состояние «Ошеломление».</content>
-  <content contentuid="hf202d0a0gaaf3ge15bgc2f1g94f60d8193aa" version="1">Каждый раз, когда вы наносите колющий урон, вы можете с определённой вероятностью наложить на цель состояние «Зияющие раны».</content>
-  <content contentuid="he322b215g4b74g107eg1abfg1d7e848abd23" version="1">Каждый раз, когда вы наносите режущий урон, вы можете с определённой вероятностью наложить на цель состояние «Кровотечение».</content>
+  <content contentuid="he62f99bbgc9f2g862dg2430gdefa25e39624" version="2">Каждый раз, когда вы наносите дробящий урон, вы можете с определённой вероятностью наложить на цель состояние «Ошеломление».</content>
+  <content contentuid="hf202d0a0gaaf3ge15bgc2f1g94f60d8193aa" version="2">Каждый раз, когда вы наносите колющий урон, вы можете с определённой вероятностью наложить на цель состояние «Зияющие раны».</content>
+  <content contentuid="he322b215g4b74g107eg1abfg1d7e848abd23" version="2">Каждый раз, когда вы наносите режущий урон, вы можете с определённой вероятностью наложить на цель состояние «Кровотечение».</content>
   <content contentuid="h2bcebb1fgce9aga6edgfb96gb1208491f0c1" version="1">Черта: Верховой боец</content>
   <content contentuid="h3242d16eg8787g1d4cg8a1ag1ed7c22edd47" version="2">Пока вы находитесь верхом, у вас есть преимущество на броски атаки ближнего боя против существ Малого или меньшего размера. Кроме того, находясь верхом, вас нельзя сбросить с седла или сбить с ног в результате получения урона.</content>
   <content contentuid="hadc251cegfa83ge72dgb40fg8799ee8d6cfe" version="1">Атака скакуна</content>
@@ -3769,4 +3769,11 @@
   <content contentuid="h69aa6922g1e3fg07e9g5e91g36b8b2c05d1e" version="2">Один раз за ход, когда вы перемещаетесь в сильно или слабо затененную область, вы получаете состояние «Невидимость».</content>
   <content contentuid="heb62505ag46b9gede3gde91gf79191d5fe3f" version="1">Уровень 3: Сумеречное зрение</content>
   <content contentuid="h340e5304g5b60g19d5gdfcegce1b33d1ff16" version="7">Выключить «&lt;LSTag Type="Image" Info="TutorialDualWieldToggle"/&gt;Переключение парного оружия»</content>
+  <content contentuid="h3f40a0a2gba17g34abgbc3ag09290e63a9f3" version="1">Дробящее оружие: Улучшенный критический удар</content>
+  <content contentuid="had2ab3bfgf4fbga6e6gecbdgd688b4b2e4e0" version="2">Режущее оружие: Улучшенный критический удар</content>
+  <content contentuid="hb0b2260fg01d4gf52agf9f4g93f90248b7e1" version="1">Когда вы наносите критический удар, причиняющий дробящий урон существу, броски атаки против этого существа совершаются с преимуществом до начала вашего следующего хода.</content>
+  <content contentuid="hb9a7c09eg9f65g5801gb3e4gb060b99c7378" version="1">Когда вы наносите критический удар, причиняющий рубящий урон существу, оно получает помеху при бросках атаки до начала вашего следующего хода.</content>
+  <content contentuid="he395d87dg4873gcaafg7185g880684e4c5bd" version="1">Колющее оружие: Улучшенный критический удар</content>
+  <content contentuid="hf17a7619g3977g6814g32fbgf85330abba85" version="2">Режущее оружие: Подрезать сухожилие</content>
+  <content contentuid="hff8f8621g9bc7gd484g306bg3d323ffef343" version="2">Когда вы попадаете по существу атакой, наносящей рубящий урон, вы можете снизить скорость этого существа на 10 футов до начала вашего следующего хода.</content>
 </contentList>
