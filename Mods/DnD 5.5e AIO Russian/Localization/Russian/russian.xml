@@ -13,7 +13,7 @@
   <content contentuid="h240aa2f4g6571ge23eg8142g83ee7b985b8d" version="2">Свойства мастерства: Скользящий удар</content>
   <content contentuid="h0fbee9aag6abeg6294g3fd8gbeb26ffd19f6" version="1">Если ваш бросок атаки этим оружием промахивается по существу, вы можете нанести ему урон, равный модификатору характеристики, использованному для броска атаки. Этот урон имеет тот же тип, что и урон оружия, и его можно увеличить только за счёт увеличения модификатора характеристики.</content>
   <content contentuid="hdbe460a9gf800gdb75g15bbg2b81a80fe8ab" version="2">Свойства мастерства: Надрез</content>
-  <content contentuid="h84f8977cg06ecg1e31gebd6g21e4b7346121" version="1">Когда вы совершаете атаку оружием во второй руке, вы можете совершить одну дополнительную атаку в рамках этой же атаки. Вы можете совершить эту дополнительную атаку только один раз за ход.</content>
+  <content contentuid="h84f8977cg06ecg1e31gebd6g21e4b7346121" version="2">Когда вы совершаете атаку оружием во второй руке, вы можете совершить одну дополнительную атаку в рамках этой же атаки. Вы можете совершить эту дополнительную атаку только один раз за ход.</content>
   <content contentuid="h64e7021cg8b69g3f60gde38gd59f3cdc5846" version="2">Свойства мастерства: Толчок</content>
   <content contentuid="h694f6a66g0531g98f0ga23eg525e146eb4d7" version="1">Если вы попадаете по существу этим оружием, вы можете оттолкнуть его на расстояние до [1] прямо от себя, если его размер «Большой» или меньше.</content>
   <content contentuid="haf74199bg92cbg93dega0fbgebb535603f83" version="2">Свойства мастерства: Истощение</content>
@@ -790,7 +790,7 @@
   <content contentuid="h208b7de3g5f3cge001gfe82gdd2940dee59c" version="1">Черта: Обороняющийся дуэлянт</content>
   <content contentuid="hfd0b3091g52f6g2cd7ga7cbg9c61332d3252" version="1">Если вы держите в руках изящное оружие и другое существо попадает по вам атакой ближнего боя, вы можете реакцией добавить бонус умения к вашему классу доспеха, что может заставить атаку промахнуться. Вы получаете этот бонус к КД против атак ближнего боя до начала вашего следующего хода.</content>
   <content contentuid="hfa2c5254ge5fag62b7gffb6g392787c61974" version="1">Двойное оружие</content>
-  <content contentuid="h2d809685g28ffge26ag3e6ag5fa20f63c9e3" version="3">Вы можете использовать бой двумя оружиями, даже если ваши оружия не обладают свойством &lt;LSTag Tooltip="Light"&gt;Легкое&lt;/LSTag&gt;. Вы не можете использовать одновременно два оружия со свойством &lt;LSTag Tooltip="TwoHanded"&gt;Двуручное&lt;/LSTag&gt;.
+  <content contentuid="h2d809685g28ffge26ag3e6ag5fa20f63c9e3" version="4">Вы можете использовать бой двумя оружиями, даже если ваши оружия не обладают свойством &lt;LSTag Tooltip="Light"&gt;Легкое&lt;/LSTag&gt;. Вы не можете использовать одновременно два оружия со свойством &lt;LSTag Tooltip="TwoHanded"&gt;Двуручное&lt;/LSTag&gt;.
 
 Вы можете совершить одну атаку второй рукой, не тратя действие или бонусное действие. Это преимущество можно использовать один раз за ход.</content>
   <content contentuid="h720a62a8g5de9g9909gb1cagf61131cf2df9" version="1">Черта: Обоерукий (дополнительная атака)</content>
@@ -3768,4 +3768,5 @@
   <content contentuid="hfa61106eg95adg47fbg8362gcbea543e7ea6" version="1">Калаштар</content>
   <content contentuid="h69aa6922g1e3fg07e9g5e91g36b8b2c05d1e" version="2">Один раз за ход, когда вы перемещаетесь в сильно или слабо затененную область, вы получаете состояние «Невидимость».</content>
   <content contentuid="heb62505ag46b9gede3gde91gf79191d5fe3f" version="1">Уровень 3: Сумеречное зрение</content>
+  <content contentuid="h340e5304g5b60g19d5gdfcegce1b33d1ff16" version="7">Выключить «&lt;LSTag Type="Image" Info="TutorialDualWieldToggle"/&gt;Переключение парного оружия»</content>
 </contentList>
