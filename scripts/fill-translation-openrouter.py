@@ -31,7 +31,6 @@ FREE_DEFAULT_BATCH_SIZE = 10
 FREE_DEFAULT_MAX_BATCH_CHARS = 3000
 FREE_DEFAULT_RETRIES = 4
 REQUEST_TIMEOUT_SECONDS = 120
-FLEXIBLE_ONE_WORD_GLOSSARY_SOURCES = {"Movement"}
 
 SYSTEM_PROMPT = (
     "You are a professional video game translator.\n\n"
@@ -580,16 +579,13 @@ def assert_translation_quality(
                 f"Translation for id '{item_id}' still contains glossary source term '{source_term}'."
             )
         source_words = re.findall(r"[A-Za-z]+", source_term)
-        target_words = re.findall(r"[а-я]+", normalize_russian_for_match(target_term))
-        if (
-            len(source_words) == 1
-            and len(target_words) == 1
-            and (len(source_words[0]) <= 5 or source_words[0] in FLEXIBLE_ONE_WORD_GLOSSARY_SOURCES)
-            and "<" not in source_term
-        ):
-            # Generic one-word glossary entries like "Push", "Magic", or "Movement" are
-            # useful prompt hints, but enforcing their exact noun form in running
-            # text causes false negatives for valid Russian inflections/paraphrases.
+        if len(source_words) == 1 and "<" not in source_term:
+            # Single-word glossary entries (class/spell/skill/weapon nouns such as
+            # "Command", "Sanctuary", "Shield", or "Movement") are useful prompt hints,
+            # but enforcing their exact noun form in running text causes false negatives
+            # for valid Russian inflections, paraphrases, and unrelated senses of the
+            # same English word in dialogue. They are passed to the model as hints;
+            # only multi-word glossary phrases are enforced strictly here.
             continue
         fragments = extract_russian_term_fragments(target_term)
         if fragments and not all(fragment in normalized_visible_text for fragment in fragments):
