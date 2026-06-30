@@ -3919,4 +3919,12 @@
   <content contentuid="he30340c8gee67gea26g42dfg7428ad2ffc24" version="1">&lt;LSTag Tooltip="MovementSpeed"&gt;Скорость перемещения&lt;/LSTag&gt; затронутого существа снижена вдвое.&lt;br&gt;&lt;br&gt;Существо может совершить либо действие, либо бонусное действие.</content>
   <content contentuid="h05279eecg66b6g48b2gd7bbg31b8b9364190" version="1">Линия ревущего пламени длиной 30 футов и шириной 5 футов исходит от вас в выбранном вами направлении. Каждое существо в этой линии должно пройти испытание ловкости. Существо получает урон огнем при провале или половину этого урона при успехе.</content>
   <content contentuid="haac8d098g36f5gfad0g0c19g710686be3050" version="1">Испепелитель Аганаззара</content>
+  <content contentuid="h23041527g684fg9b54gfd8bgbc94bca6aa62" version="1">Вы окутываете себя тенью, что дает вам преимущество при проверках Ловкости (Скрытности) против существ, полагающихся на зрение.</content>
+  <content contentuid="h241ed709g7588g2cc5g9cd2gbc1ec16c5753" version="1">Атаки, совершаемые призванным оружием, при попадании наносят дополнительно 1d8 урона огнем.</content>
+  <content contentuid="h7db07aaegcba0g874eg8391ge8926782e7f8" version="1">Руна огня</content>
+  <content contentuid="h8756f6c6ga536g0a7agc01agf500547496f2" version="1">Вы прикасаетесь к оружию ближнего боя и накладываете на него магический эффект, вытравливая на нем видимую руну. Атаки, совершаемые призванным оружием, при попадании наносят дополнительно 1d8 урона огнем.</content>
+  <content contentuid="h8dbcd1e2ga506gd79fg540bgdeebf6743060" version="1">Вы окутываете себя тенью, что дает вам преимущество при проверках Ловкости (Скрытности) против существ, полагающихся на зрение.</content>
+  <content contentuid="h954ddf9fg7f78ge82dg57c0gb1a304bf4d54" version="1">Руна огня</content>
+  <content contentuid="hc9492c94g19bfg3230gbfc3g6cf10c6d02e5" version="1">Плащ тени</content>
+  <content contentuid="hd072401cgab74ga74bgb28egccb3e4a6554d" version="1">Плащ тени</content>
 </contentList>
