@@ -3927,4 +3927,6 @@
   <content contentuid="h954ddf9fg7f78ge82dg57c0gb1a304bf4d54" version="1">Руна огня</content>
   <content contentuid="hc9492c94g19bfg3230gbfc3g6cf10c6d02e5" version="1">Плащ тени</content>
   <content contentuid="hd072401cgab74ga74bgb28egccb3e4a6554d" version="1">Плащ тени</content>
+  <content contentuid="h06dbb138g6afagfebbg9a03gd5d229bb475e" version="1">Ошеломляющий взрыв</content>
+  <content contentuid="h36e08fceg5a47gf889gc415g5a67ba284ba1" version="1">Волна силы исходит из ваших ладоней, выбирая целью существо в пределах досягаемости. Цель должна пройти испытание Выносливости. В случае провала существо получает 2d6 урона силой и получает состояние «Оглушение» до конца своего следующего хода. В случае успеха существо получает только урон.</content>
 </contentList>
