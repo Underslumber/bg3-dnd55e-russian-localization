@@ -4091,4 +4091,9 @@
   <content contentuid="haa843db4g20ebg9021gacedg3f8ada559a41" version="2">Варвары, идущие по Пути великана, черпают силу из тех же первобытных источников, что и великаны. Впадая в ярость, эти варвары наполняются стихийной мощью и увеличиваются в размерах, принимая облик, напоминающий о величии великанов. Некоторые варвары выглядят как увеличенные копии самих себя, возможно, со всполохами стихийной энергии в глазах и вокруг их оружия. Другие преображаются более разительно, принимая облик настоящего великана или форму, подобную элементалю, окутанному огнем, морозом или молнией.</content>
   <content contentuid="hf0667bf6g77dagda24g515cg27017347e947" version="1">Путь берсерка</content>
   <content contentuid="hfe2d7a7cg1f66g7b4cg4485g45ffc2e4f8ca" version="1">Путь дикого сердца</content>
+  <content contentuid="h22179fdag3286gcd27g7facg8e73f5c76e01" version="3">Вы получаете 2d4 + [1] &lt;LSTag Tooltip="TemporaryHitPoints"&gt;временных ОЗ&lt;/LSTag&gt;.</content>
+  <content contentuid="h64a85505gb9ccg347eg37efg4472a54e2380" version="1">Получено 2d4+[1] &lt;LSTag Tooltip="TemporaryHitPoints"&gt;временных ОЗ&lt;/LSTag&gt;.</content>
+  <content contentuid="h7706db7cg7c7dgf09bg4d14gc9faed17fc8b" version="1">Ложная жизнь</content>
+  <content contentuid="h9c95882dg83f6g1bbdg05f2geae221b89b7a" version="1">Ложная жизнь</content>
+  <content contentuid="hd981160eg2361g96c5g14b2g6faa8b2cc888" version="1">Воззвание: Ложная жизнь</content>
 </contentList>
