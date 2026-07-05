@@ -4378,4 +4378,15 @@
   <content contentuid="hfebb0c2eg259cg4a52g9a3cg4edf6de87e4e" version="2">Вы можете поднимать и метать предметы и существ силой мысли до конца вашего хода.</content>
   <content contentuid="hfedbac46g363eg4c64g9537g61335c5397d3" version="1">Призрачный щит парит рядом с вами в течение следующей минуты, давая вам бонус +2 к КБ и невосприимчивость к «Волшебной стреле».</content>
   <content contentuid="hfef17422ga705g4694g861dg3f8ac4ae97df" version="3">Зачаровывает оружие каждого существа в радиусе [1]. Их следующая атака будет &lt;LSTag Tooltip="CriticalHit"&gt;критическим ударом&lt;/LSTag&gt; и нанесет дополнительные [2].</content>
+  <content contentuid="h2e45d3c2gc1beg4101g9a04gcbaaaac11f0a" version="1">Посвященный в магию: волшебник: вы выучили выбранное заклинание.</content>
+  <content contentuid="h42e9d28cgdac3g453ag98b9ge050ea1a6f39" version="1">Посвященный в магию: друид: вы выучили два фокуса. Отличный выбор.</content>
+  <content contentuid="h5205e9a5g2faag4116g9482g9d62b12da058" version="1">Одаренный: вы получили умение в выбранном навыке.</content>
+  <content contentuid="h60a4f1cegab44g4361g8e56ge21f825230e2" version="1">Посвященный в магию: волшебник: вы выучили выбранный фокус.</content>
+  <content contentuid="h64af36efg690cg437bg9309gc6f9d243ddc7" version="1">Посвященный в магию: жрец: вы выучили выбранный фокус.</content>
+  <content contentuid="h758b92a3gedfcg4ab3g8e8fg85ad854a1ce6" version="1">Посвященный в магию: друид: вы выучили выбранное заклинание.</content>
+  <content contentuid="hb26b5f09gacacg4ffdgb947g44c15c47929d" version="1">Посвященный в магию: волшебник: вы выучили два фокуса. Отличный выбор.</content>
+  <content contentuid="hc9f0aba8gd775g4df7gb799gd7c53747085b" version="1">Посвященный в магию: друид: вы выучили выбранный фокус.</content>
+  <content contentuid="hd4f0c01cgfa4cg494eg93dagc7401dc42e35" version="1">Посвященный в магию: жрец: вы выучили выбранное заклинание.</content>
+  <content contentuid="hf35665d0g7373g4d2dga1f3g0b7fc11ce883" version="1">Одаренный: вы получили умение в трех навыках. Отличный выбор.</content>
+  <content contentuid="hffac3ddcg8327g4829g8b8fgec3bb18e4a7e" version="1">Посвященный в магию: жрец: вы выучили два фокуса. Отличный выбор.</content>
 </contentList>
