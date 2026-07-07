@@ -394,7 +394,7 @@
   <content contentuid="h5644171bg3f2cg52f1gc8dcgc1e6b38d6a9b" version="1">Слияние со стихией: Огонь</content>
   <content contentuid="h60fd53fcgbe77gcb48gd29dg52f09c53ad87" version="1">Слияние со стихией: молния</content>
   <content contentuid="h459ce897gc32bgf940g855egc984bd313c7c" version="1">Слияние со стихией: Гром</content>
-  <content contentuid="h5c61ee4bg56f8gfe0fgb3c5g7712a4e3d87e" version="1">Слияние со стихией: Кислота</content>
+  <content contentuid="h5c61ee4bg56f8gfe0fgb3c5g7712a4e3d87e" version="2">Слияние со стихией: Кислота</content>
   <content contentuid="he11f6bc3ga347g550fg0466g52c1a9c5aad4" version="1">Слияние со стихией: Холод</content>
   <content contentuid="hb648df73g12d6gb0b3g24e3g1c88ad261547" version="1">Слияние со стихией: Огонь</content>
   <content contentuid="habb49dadg47e5gc5bag6c56g45bf51c0e30c" version="1">Слияние со стихией: молния</content>
@@ -4571,4 +4571,12 @@
   <content contentuid="h70efd6b7g4433g80c7g7ceeg246f811e2c7c" version="1">Связанное оружие: Второстепенное</content>
   <content contentuid="h886aaa36gd8ecg34edg11dbga02b0ae1f0f9" version="1">Связанное оружие: Основное</content>
   <content contentuid="hbd79e588g85a8ga317gab92g1dc3ec782773" version="1">Связанное оружие: Основное</content>
+  <content contentuid="h11332473g3979g9abfg761agdee2787744e5" version="1">Когда вы совершаете безоружный удар, ваша дистанция атаки увеличивается на 10 футов, так как из вас исходит стихийная энергия.</content>
+  <content contentuid="h1cc7d9bbge33egb7e6gcb43g3b381b51b4ab" version="1">Стихийные удары: молния</content>
+  <content contentuid="h1e811cadgb62eg0b4cgf227g305228f83fc7" version="1">Каждый раз, когда вы попадаете безоружным ударом, вы можете выбрать, чтобы он наносил урон кислотой, холодом, огнем, молнией или громом вместо обычного типа урона.</content>
+  <content contentuid="h4028f5b6g1c7cg62bfgf7ceg0d2244ad20f2" version="1">Стихийные удары: гром</content>
+  <content contentuid="h68c0c939g9c12g8d64g237dg0bcc02c524be" version="1">Стихийные удары: кислота</content>
+  <content contentuid="h890a9938gac70g797cg8e84g4f982f91e71f" version="1">Стихийная сонастройка: дистанция</content>
+  <content contentuid="hb2926a7dga9a0g4670g41dfgdf5650a0d520" version="1">Стихийные удары: холод</content>
+  <content contentuid="hf7a5b3f5g2f88g5a34g7903g2114ecd26adf" version="1">Стихийные удары: огонь</content>
 </contentList>
