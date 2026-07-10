@@ -4666,4 +4666,10 @@
   <content contentuid="h39f64ea5gb60eg3361ga734gb5f1af066885" version="1">Аура танца огня</content>
   <content contentuid="h3a8c610bga3d0g98a5g372eg5d265e61eef9" version="1">Танец огня</content>
   <content contentuid="h9cf5d531g4949g8b3ag675egdf76db2f6a46" version="1">Танец огня</content>
+  <content contentuid="h1baba05fg926fg3fbeg861bg6aa1ecd27bef" version="1">Урон увеличивается на 1d8, а пройденное расстояние — на 10 футов за каждый уровень ячейки заклинания выше 1-го.</content>
+  <content contentuid="h63ced89eg89ebg0483ga272g25ce1e27bec3" version="1">Призрачный разрез: цель</content>
+  <content contentuid="h6f008cdbg3350gd976g5f94g72ed94e99398" version="1">Призрачный разрез</content>
+  <content contentuid="h95052719gb237gac57g92e1g14b60980710f" version="1">Атака призрачным разрезом</content>
+  <content contentuid="hc78c376dg616ag7239gb066ga93738880899" version="2">Атака оружием: призрачный разрез</content>
+  <content contentuid="he35c6486g7f21gd1fag785egf414f915b565" version="1">Вы посылаете вперед свою призрачную копию, чтобы сразить врага. Совершите ближнюю атаку заклинанием против существа в пределах 20 футов от вас. При попадании цель получает [1] урона того же типа, что и урон вашего оружия.&lt;br&gt;&lt;br&gt;Затем вы можете потратить свое действие, чтобы переместиться на расстояние до 20 футов по прямой линии к цели, проносясь по призрачному следу, и совершить действие Атака против нее. Чтобы использовать это действие, вы должны атаковать тем же оружием ближнего боя, которое использовалось для сотворения этого заклинания.</content>
 </contentList>
