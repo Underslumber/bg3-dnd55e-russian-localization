@@ -1,14 +1,14 @@
 {
   "upstream": {
     "english_xml_url": "https://raw.githubusercontent.com/Yoonmoonsik/dnd55e/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml",
-    "last_processed_sha256": "a0db1bd9e46b0c70f319021e4b26230209ca456ce9ea88a25c7ac37f9145b092",
-    "last_processed_commit_sha": "64fc75b0294867f0871d7ad807492e5889961760",
-    "last_processed_at": "2026-07-10T02:02:00.174534+00:00",
-    "last_seen_etag": "\"17a82e4d913b4985632c08751f8579d7b9a92e84869e03cdd906b6963138a70d\"",
+    "last_processed_sha256": "82985139082b6fe47d656b5214e799ad68f5241a61965913a928cd37bfab9eae",
+    "last_processed_commit_sha": "c86a8b27449da10f35f7c476adb7bbb7bb038608",
+    "last_processed_at": "2026-07-10T04:16:26.215382+00:00",
+    "last_seen_etag": "\"88d60fa7034484d77dda0395622a8af9a5c856970533c8e4ceee0774f26c3911\"",
     "last_seen_last_modified": ""
   },
   "release": {
-    "last_tag": "v0.3.114",
-    "last_release_commit": "64fc75b0294867f0871d7ad807492e5889961760"
+    "last_tag": "v0.3.115",
+    "last_release_commit": "c86a8b27449da10f35f7c476adb7bbb7bb038608"
   }
 }
