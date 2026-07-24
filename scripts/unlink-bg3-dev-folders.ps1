@@ -1,6 +1,7 @@
 param(
     [string]$GamePath = "",
-    [string]$Workspace = ""
+    [string]$Workspace = "",
+    [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
@@ -93,12 +94,12 @@ function Resolve-Bg3GamePath {
 
     if ($ExplicitGamePath) {
         $resolvedGamePath = Get-NormalizedPath -Path $ExplicitGamePath
-        Write-Host "[link-bg3-dev-folders] Using game path from parameter: $resolvedGamePath"
+        Write-Host "[unlink-bg3-dev-folders] Using game path from parameter: $resolvedGamePath"
         return $resolvedGamePath
     }
 
     $steamRoot = Get-SteamRootFromRegistry
-    Write-Host "[link-bg3-dev-folders] Found Steam root: $steamRoot"
+    Write-Host "[unlink-bg3-dev-folders] Found Steam root: $steamRoot"
 
     $libraryPaths = Get-SteamLibraryPaths -SteamRoot $steamRoot
     foreach ($libraryPath in $libraryPaths) {
@@ -110,7 +111,7 @@ function Resolve-Bg3GamePath {
         $modsDirectory = Join-Path $candidate "Data\Mods"
         $projectsDirectory = Join-Path $candidate "Data\Projects"
         if ((Test-Path -LiteralPath $modsDirectory) -and (Test-Path -LiteralPath $projectsDirectory)) {
-            Write-Host "[link-bg3-dev-folders] Found BG3 install: $candidate"
+            Write-Host "[unlink-bg3-dev-folders] Found BG3 install: $candidate"
             return $candidate
         }
     }
@@ -159,47 +160,25 @@ function Get-LinkTargetPath {
     return Get-NormalizedPath -Path $combined
 }
 
-function New-DirectorySymbolicLink {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-        [Parameter(Mandatory = $true)]
-        [string]$Target
-    )
-
-    try {
-        New-Item -ItemType SymbolicLink -Path $Path -Target $Target | Out-Null
-    } catch {
-        $exceptionMessage = $_.Exception.Message
-        $accessDenied = $_.Exception -is [System.UnauthorizedAccessException] -or $exceptionMessage -match "privilege|not held|access.*denied|administrator"
-        if ($accessDenied) {
-            throw "Failed to create symbolic link '$Path' -> '$Target'. Symlink permissions are required (Developer Mode or elevated shell)."
-        }
-
-        throw
-    }
-}
-
-function Ensure-DirectorySymbolicLink {
+function Remove-DirectorySymbolicLink {
     param(
         [Parameter(Mandatory = $true)]
         [string]$LinkPath,
         [Parameter(Mandatory = $true)]
-        [string]$TargetPath,
+        [string]$ExpectedTargetPath,
         [Parameter(Mandatory = $true)]
         [string]$Label
     )
 
     if (-not (Test-Path -LiteralPath $LinkPath)) {
-        New-DirectorySymbolicLink -Path $LinkPath -Target $TargetPath
-        Write-Host ("[link-bg3-dev-folders] {0}: symbolic link created" -f $Label)
+        Write-Host ("[unlink-bg3-dev-folders] {0}: link not found, nothing to remove" -f $Label)
         return
     }
 
     $existingItem = Get-Item -LiteralPath $LinkPath -Force
     $isReparsePoint = ($existingItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0
     if (-not $isReparsePoint) {
-        throw ("{0}: path already exists and is not a link: '{1}'." -f $Label, $LinkPath)
+        throw ("{0}: path exists but is not a link, refusing to delete real data: '{1}'." -f $Label, $LinkPath)
     }
 
     $currentTarget = Get-LinkTargetPath -Item $existingItem
@@ -207,28 +186,27 @@ function Ensure-DirectorySymbolicLink {
         throw ("{0}: failed to resolve the target of the existing link: '{1}'." -f $Label, $LinkPath)
     }
 
-    if ($currentTarget -ieq $TargetPath) {
-        Write-Host ("[link-bg3-dev-folders] {0}: link already points to the expected directory" -f $Label)
+    if ($currentTarget -ine $ExpectedTargetPath -and -not $Force) {
+        Write-Warning ("{0}: link points to a foreign directory, skipped. Link: '{1}' -> '{2}'. Expected target: '{3}'. Use -Force to remove anyway." -f $Label, $LinkPath, $currentTarget, $ExpectedTargetPath)
         return
     }
 
     # Directory.Delete removes the reparse point itself and never touches the link target.
     # Remove-Item on a directory symlink throws NullReferenceException in Windows PowerShell 5.1.
     [System.IO.Directory]::Delete($LinkPath)
-    New-DirectorySymbolicLink -Path $LinkPath -Target $TargetPath
-    Write-Host ("[link-bg3-dev-folders] {0}: link updated" -f $Label)
+
+    if ($currentTarget -ieq $ExpectedTargetPath) {
+        Write-Host ("[unlink-bg3-dev-folders] {0}: link removed" -f $Label)
+    } else {
+        Write-Host ("[unlink-bg3-dev-folders] {0}: foreign link removed (-Force): '{1}' -> '{2}'" -f $Label, $LinkPath, $currentTarget)
+    }
 }
 
 $workspacePath = Get-WorkspacePath -ExplicitWorkspace $Workspace
-Write-Host "[link-bg3-dev-folders] Workspace: $workspacePath"
+Write-Host "[unlink-bg3-dev-folders] Workspace: $workspacePath"
 
-$modsSourceRoot = Join-Path $workspacePath "Mods"
-$modsSourcePath = Join-Path $modsSourceRoot $modFolderName
-$projectsSourcePath = Join-Path $workspacePath "Projects"
-
-Assert-DirectoryExists -Path $modsSourceRoot -Description "Mods source root"
-Assert-DirectoryExists -Path $modsSourcePath -Description "Mod source directory"
-Assert-DirectoryExists -Path $projectsSourcePath -Description "Projects source directory"
+$modsSourcePath = Get-NormalizedPath -Path (Join-Path (Join-Path $workspacePath "Mods") $modFolderName)
+$projectsSourcePath = Get-NormalizedPath -Path (Join-Path $workspacePath "Projects")
 
 $resolvedGamePath = Get-NormalizedPath -Path (Resolve-Bg3GamePath -ExplicitGamePath $GamePath)
 $dataPath = Join-Path $resolvedGamePath "Data"
@@ -243,12 +221,10 @@ Assert-DirectoryExists -Path $projectsTargetRoot -Description "Data\\Projects di
 $modsLinkPath = Join-Path $modsTargetRoot $modFolderName
 $projectsLinkPath = Join-Path $projectsTargetRoot $modFolderName
 
-Ensure-DirectorySymbolicLink -LinkPath $modsLinkPath -TargetPath $modsSourcePath -Label "Mods"
-Ensure-DirectorySymbolicLink -LinkPath $projectsLinkPath -TargetPath $projectsSourcePath -Label "Projects"
+Remove-DirectorySymbolicLink -LinkPath $modsLinkPath -ExpectedTargetPath $modsSourcePath -Label "Mods"
+Remove-DirectorySymbolicLink -LinkPath $projectsLinkPath -ExpectedTargetPath $projectsSourcePath -Label "Projects"
 
 Write-Host ""
-Write-Host "[link-bg3-dev-folders] Done:"
-Write-Host "  Mods source    : $modsSourcePath"
+Write-Host "[unlink-bg3-dev-folders] Done:"
 Write-Host "  Mods link      : $modsLinkPath"
-Write-Host "  Projects source: $projectsSourcePath"
 Write-Host "  Projects link  : $projectsLinkPath"
