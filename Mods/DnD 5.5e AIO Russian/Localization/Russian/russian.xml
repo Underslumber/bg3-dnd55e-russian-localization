@@ -5250,4 +5250,6 @@
   <content contentuid="hfdabc05ag93f5gf46eg5efdg957054a772c8" version="1">Святое оружие</content>
   <content contentuid="h1860f08dg254cg24c9g1f48g986104453f40" version="1">Размер уменьшен, атаки оружием наносят на [1] меньше урона, а затронутое существо получает &lt;LSTag Tooltip="Disadvantage"&gt;помеху&lt;/LSTag&gt; при &lt;LSTag Tooltip="AbilityCheck"&gt;проверках&lt;/LSTag&gt; силы и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниях&lt;/LSTag&gt;. &lt;LSTag Tooltip="CarryWeight"&gt;Грузоподъемность&lt;/LSTag&gt; также снижена на 25%.</content>
   <content contentuid="h34aa1f06g5476g9077g6ecegcbeaecd1d022" version="1">Уменьшение</content>
+  <content contentuid="h6dd62a94g2a65ge5adg05e3g4b793d8bd47a" version="1">Уровень 3: Психические заклинания</content>
+  <content contentuid="h79149a3eg42f1g8dd3g1119g9fb383489e99" version="1">Когда вы сотворяете заклинание колдуна, наносящее урон, вы можете изменить тип его урона на психический. Кроме того, когда вы сотворяете заклинание колдуна, относящееся к школе очарования или иллюзии, вы можете делать это без вербальных и соматических компонентов.</content>
 </contentList>
