@@ -5248,4 +5248,6 @@
   <content contentuid="hf901b922g373ag4bf3gb6bbg47b4699ed0fb" version="2">Свиток «Святое оружие»</content>
   <content contentuid="hfd297654g852eg6991g0f63g6d204e54a34b" version="1">Святое оружие</content>
   <content contentuid="hfdabc05ag93f5gf46eg5efdg957054a772c8" version="1">Святое оружие</content>
+  <content contentuid="h1860f08dg254cg24c9g1f48g986104453f40" version="1">Размер уменьшен, атаки оружием наносят на [1] меньше урона, а затронутое существо получает &lt;LSTag Tooltip="Disadvantage"&gt;помеху&lt;/LSTag&gt; при &lt;LSTag Tooltip="AbilityCheck"&gt;проверках&lt;/LSTag&gt; силы и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниях&lt;/LSTag&gt;. &lt;LSTag Tooltip="CarryWeight"&gt;Грузоподъемность&lt;/LSTag&gt; также снижена на 25%.</content>
+  <content contentuid="h34aa1f06g5476g9077g6ecegcbeaecd1d022" version="1">Уменьшение</content>
 </contentList>
