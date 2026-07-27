@@ -455,8 +455,13 @@ if (-not $SkipModioApiFinalize) {
         -SuppressManualEnableRequest
 
     $finalizeResult = Get-Content -Raw -LiteralPath $finalizeResultPath | ConvertFrom-Json
-    $requiresWebFinalize = (-not [bool]$finalizeResult.live) -or
-        [bool]$finalizeResult.platformApprovalFailed
+    $platformApprovalDeferred = ($finalizeResult.PSObject.Properties.Name -contains "platformApprovalDeferred") -and
+        [bool]$finalizeResult.platformApprovalDeferred
+    $requiresWebFinalize = (-not [bool]$finalizeResult.live) -and
+        (-not $platformApprovalDeferred)
+    if ($platformApprovalDeferred) {
+        Write-Host "[publish-modio] File id=$($finalizeResult.fileId) activation was accepted; additional platform approvals are pending. Browser finalization is not required."
+    }
     if ($requiresWebFinalize) {
         if ($SkipWebFinalize) {
             throw "mod.io file id=$($finalizeResult.fileId) is not live and browser finalization was disabled."

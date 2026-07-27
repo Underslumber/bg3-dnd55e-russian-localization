@@ -286,7 +286,8 @@ function Write-FinalizeResult {
     param(
         [object]$File,
         [bool]$IsLive,
-        [bool]$PlatformApprovalFailed
+        [bool]$PlatformApprovalFailed,
+        [bool]$PlatformApprovalDeferred
     )
 
     if (-not $ResultPath) {
@@ -300,6 +301,7 @@ function Write-FinalizeResult {
         version = [string]$File.version
         live = $IsLive
         platformApprovalFailed = $PlatformApprovalFailed
+        platformApprovalDeferred = $PlatformApprovalDeferred
     } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $resolvedResultPath -Encoding utf8
     Write-Host "[finalize-modio-file] Result written: $resolvedResultPath"
 }
@@ -398,7 +400,7 @@ Write-Host "[finalize-modio-file] Platforms=$($Platforms -join ',') ExpectedVers
 $file = Wait-ForScannedFile -UploadedAfterUnix $uploadedAfterUnix
 
 if ($WhatIf) {
-    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$false
+    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$false -PlatformApprovalDeferred:$false
     Write-Host "[finalize-modio-file] WhatIf completed: selected file id=$($file.id) filename=$($file.filename); no platform/live update was sent."
     exit 0
 }
@@ -406,6 +408,7 @@ if ($WhatIf) {
 $platformUri = "{0}/games/{1}/mods/{2}/files/{3}/platforms" -f $ApiBase, $GameId, $ModId, $file.id
 $platformResponse = $null
 $platformApprovalFailed = $false
+$platformApprovalDeferred = $false
 try {
     $platformResponse = Invoke-ModioRequest -Method "POST" -Uri $platformUri -Payload @{
         approved = @($Platforms)
@@ -417,6 +420,7 @@ try {
     $platformApprovalFailed = $true
     Write-FinalizeDiagnostic -Reason "platform_status_update_failed" -File $file -Uri $platformUri -Platforms $Platforms -ErrorMessage $_.Exception.Message
     if (Test-ModioForbidden -ErrorRecord $_) {
+        $platformApprovalDeferred = $true
         Write-Warning "[finalize-modio-file] Platform status update returned HTTP 403; continuing to live activation because platform approval can be unavailable to this token."
     } else {
         Write-Warning "[finalize-modio-file] Platform status update failed; continuing to live update: $($_.Exception.Message)"
@@ -444,17 +448,19 @@ Write-Host "[finalize-modio-file] Live update requested for file id=$($updatedFi
 $activeModfileId = Get-ActiveModfileId
 $isLive = ($null -ne $activeModfileId) -and ([int64]$activeModfileId -eq [int64]$file.id)
 if ($isLive) {
-    Write-FinalizeResult -File $file -IsLive:$true -PlatformApprovalFailed:$platformApprovalFailed
+    Write-FinalizeResult -File $file -IsLive:$true -PlatformApprovalFailed:$platformApprovalFailed -PlatformApprovalDeferred:$platformApprovalDeferred
     Write-Host "[finalize-modio-file] Live status confirmed: active modfile id=$activeModfileId."
 } else {
-    $manualReason = if ($platformApprovalFailed) {
-        "platform approval via the mod.io API was rejected (HTTP 403); the modfile must be enabled by hand."
+    $manualReason = if ($platformApprovalDeferred) {
+        "live activation was accepted; additional platform approvals remain pending."
+    } elseif ($platformApprovalFailed) {
+        "platform approval failed and mod.io has not reported this file as the active modfile."
     } else {
         "mod.io has not reported this file as the active modfile."
     }
-    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$platformApprovalFailed
+    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$platformApprovalFailed -PlatformApprovalDeferred:$platformApprovalDeferred
     Write-Host "[finalize-modio-file] File id=$($file.id) is uploaded but NOT live: $manualReason"
-    if (-not $SuppressManualEnableRequest) {
+    if (-not $SuppressManualEnableRequest -and -not $platformApprovalDeferred) {
         Send-ManualEnableRequest -File $file -ExpectedVersion $ExpectedVersion -Reason $manualReason
     }
 }
