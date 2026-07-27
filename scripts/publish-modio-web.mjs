@@ -239,8 +239,9 @@ try {
         throw new Error(`Platform selection is incomplete: ${missingPlatforms.join(", ")}.`);
       }
 
+      let publishTriggered = false;
       if (selection.changed) {
-        await waitFor("enabled Save button", async () =>
+        const saveAction = await waitFor("enabled Save button", async () =>
           evaluate(`(() => {
             const marker = [...document.querySelectorAll('div, span')]
               .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
@@ -254,39 +255,43 @@ try {
           })()`),
         );
 
-        await sleep(1500);
-        const savedState = await waitFor("saved platform selection", async () =>
-          evaluate(`(() => {
-            const marker = [...document.querySelectorAll('div, span')]
-              .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
-            if (!marker) return { closed: true };
-            const editor = marker.closest('.tw-space-y-4.tw-relative');
-            const container = editor?.parentElement;
-            const requested = ${JSON.stringify(desiredLabels)};
-            const selectedLabels = [...(editor?.querySelectorAll('label') || [])]
-              .filter((label) => requested.includes(label.innerText.trim().split('\\n')[0]));
-            const selected = selectedLabels.length === requested.length &&
-              selectedLabels.every((label) => label.querySelector('input[type="checkbox"]')?.checked);
-            const saveButton = [...(container?.querySelectorAll('button') || [])]
-              .find((item) => ['Save', 'Save & publish'].includes(item.innerText.trim()));
-            return selected && saveButton?.disabled ? { closed: false } : false;
-          })()`),
-        );
-
-        if (!savedState.closed) {
-          await evaluate(`(() => {
-            const marker = [...document.querySelectorAll('div, span')]
-              .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
-            const container = marker?.closest('.tw-space-y-4.tw-relative')?.parentElement;
-            const button = [...(container?.querySelectorAll('button') || [])]
-              .find((item) => item.innerText.trim() === 'Cancel');
-            button?.click();
-            return true;
-          })()`);
-          await waitFor("file editor to close", async () =>
-            evaluate(`(() => ![...document.querySelectorAll('div, span')]
-              .some((item) => item.textContent.trim() === 'File ID: ${fileId}'))()`),
+        if (saveAction === "Save & publish") {
+          publishTriggered = true;
+        } else {
+          await sleep(1500);
+          const savedState = await waitFor("saved platform selection", async () =>
+            evaluate(`(() => {
+              const marker = [...document.querySelectorAll('div, span')]
+                .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
+              if (!marker) return { closed: true };
+              const editor = marker.closest('.tw-space-y-4.tw-relative');
+              const container = editor?.parentElement;
+              const requested = ${JSON.stringify(desiredLabels)};
+              const selectedLabels = [...(editor?.querySelectorAll('label') || [])]
+                .filter((label) => requested.includes(label.innerText.trim().split('\\n')[0]));
+              const selected = selectedLabels.length === requested.length &&
+                selectedLabels.every((label) => label.querySelector('input[type="checkbox"]')?.checked);
+              const saveButton = [...(container?.querySelectorAll('button') || [])]
+                .find((item) => ['Save', 'Save & publish'].includes(item.innerText.trim()));
+              return selected && saveButton?.disabled ? { closed: false } : false;
+            })()`),
           );
+
+          if (!savedState.closed) {
+            await evaluate(`(() => {
+              const marker = [...document.querySelectorAll('div, span')]
+                .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
+              const container = marker?.closest('.tw-space-y-4.tw-relative')?.parentElement;
+              const button = [...(container?.querySelectorAll('button') || [])]
+                .find((item) => item.innerText.trim() === 'Cancel');
+              button?.click();
+              return true;
+            })()`);
+            await waitFor("file editor to close", async () =>
+              evaluate(`(() => ![...document.querySelectorAll('div, span')]
+                .some((item) => item.textContent.trim() === 'File ID: ${fileId}'))()`),
+            );
+          }
         }
       } else {
         await evaluate(`(() => {
@@ -300,18 +305,20 @@ try {
         })()`);
       }
 
-      await call("Page.reload", { ignoreCache: true });
-      await waitFor("enabled Publish button", async () =>
-        evaluate(`(() => {
-          const row = [...document.querySelectorAll('a')]
-            .find((item) => item.href.includes('/files/${fileId}/download'))?.closest('tr');
-          const button = [...(row?.querySelectorAll('button') || [])]
-            .find((item) => item.innerText.trim() === 'Publish');
-          if (!button || button.disabled) return false;
-          button.click();
-          return true;
-        })()`),
-      );
+      if (!publishTriggered) {
+        await call("Page.reload", { ignoreCache: true });
+        await waitFor("enabled Publish button", async () =>
+          evaluate(`(() => {
+            const row = [...document.querySelectorAll('a')]
+              .find((item) => item.href.includes('/files/${fileId}/download'))?.closest('tr');
+            const button = [...(row?.querySelectorAll('button') || [])]
+              .find((item) => item.innerText.trim() === 'Publish');
+            if (!button || button.disabled) return false;
+            button.click();
+            return true;
+          })()`),
+        );
+      }
 
       await waitFor("Confirm publish dialog", async () =>
         evaluate(`(() => {
