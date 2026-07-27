@@ -125,7 +125,7 @@ try {
     );
     process.exitCode = 0;
   } else {
-    let missingRowPolls = 0;
+    let notReadyPolls = 0;
     const rowState = await waitFor(`mod.io file ${fileId}`, async () =>
       evaluate(`(() => {
         const anchor = [...document.querySelectorAll('a')]
@@ -143,11 +143,11 @@ try {
           filename: row.children[0]?.innerText.trim() || ''
         };
       })()`).catch(() => null).then(async (state) => {
-        if (state) {
+        if (state?.editAvailable) {
           return state;
         }
-        missingRowPolls += 1;
-        if (missingRowPolls % 10 === 0) {
+        notReadyPolls += 1;
+        if (notReadyPolls % 10 === 0) {
           await call("Page.reload", { ignoreCache: true });
         }
         return null;

@@ -5,12 +5,18 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      modio_file_id:
+        description: Existing mod.io file ID to finalize without uploading a duplicate
+        required: false
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   build:
+    if: github.event_name != 'workflow_dispatch' || inputs.modio_file_id == ''
     runs-on: windows-latest
     environment: TgBot
     env:
@@ -379,3 +385,34 @@ jobs:
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
+
+  finalize_existing_modio:
+    if: github.event_name == 'workflow_dispatch' && inputs.modio_file_id != ''
+    runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: Mod.io
+
+    defaults:
+      run:
+        shell: powershell
+
+    env:
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Finalize existing mod.io file
+        run: |
+          $ErrorActionPreference = "Stop"
+          $platforms = if ($env:MODIO_PLATFORMS) {
+              @($env:MODIO_PLATFORMS -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+          } else {
+              @("windows", "mac", "xboxseriesx", "ps5")
+          }
+
+          .\scripts\publish-modio-web.ps1 `
+            -FileId ([int64]"${{ inputs.modio_file_id }}") `
+            -Platforms $platforms `
+            -TimeoutSeconds 180
