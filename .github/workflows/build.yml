@@ -118,6 +118,9 @@ jobs:
           $ErrorActionPreference = "Stop"
           $tagName = "${{ github.ref_name }}"
           $zipPath = Join-Path $env:GITHUB_WORKSPACE "build\\DnD 5.5e AIO Russian $tagName.zip"
+          $assetLabel = "DnD 5.5e AIO Russian $tagName.zip"
+          $releaseAsset = "$zipPath#$assetLabel"
+          $expectedAssetName = "DnD.5.5e.AIO.Russian.$tagName.zip"
           $isPrerelease = "${{ steps.vars.outputs.is_prerelease }}" -eq "true"
 
           if (-not (Test-Path -LiteralPath $zipPath)) {
@@ -128,7 +131,7 @@ jobs:
 
           if ($LASTEXITCODE -ne 0) {
               $args = @(
-                "release", "create", $tagName, $zipPath,
+                "release", "create", $tagName, $releaseAsset,
                 "--repo", "${{ github.repository }}",
                 "--title", $tagName,
                 "--notes", ""
@@ -141,7 +144,7 @@ jobs:
               gh @args
           }
           else {
-              gh release upload $tagName $zipPath `
+              gh release upload $tagName $releaseAsset `
                 --repo "${{ github.repository }}" `
                 --clobber
 
@@ -160,6 +163,22 @@ jobs:
                 -H "Accept: application/vnd.github+json" `
                 "/repos/${{ github.repository }}/releases/$releaseId" `
                 --input $releaseBodyPath
+          }
+
+          $release = gh api `
+            "/repos/${{ github.repository }}/releases/tags/$tagName" |
+            ConvertFrom-Json
+          $asset = @($release.assets) |
+            Where-Object { $_.name -eq $expectedAssetName } |
+            Select-Object -First 1
+
+          if ($null -eq $asset) {
+              $actualAssetNames = @($release.assets | ForEach-Object { $_.name }) -join ", "
+              throw "Expected GitHub asset '$expectedAssetName', actual assets: $actualAssetNames"
+          }
+
+          if ($asset.label -ne $assetLabel) {
+              throw "Expected GitHub asset label '$assetLabel', actual label: '$($asset.label)'"
           }
 
       - name: Notify Telegram about build success

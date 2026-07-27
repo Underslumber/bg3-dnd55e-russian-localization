@@ -128,11 +128,14 @@ Pre-release:
 - Release message: version, changelog, `[version](url)` if derivable.
 
 ## Release Verification
-- order: `workflow_status → release_presence → assets_presence → asset_name`
-- asset_name: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
-- source_of_truth: workflow/release API; exact filename only from build/workflow output
+- order: `workflow_status → release_presence → assets_presence → asset_name → asset_label`
+- local_archive_name: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
+- asset_name: `DnD.5.5e.AIO.Russian.<tag>.zip` (GitHub-normalized; e.g. `DnD.5.5e.AIO.Russian.v1.2.3.zip`)
+- asset_label: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
+- source_of_truth: workflow/release API; local archive name comes from build output, asset name and label come from release API
 - wait_cycle_max: `30s`
 - passive_wait_total_max: `120s` (longer only on explicit request)
 - after_each_cycle: emit user-visible status
 - asset_name_mismatch: stop, report actual name
+- asset_label_mismatch: stop, report actual label
 - workflow_success_missing_asset: stop, report `release_url`, `workflow_url`, `asset_list`
