@@ -26,13 +26,13 @@ const platformLabels = new Map([
 ]);
 
 const adminUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}/admin/settings#files`;
-const deadline = Date.now() + timeoutSeconds * 1000;
 
 function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
 async function waitFor(description, operation, interval = 750) {
+  const deadline = Date.now() + timeoutSeconds * 1000;
   let lastValue;
   while (Date.now() < deadline) {
     lastValue = await operation();
@@ -125,6 +125,7 @@ try {
     );
     process.exitCode = 0;
   } else {
+    let missingRowPolls = 0;
     const rowState = await waitFor(`mod.io file ${fileId}`, async () =>
       evaluate(`(() => {
         const anchor = [...document.querySelectorAll('a')]
@@ -141,7 +142,17 @@ try {
           version: row.children[2]?.innerText.trim() || '',
           filename: row.children[0]?.innerText.trim() || ''
         };
-      })()`),
+      })()`).catch(() => null).then(async (state) => {
+        if (state) {
+          return state;
+        }
+        missingRowPolls += 1;
+        if (missingRowPolls % 10 === 0) {
+          await call("Page.reload", { ignoreCache: true });
+        }
+        return null;
+      }),
+      1500,
     );
 
     if (!rowState.editAvailable) {
@@ -157,7 +168,7 @@ try {
 
     const editorState = await waitFor(`edit panel for file ${fileId}`, async () =>
       evaluate(`(() => {
-        const marker = [...document.querySelectorAll('span')]
+        const marker = [...document.querySelectorAll('div, span')]
           .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
         const editor = marker?.closest('.tw-space-y-4.tw-relative');
         if (!editor) return null;
@@ -182,29 +193,7 @@ try {
       return platformLabels.get(platform);
     });
 
-    const saveAndPublish = editorState.buttons.find(
-      (button) => button.text === "Save & publish",
-    );
-    if (!saveAndPublish) {
-      const allSelected = desiredLabels.every(
-        (label) => editorState.platforms.find((platform) => platform.label === label)?.checked,
-      );
-      if (!allSelected) {
-        throw new Error(
-          `File ${fileId} has no Save & publish action and its platform selection is incomplete.`,
-        );
-      }
-      console.log(
-        JSON.stringify({
-          status: "already_live",
-          fileId,
-          filename: rowState.filename,
-          version: rowState.version,
-          platforms: desiredLabels,
-        }),
-      );
-      process.exitCode = 0;
-    } else if (whatIf) {
+    if (whatIf) {
       console.log(
         JSON.stringify({
           status: "whatif",
@@ -220,33 +209,76 @@ try {
       process.exitCode = 0;
     } else {
       const selection = await evaluate(`(() => {
-        const marker = [...document.querySelectorAll('span')]
+        const marker = [...document.querySelectorAll('div, span')]
           .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
         const editor = marker?.closest('.tw-space-y-4.tw-relative');
         if (!editor) return { error: 'editor_missing' };
         const requested = ${JSON.stringify(desiredLabels)};
         const result = [];
+        let changed = false;
         for (const label of [...editor.querySelectorAll('label')]) {
           const name = label.innerText.trim().split('\\n')[0];
           if (!requested.includes(name)) continue;
           const input = label.querySelector('input[type="checkbox"]');
           if (!input) return { error: 'checkbox_missing', name };
-          if (!input.checked) input.click();
+          if (!input.checked) {
+            input.click();
+            changed = true;
+          }
           result.push({ name, checked: input.checked });
         }
-        return { result };
+        return { changed, result };
       })()`);
       if (selection.error) {
         throw new Error(`Platform selection failed: ${JSON.stringify(selection)}.`);
       }
+      const missingPlatforms = desiredLabels.filter(
+        (label) => !selection.result.find((item) => item.name === label && item.checked),
+      );
+      if (missingPlatforms.length > 0) {
+        throw new Error(`Platform selection is incomplete: ${missingPlatforms.join(", ")}.`);
+      }
 
-      await waitFor("enabled Save & publish button", async () =>
-        evaluate(`(() => {
-          const marker = [...document.querySelectorAll('span')]
+      if (selection.changed) {
+        await waitFor("enabled Save button", async () =>
+          evaluate(`(() => {
+            const marker = [...document.querySelectorAll('div, span')]
+              .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
+            const container = marker?.closest('.tw-space-y-4.tw-relative')?.parentElement;
+            const button = [...(container?.querySelectorAll('button') || [])]
+              .find((item) => ['Save', 'Save & publish'].includes(item.innerText.trim()));
+            if (!button || button.disabled) return false;
+            const action = button.innerText.trim();
+            button.click();
+            return action;
+          })()`),
+        );
+
+        await waitFor("file editor to close after Save", async () =>
+          evaluate(`(() => {
+            const marker = [...document.querySelectorAll('div, span')]
+              .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
+            return !marker;
+          })()`),
+        );
+      } else {
+        await evaluate(`(() => {
+          const marker = [...document.querySelectorAll('div, span')]
             .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
           const container = marker?.closest('.tw-space-y-4.tw-relative')?.parentElement;
           const button = [...(container?.querySelectorAll('button') || [])]
-            .find((item) => item.innerText.trim() === 'Save & publish');
+            .find((item) => item.innerText.trim() === 'Cancel');
+          button?.click();
+          return true;
+        })()`);
+      }
+
+      await waitFor("enabled Publish button", async () =>
+        evaluate(`(() => {
+          const row = [...document.querySelectorAll('a')]
+            .find((item) => item.href.includes('/files/${fileId}/download'))?.closest('tr');
+          const button = [...(row?.querySelectorAll('button') || [])]
+            .find((item) => item.innerText.trim() === 'Publish');
           if (!button || button.disabled) return false;
           button.click();
           return true;
@@ -263,11 +295,13 @@ try {
         })()`),
       );
 
-      await waitFor("file manager after publish", async () =>
+      await waitFor("published file state", async () =>
         evaluate(`(() => {
-          const marker = [...document.querySelectorAll('span')]
-            .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
-          return !marker && document.body.innerText.includes('File manager');
+          const row = [...document.querySelectorAll('a')]
+            .find((item) => item.href.includes('/files/${fileId}/download'))?.closest('tr');
+          const button = [...(row?.querySelectorAll('button') || [])]
+            .find((item) => item.innerText.trim() === 'Publish');
+          return Boolean(row && button?.disabled);
         })()`),
       );
 

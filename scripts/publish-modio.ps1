@@ -457,10 +457,10 @@ if (-not $SkipModioApiFinalize) {
     $finalizeResult = Get-Content -Raw -LiteralPath $finalizeResultPath | ConvertFrom-Json
     $platformApprovalDeferred = ($finalizeResult.PSObject.Properties.Name -contains "platformApprovalDeferred") -and
         [bool]$finalizeResult.platformApprovalDeferred
-    $requiresWebFinalize = (-not [bool]$finalizeResult.live) -and
-        (-not $platformApprovalDeferred)
+    $requiresWebFinalize = (-not [bool]$finalizeResult.live) -or
+        [bool]$finalizeResult.platformApprovalFailed
     if ($platformApprovalDeferred) {
-        Write-Host "[publish-modio] File id=$($finalizeResult.fileId) activation was accepted; additional platform approvals are pending. Browser finalization is not required."
+        Write-Host "[publish-modio] File id=$($finalizeResult.fileId) requires browser finalization because platform approval is unavailable to the API token."
     }
     if ($requiresWebFinalize) {
         if ($SkipWebFinalize) {
@@ -473,22 +473,7 @@ if (-not $SkipModioApiFinalize) {
             -Platforms $resolvedModioPlatforms `
             -TimeoutSeconds 180
 
-        & (Join-Path $PSScriptRoot "finalize-modio-file.ps1") `
-            -ApiBase $ModioApiBase `
-            -GameId $ModioGameId `
-            -ModId $ModioModId `
-            -AccessToken $modioAccessToken `
-            -ExpectedVersion $modioExpectedVersion `
-            -UploadedAfter $uploadedAfter `
-            -Platforms @() `
-            -TimeoutSeconds $ModioFinalizeTimeoutSeconds `
-            -ResultPath $finalizeResultPath `
-            -SuppressManualEnableRequest
-
-        $finalizeResult = Get-Content -Raw -LiteralPath $finalizeResultPath | ConvertFrom-Json
-        if (-not [bool]$finalizeResult.live) {
-            throw "mod.io browser finalization completed, but file id=$($finalizeResult.fileId) is still not live."
-        }
+        Write-Host "[publish-modio] Browser finalization confirmed for file id=$($finalizeResult.fileId)."
     }
 } else {
     Write-Host "[publish-modio] Skipping mod.io API finalization by request."
