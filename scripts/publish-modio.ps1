@@ -18,10 +18,13 @@ param(
     [int]$ModioModId = 0,
     [string[]]$ModioPlatforms = @(),
     [int]$ModioFinalizeTimeoutSeconds = 900,
+    [string]$BrowserPath = "",
 
+    [switch]$UseToolkitCli,
     [switch]$UseGuiFallback,
     [switch]$NoGuiFallback,
     [switch]$SkipModioApiFinalize,
+    [switch]$SkipWebFinalize,
     [switch]$SkipParentModSync,
     [switch]$SkipAuthCheck,
     [switch]$WhatIf,
@@ -378,6 +381,12 @@ if ($WhatIf) {
             throw "Parent mod source was not found: '$parentModSourcePath'."
         }
     }
+    if (-not $SkipWebFinalize) {
+        & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
+            -BrowserPath $BrowserPath `
+            -Platforms $resolvedModioPlatforms `
+            -WhatIf
+    }
     $authMessage = if ($SkipAuthCheck) { "auth check skipped" } else { "auth signal validated" }
     Write-Host "[publish-modio] WhatIf completed: inputs, publish handles, $authMessage, and staging metadata were validated."
     if (-not $KeepStaging -and (Test-Path -LiteralPath $stagingRoot)) {
@@ -402,7 +411,7 @@ Copy-CleanDirectory -Source $stagedProjectPath -Destination $targetProjectPath
 $uploadedAfter = Get-Date
 $modioAccessToken = $env:MODIO_ACCESS_TOKEN
 $cliSucceeded = $false
-if (-not $UseGuiFallback) {
+if ($UseToolkitCli -and -not $UseGuiFallback) {
     try {
         Invoke-ToolkitCliPublish -ToolPath $resolvedBg3ToolPath -Project $ProjectName -Timeout $CliTimeoutSeconds
         $cliSucceeded = $true
@@ -432,6 +441,7 @@ if (-not $SkipModioApiFinalize) {
         throw "MODIO_ACCESS_TOKEN is required after Toolkit upload. Set it as a GitHub Environment secret or pass -SkipModioApiFinalize for manual finalization."
     }
 
+    $finalizeResultPath = Join-Path $stagingRoot "modio-finalize-result.json"
     & (Join-Path $PSScriptRoot "finalize-modio-file.ps1") `
         -ApiBase $ModioApiBase `
         -GameId $ModioGameId `
@@ -440,7 +450,41 @@ if (-not $SkipModioApiFinalize) {
         -ExpectedVersion $modioExpectedVersion `
         -UploadedAfter $uploadedAfter `
         -Platforms $resolvedModioPlatforms `
-        -TimeoutSeconds $ModioFinalizeTimeoutSeconds
+        -TimeoutSeconds $ModioFinalizeTimeoutSeconds `
+        -ResultPath $finalizeResultPath `
+        -SuppressManualEnableRequest
+
+    $finalizeResult = Get-Content -Raw -LiteralPath $finalizeResultPath | ConvertFrom-Json
+    $requiresWebFinalize = (-not [bool]$finalizeResult.live) -or
+        [bool]$finalizeResult.platformApprovalFailed
+    if ($requiresWebFinalize) {
+        if ($SkipWebFinalize) {
+            throw "mod.io file id=$($finalizeResult.fileId) is not live and browser finalization was disabled."
+        }
+
+        & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
+            -FileId ([int64]$finalizeResult.fileId) `
+            -BrowserPath $BrowserPath `
+            -Platforms $resolvedModioPlatforms `
+            -TimeoutSeconds 180
+
+        & (Join-Path $PSScriptRoot "finalize-modio-file.ps1") `
+            -ApiBase $ModioApiBase `
+            -GameId $ModioGameId `
+            -ModId $ModioModId `
+            -AccessToken $modioAccessToken `
+            -ExpectedVersion $modioExpectedVersion `
+            -UploadedAfter $uploadedAfter `
+            -Platforms @() `
+            -TimeoutSeconds $ModioFinalizeTimeoutSeconds `
+            -ResultPath $finalizeResultPath `
+            -SuppressManualEnableRequest
+
+        $finalizeResult = Get-Content -Raw -LiteralPath $finalizeResultPath | ConvertFrom-Json
+        if (-not [bool]$finalizeResult.live) {
+            throw "mod.io browser finalization completed, but file id=$($finalizeResult.fileId) is still not live."
+        }
+    }
 } else {
     Write-Host "[publish-modio] Skipping mod.io API finalization by request."
 }

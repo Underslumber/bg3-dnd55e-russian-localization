@@ -13,6 +13,9 @@ from typing import Any
 TAG_PATTERN = re.compile(
     r"^v(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:-(?P<suffix>[0-9A-Za-z][0-9A-Za-z.-]*))?$"
 )
+PARENT_VERSION_PATTERN = re.compile(
+    r"^(?P<major>\d+)\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?(?:\.(?P<build>\d+))?$"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -41,6 +44,24 @@ def parse_args() -> argparse.Namespace:
         "--output-path",
         default="build/autopilot/resolved-tag.json",
         dest="output_path",
+    )
+    parser.add_argument(
+        "-ParentVersion",
+        "--parent-version",
+        default="",
+        dest="parent_version",
+    )
+    parser.add_argument(
+        "-PreviousParentVersion",
+        "--previous-parent-version",
+        default="",
+        dest="previous_parent_version",
+    )
+    parser.add_argument(
+        "-BaselineTag",
+        "--baseline-tag",
+        default="v0.4.0",
+        dest="baseline_tag",
     )
     return parser.parse_args()
 
@@ -84,6 +105,47 @@ def next_patch(version: tuple[int, int, int]) -> tuple[int, int, int]:
     return version[0], version[1], version[2] + 1
 
 
+def parse_parent_version(value: str) -> tuple[int, int, int, int] | None:
+    if not value.strip():
+        return None
+    match = PARENT_VERSION_PATTERN.fullmatch(value.strip())
+    if match is None:
+        raise ValueError(f"Parent version '{value}' is invalid. Expected X.Y, X.Y.Z or X.Y.Z.B.")
+    return (
+        int(match.group("major")),
+        int(match.group("minor")),
+        int(match.group("patch") or 0),
+        int(match.group("build") or 0),
+    )
+
+
+def resolve_policy_target(
+    *,
+    last_stable_version: tuple[int, int, int],
+    baseline_version: tuple[int, int, int],
+    parent_version: tuple[int, int, int, int] | None,
+    previous_parent_version: tuple[int, int, int, int] | None,
+) -> tuple[tuple[int, int, int], str]:
+    if last_stable_version < baseline_version:
+        return baseline_version, "baseline"
+
+    if parent_version is None or previous_parent_version is None:
+        return next_patch(last_stable_version), "translation_patch"
+
+    if parent_version[:2] < previous_parent_version[:2]:
+        raise ValueError(
+            "Parent major/minor version moved backwards: "
+            f"{previous_parent_version[0]}.{previous_parent_version[1]} -> "
+            f"{parent_version[0]}.{parent_version[1]}."
+        )
+
+    if parent_version[0] > previous_parent_version[0]:
+        return (last_stable_version[0] + 1, 0, 0), "parent_major"
+    if parent_version[1] > previous_parent_version[1]:
+        return (last_stable_version[0], last_stable_version[1] + 1, 0), "parent_minor"
+    return next_patch(last_stable_version), "translation_patch"
+
+
 def main() -> int:
     args = parse_args()
     repository_path = Path(args.repository_path).resolve()
@@ -98,6 +160,14 @@ def main() -> int:
             for tag, parsed in valid_tags
             if parsed is not None and parsed[3] is None
         ]
+        parsed_baseline = parse_tag(args.baseline_tag.strip())
+        if parsed_baseline is None or parsed_baseline[3] is not None:
+            raise ValueError(
+                f"Baseline tag '{args.baseline_tag}' is invalid. Expected stable tag vX.Y.Z."
+            )
+        baseline_version = (parsed_baseline[0], parsed_baseline[1], parsed_baseline[2])
+        parent_version = parse_parent_version(args.parent_version)
+        previous_parent_version = parse_parent_version(args.previous_parent_version)
 
         if args.custom_tag.strip():
             custom_tag = args.custom_tag.strip()
@@ -112,9 +182,15 @@ def main() -> int:
             resolved_tag = custom_tag
             base_version = (parsed_custom[0], parsed_custom[1], parsed_custom[2])
             source = "custom"
+            policy_reason = "custom"
         else:
             last_stable_version = max((version for _, version in stable_versions), default=(0, 0, 0))
-            target_base = next_patch(last_stable_version)
+            target_base, policy_reason = resolve_policy_target(
+                last_stable_version=last_stable_version,
+                baseline_version=baseline_version,
+                parent_version=parent_version,
+                previous_parent_version=previous_parent_version,
+            )
 
             if args.release_channel == "stable":
                 resolved_tag = f"v{format_base(target_base)}"
@@ -141,6 +217,10 @@ def main() -> int:
             "resolvedTag": resolved_tag,
             "baseVersion": format_base(base_version),
             "source": source,
+            "policyReason": policy_reason,
+            "baselineTag": args.baseline_tag,
+            "parentVersion": args.parent_version,
+            "previousParentVersion": args.previous_parent_version,
             "customTagProvided": bool(args.custom_tag.strip()),
             "validTagCount": len(valid_tags),
             "stableTagCount": len(stable_versions),

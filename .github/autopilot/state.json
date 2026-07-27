@@ -9,6 +9,12 @@
   },
   "release": {
     "last_tag": "v0.3.161",
-    "last_release_commit": "7a933e154235834a46f411ce8901483fc2f8a8dd"
+    "last_release_commit": "7a933e154235834a46f411ce8901483fc2f8a8dd",
+    "version_policy": {
+      "mode": "upstream_semver",
+      "baseline_tag": "v0.4.0",
+      "parent_version": "4.11.14.0",
+      "parent_version64": "145663330512535552"
+    }
   }
 }

@@ -8,6 +8,8 @@
     [datetime]$UploadedAfter = (Get-Date).AddHours(-2),
     [string[]]$Platforms = @(),
     [int]$TimeoutSeconds = 900,
+    [string]$ResultPath = "",
+    [switch]$SuppressManualEnableRequest,
     [switch]$WhatIf
 )
 
@@ -280,6 +282,28 @@ function Test-ModioForbidden {
     return ($message -match '\(HTTP 403\)')
 }
 
+function Write-FinalizeResult {
+    param(
+        [object]$File,
+        [bool]$IsLive,
+        [bool]$PlatformApprovalFailed
+    )
+
+    if (-not $ResultPath) {
+        return
+    }
+    $resolvedResultPath = [IO.Path]::GetFullPath($ResultPath)
+    New-Item -ItemType Directory -Path (Split-Path -Parent $resolvedResultPath) -Force | Out-Null
+    [ordered]@{
+        fileId = [int64]$File.id
+        filename = [string]$File.filename
+        version = [string]$File.version
+        live = $IsLive
+        platformApprovalFailed = $PlatformApprovalFailed
+    } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $resolvedResultPath -Encoding utf8
+    Write-Host "[finalize-modio-file] Result written: $resolvedResultPath"
+}
+
 function Send-ManualEnableRequest {
     param(
         [object]$File,
@@ -374,6 +398,7 @@ Write-Host "[finalize-modio-file] Platforms=$($Platforms -join ',') ExpectedVers
 $file = Wait-ForScannedFile -UploadedAfterUnix $uploadedAfterUnix
 
 if ($WhatIf) {
+    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$false
     Write-Host "[finalize-modio-file] WhatIf completed: selected file id=$($file.id) filename=$($file.filename); no platform/live update was sent."
     exit 0
 }
@@ -419,6 +444,7 @@ Write-Host "[finalize-modio-file] Live update requested for file id=$($updatedFi
 $activeModfileId = Get-ActiveModfileId
 $isLive = ($null -ne $activeModfileId) -and ([int64]$activeModfileId -eq [int64]$file.id)
 if ($isLive) {
+    Write-FinalizeResult -File $file -IsLive:$true -PlatformApprovalFailed:$platformApprovalFailed
     Write-Host "[finalize-modio-file] Live status confirmed: active modfile id=$activeModfileId."
 } else {
     $manualReason = if ($platformApprovalFailed) {
@@ -426,6 +452,9 @@ if ($isLive) {
     } else {
         "mod.io has not reported this file as the active modfile."
     }
+    Write-FinalizeResult -File $file -IsLive:$false -PlatformApprovalFailed:$platformApprovalFailed
     Write-Host "[finalize-modio-file] File id=$($file.id) is uploaded but NOT live: $manualReason"
-    Send-ManualEnableRequest -File $file -ExpectedVersion $ExpectedVersion -Reason $manualReason
+    if (-not $SuppressManualEnableRequest) {
+        Send-ManualEnableRequest -File $file -ExpectedVersion $ExpectedVersion -Reason $manualReason
+    }
 }

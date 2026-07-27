@@ -1,6 +1,8 @@
 name: Autopilot Sync
 
 on:
+  schedule:
+    - cron: "15 */6 * * *"
   workflow_dispatch:
     inputs:
       mode_override:
@@ -73,6 +75,7 @@ jobs:
       custom_tag: ${{ steps.preflight.outputs.custom_tag }}
       reason: ${{ steps.preflight.outputs.reason }}
       upstream_changed: ${{ steps.preflight.outputs.upstream_changed }}
+      parent_version_changed: ${{ steps.preflight.outputs.parent_version_changed }}
       previous_sha256: ${{ steps.preflight.outputs.previous_sha256 }}
       current_sha256: ${{ steps.preflight.outputs.current_sha256 }}
       should_process: ${{ steps.preflight.outputs.should_process }}
@@ -164,6 +167,7 @@ jobs:
           }
 
           $upstreamChanged = [bool]$report.changed
+          $parentVersionChanged = [bool]$report.parentVersionChanged
           $shouldProcess = $effectiveMode -ne "off" -and ($upstreamChanged -or $forceCheck -or $forceRelease)
           $runTrigger = if ("${{ github.event_name }}" -eq "workflow_dispatch") { "manual" } else { "${{ github.event_name }}" }
 
@@ -187,6 +191,7 @@ jobs:
           "custom_tag=$($env:INPUT_CUSTOM_TAG ?? '')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "reason=$($env:INPUT_REASON ?? '')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "upstream_changed=$($upstreamChanged.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "parent_version_changed=$($parentVersionChanged.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "previous_sha256=$($report.previousProcessedSha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "current_sha256=$($report.currentSha256)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "should_process=$($shouldProcess.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8

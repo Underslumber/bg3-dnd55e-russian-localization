@@ -774,7 +774,7 @@ function Select-ToolkitProjectFromBrowser {
     # Find the project card via UIA (RadioButton whose inner Edit Value matches ProjectName).
     # This works regardless of browser window size or DPI — no hardcoded card coordinates.
     $card = $null
-    $cardSearchDeadline = (Get-Date).AddSeconds(15)
+    $cardSearchDeadline = (Get-Date).AddSeconds(20)
     do {
         $card = Find-BrowserProjectCard -ProcessId $ProcessId -ProjectName $ProjectName
         if ($card) { break }
@@ -782,12 +782,21 @@ function Select-ToolkitProjectFromBrowser {
     } while ((Get-Date) -lt $cardSearchDeadline)
 
     if (-not $card) {
-        throw "Project card '$ProjectName' was not found in Toolkit Browser via UIA after 15s."
+        Write-Diagnostic "Project card was not exposed by UIA; using verified browser-relative coordinates."
+        if ($browser) {
+            $cardX = [int](($browser.Left + $browser.Right) / 2)
+            $cardY = [int]($browser.Top + 92)
+        } else {
+            $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+            $cardX = [int]($screen.Width / 2)
+            $cardY = 176
+        }
+    } else {
+        $cardRect = $card.Current.BoundingRectangle
+        $cardX = [int]($cardRect.X + $cardRect.Width / 2)
+        $cardY = [int]($cardRect.Y + $cardRect.Height / 2)
+        Write-Diagnostic "Project card found via UIA: rect=($([int]$cardRect.X),$([int]$cardRect.Y)) $([int]$cardRect.Width)x$([int]$cardRect.Height) center=($cardX,$cardY)."
     }
-    $cardRect = $card.Current.BoundingRectangle
-    $cardX = [int]($cardRect.X + $cardRect.Width / 2)
-    $cardY = [int]($cardRect.Y + $cardRect.Height / 2)
-    Write-Diagnostic "Project card found via UIA: rect=($([int]$cardRect.X),$([int]$cardRect.Y)) $([int]$cardRect.Width)x$([int]$cardRect.Height) center=($cardX,$cardY)."
 
     Write-Diagnostic "Selecting project card via UIA + mouse click at ($cardX,$cardY)."
     try {
@@ -1157,6 +1166,11 @@ function Open-ProjectSettings {
     }
     Write-Diagnostic "Found 'Project' menu item via UIA: '$($projectMenu.Current.Name)'."
 
+    Write-Diagnostic "Foregrounding Toolkit before Project menu expansion."
+    Set-ToolkitForeground -ProcessId $ProcessId
+    Send-KeyToForeground -Key "{ESC}"
+    Start-Sleep -Milliseconds 300
+
     # Expand Project menu
     try {
         $expand = $projectMenu.GetCurrentPattern([System.Windows.Automation.ExpandCollapsePattern]::Pattern)
@@ -1225,8 +1239,7 @@ function Wait-ForLocalPublish {
         return $false
     }
 
-    $projectRoot = Split-Path -Parent $ProjectPath
-    $modsRoot = Split-Path -Parent $projectRoot
+    $modsRoot = Join-Path $env:LOCALAPPDATA "Larian Studios\Baldur's Gate 3\Mods"
     if (-not (Test-Path -LiteralPath $modsRoot)) {
         Write-Diagnostic "BG3 Mods root was not found for local publish detection: $modsRoot"
         return $false
@@ -1532,6 +1545,11 @@ try {
         Write-Diagnostic "Waiting 30s for Toolkit to fully load project meta..."
         Start-Sleep -Seconds 30
         Save-DiagnosticScreenshot -Tag "04b-after-meta-load-wait"
+        Write-Diagnostic "Checking for late level selector before Project Settings..."
+        if (-not (Dismiss-LevelSelector -ProcessId $process.Id -TimeoutSeconds 20)) {
+            throw "Late Toolkit level selector browser did not close before Project Settings."
+        }
+        Save-DiagnosticScreenshot -Tag "04c-after-late-level-selector"
     }
 
     Save-DiagnosticScreenshot -Tag "05-before-open-project-settings"

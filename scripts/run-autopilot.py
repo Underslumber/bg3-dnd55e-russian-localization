@@ -146,6 +146,11 @@ def ensure_state_shape(payload: dict[str, Any] | None) -> dict[str, Any]:
     current = payload if isinstance(payload, dict) else {}
     upstream = current.get("upstream") if isinstance(current.get("upstream"), dict) else {}
     release = current.get("release") if isinstance(current.get("release"), dict) else {}
+    version_policy = (
+        release.get("version_policy")
+        if isinstance(release.get("version_policy"), dict)
+        else {}
+    )
     return {
         "upstream": {
             "english_xml_url": str(upstream.get("english_xml_url") or ""),
@@ -158,6 +163,12 @@ def ensure_state_shape(payload: dict[str, Any] | None) -> dict[str, Any]:
         "release": {
             "last_tag": str(release.get("last_tag") or ""),
             "last_release_commit": str(release.get("last_release_commit") or ""),
+            "version_policy": {
+                "mode": str(version_policy.get("mode") or "upstream_semver"),
+                "baseline_tag": str(version_policy.get("baseline_tag") or "v0.4.0"),
+                "parent_version": str(version_policy.get("parent_version") or ""),
+                "parent_version64": str(version_policy.get("parent_version64") or ""),
+            },
         },
     }
 
@@ -397,6 +408,13 @@ def main() -> int:
             "englishXmlUrl": str(upstream_check.get("upstreamEnglishXmlUrl") or args.upstream_english_url),
             "previousProcessedSha256": str(upstream_check.get("previousProcessedSha256") or ""),
             "currentSha256": str(upstream_check.get("currentSha256") or ""),
+            "englishChanged": bool(upstream_check.get("englishChanged")),
+            "parentMetaUrl": str(upstream_check.get("parentMetaUrl") or ""),
+            "previousParentVersion64": str(upstream_check.get("previousParentVersion64") or ""),
+            "previousParentVersion": str(upstream_check.get("previousParentVersion") or ""),
+            "currentParentVersion64": str(upstream_check.get("currentParentVersion64") or ""),
+            "currentParentVersion": str(upstream_check.get("currentParentVersion") or ""),
+            "parentVersionChanged": bool(upstream_check.get("parentVersionChanged")),
             "changed": bool(upstream_check.get("changed")),
             "etag": str(upstream_check.get("etag") or ""),
             "lastModified": str(upstream_check.get("lastModified") or ""),
@@ -461,7 +479,24 @@ def main() -> int:
 
         resolved_tag = ""
         if args.mode == "full":
+            parent_meta_url = report["upstream"]["parentMetaUrl"]
+            if not parent_meta_url:
+                raise ValueError("URL meta.lsx родительского мода отсутствует в upstream-check.")
+            run_command(
+                [
+                    sys.executable,
+                    str(repository_path / ".agents" / "skills" / "meta-sync" / "scripts" / "sync-parent-meta.py"),
+                    "--parent-meta-url",
+                    parent_meta_url,
+                    "--target-meta-path",
+                    str(repository_path / "Mods" / "DnD 5.5e AIO Russian" / "meta.lsx"),
+                ],
+                repository_path,
+                "Синхронизация метаданных родительского мода",
+            )
+
             release_channel = resolve_release_channel(args.release_channel)
+            version_policy = state["release"]["version_policy"]
             resolve_args = [
                 sys.executable,
                 str(scripts_dir / "resolve-release-tag.py"),
@@ -471,6 +506,12 @@ def main() -> int:
                 release_channel,
                 "--output-path",
                 str(resolved_tag_path),
+                "--parent-version",
+                report["upstream"]["currentParentVersion"],
+                "--previous-parent-version",
+                version_policy["parent_version"],
+                "--baseline-tag",
+                version_policy["baseline_tag"],
             ]
             if args.custom_tag.strip():
                 resolve_args.extend(["--custom-tag", args.custom_tag.strip()])
@@ -507,6 +548,12 @@ def main() -> int:
         if resolved_tag:
             state["release"]["last_tag"] = resolved_tag
             state["release"]["last_release_commit"] = head_sha
+            state["release"]["version_policy"]["parent_version"] = report["upstream"][
+                "currentParentVersion"
+            ]
+            state["release"]["version_policy"]["parent_version64"] = report["upstream"][
+                "currentParentVersion64"
+            ]
         write_json(state_path, state)
         report["actions"]["stateUpdated"] = True
 
