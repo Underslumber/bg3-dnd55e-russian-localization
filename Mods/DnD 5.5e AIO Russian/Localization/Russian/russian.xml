@@ -851,7 +851,7 @@
   <content contentuid="hae25381bgef2fgb3e0ga319g98ed9f6981b8" version="1">Везунчик</content>
   <content contentuid="h8708a627g8357g1f81g5bfdgc87a5b00b9fe" version="1">Вы получаете количество &lt;LSTag Type="ActionResource" Tooltip="LuckPoint"&gt;очков удачи&lt;/LSTag&gt;, равное вашему бонусу умения. Вы можете тратить эти очки, чтобы получить &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; на &lt;LSTag Tooltip="AttackRoll"&gt;броски атаки&lt;/LSTag&gt;, &lt;LSTag Tooltip="AbilityCheck"&gt;проверки характеристик&lt;/LSTag&gt; или &lt;LSTag Tooltip="SavingThrow"&gt;Испытания&lt;/LSTag&gt;, или заставить противника перебросить &lt;LSTag Tooltip="AttackRoll"&gt;бросок атаки&lt;/LSTag&gt;.</content>
   <content contentuid="h03f42ae5g766bg7991gbcd3gacac23773d6c" version="1">Музыкант</content>
-  <content contentuid="hbc4803a8gd847gc698gdcb8g8e6853f62ff5" version="1">Обучение игре на инструментах. Вы получаете владение тремя музыкальными инструментами.&lt;br&gt;&lt;br&gt;Вдохновляющая песня. Завершив короткий привал или долгий отдых, вы можете сыграть мелодию на музыкальном инструменте, которым владеете, и даровать «Вдохновение барда» союзникам, слышащим эту песню. Количество союзников, на которых вы можете подействовать таким образом, равно вашему бонусу умения.</content>
+  <content contentuid="hbc4803a8gd847gc698gdcb8g8e6853f62ff5" version="2">Обучение игре на инструментах. Вы получаете владение тремя музыкальными инструментами.&lt;br&gt;&lt;br&gt;Вдохновляющая песня. Завершив короткий привал или долгий отдых, вы можете сыграть мелодию на музыкальном инструменте, которым владеете, и даровать «Вдохновение барда» союзникам, слышащим эту песню. Количество союзников, на которых вы можете подействовать таким образом, равно вашему бонусу умения.</content>
   <content contentuid="hd0637db0gbaaag6a4eg8e04g319e2086edb5" version="1">Дикий атакующий</content>
   <content contentuid="he25db363g9a78g7f74gf0acgfff6880e8210" version="1">Совершая атаки оружием, вы бросаете кость урона дважды и используете наибольший результат.</content>
   <content contentuid="hb4c3b9b7g429bg1543gc57cg6b3b5b25dd7e" version="1">Драчун</content>
@@ -5359,4 +5359,5 @@
   <content contentuid="hda79756dg4b88g4c2eg8d83g99f61071b3a7" version="1">Посвященный в магию: Потусторонний разряд</content>
   <content contentuid="hdf8112dfgd5ddg43f2g923fg9c22837a9136" version="1">Договор гримуара: Фокус</content>
   <content contentuid="hf2c58c13g34f2g4e5eg89a5gf8e830952d02" version="1">Договор гримуара: Вы выучили выбранный фокус.</content>
+  <content contentuid="h37588848gdc10g2334gdf51ga179befdb18d" version="1">Завершив короткий или долгий отдых, вы можете исполнить песню на музыкальном инструменте, которым вы владеете, и даровать героическое вдохновение союзникам, слышащим эту песню. Количество союзников, на которых вы можете подействовать таким образом, равно вашему бонусу умения.</content>
 </contentList>
