@@ -8,8 +8,8 @@
     "last_seen_last_modified": ""
   },
   "release": {
-    "last_tag": "v0.4.12",
-    "last_release_commit": "e476cbaa5f24b58a9de0a759d0d32653adb4ea1e",
+    "last_tag": "v0.4.13",
+    "last_release_commit": "1650c6097588ebcf070970ad3589bb2c2838423e",
     "version_policy": {
       "mode": "upstream_semver",
       "baseline_tag": "v0.4.0",
