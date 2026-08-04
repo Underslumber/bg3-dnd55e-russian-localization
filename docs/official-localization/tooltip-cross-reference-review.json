@@ -1,0 +1,2553 @@
+{
+  "schemaVersion": 1,
+  "basis": {
+    "localizationMainCommit": "6592e8fb04b74d030491cb586d5567987401d604",
+    "parentModCommit": "c4e64e26a97d62c0acef629ff5b9f957b23cba56",
+    "reviewedRawCandidates": 456,
+    "confirmedAdditions": 325,
+    "rejectedLexicalMatches": 164,
+    "excludedUncertainCases": 4
+  },
+  "textReplacements": [
+    {
+      "contentuid": "h04219409g50b2gc6a1gd8efg9b21029bf88e",
+      "expectedText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках <LSTag Tooltip=\"AbilityCheck\">Выносливости</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>.",
+      "replacementText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> Выносливости и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>."
+    },
+    {
+      "contentuid": "h0e2f0dfaga02cg9ad3g9586ga7ad2ece81cf",
+      "expectedText": "Вы получаете владение навыками Проницательности и Медицины. Вы можете создать два алхимических раствора вместо одного при комбинировании экстрактов, если преуспеете в <LSTag Tooltip=\"DifficultyClass\">Сл</LSTag> 15 <LSTag Tooltip=\"AbilityCheck\">Проверке Медицины</LSTag>.",
+      "replacementText": "Вы получаете владение навыками Проницательности и Медицины. Вы можете создать два алхимических раствора вместо одного при комбинировании экстрактов, если преуспеете в <LSTag Tooltip=\"DifficultyClass\">КС</LSTag> 15 <LSTag Tooltip=\"AbilityCheck\">Проверке Медицины</LSTag>."
+    },
+    {
+      "contentuid": "h0e7ef600g82aegeba0g077eg2ddad69731f8",
+      "expectedText": "Окружены дикой магией варвара. Ваш <LSTag Tooltip=\"ArmourClass\">Класс доспеха</LSTag> увеличивается на величину, равную вашему бонусу к урону от ярости, пока ваша <LSTag Type=\"Status\" Tooltip=\"RAGE\">Ярость</LSTag> не закончится.",
+      "replacementText": "Окружены дикой магией варвара. Ваш <LSTag Tooltip=\"ArmourClass\">КБ</LSTag> увеличивается на величину, равную вашему бонусу к урону от ярости, пока ваша <LSTag Type=\"Status\" Tooltip=\"RAGE\">Ярость</LSTag> не закончится."
+    },
+    {
+      "contentuid": "h11528aaeg2fcfg0c2cge5e2g2687b402d219",
+      "expectedText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках характеристик за счет <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag> и при <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>.",
+      "replacementText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> Харизмы и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>."
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "expectedText": "Вы изучаете Друидический язык и один заговор из списка заклинаний друида. Для вас он считается бардовским заклинанием, но не учитывается в числе известных вам заговоров.\n\nКроме того, выберите один из следующих навыков: Дрессировка, Проницательность, Медицина, Природа, Восприятие или Выживание. Вы получаете владение этим навыком.",
+      "replacementText": "Вы изучаете Друидический язык и один заговор из списка заклинаний друида. Для вас он считается бардовским заклинанием, но не учитывается в числе известных вам заговоров.\n\nКроме того, выберите один из следующих навыков: Дрессировка, Проницательность, Медицина, Природа, Внимание или Выживание. Вы получаете владение этим навыком."
+    },
+    {
+      "contentuid": "h1934119dgbdccgc443gb17bg5e8ebb08a907",
+      "expectedText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Мудрости</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>.",
+      "replacementText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Мудрости и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>."
+    },
+    {
+      "contentuid": "h1a4c39begecc3g2a3aga0f4g878b9fc63e54",
+      "expectedText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Ловкости</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>.",
+      "replacementText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Ловкости и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>."
+    },
+    {
+      "contentuid": "h2237238fg8d1fgafb3g32e9ge243c83acb05",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Силы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Силы."
+    },
+    {
+      "contentuid": "h22892942gd938g469dg96bag67bafebbd017",
+      "expectedText": "Дает <LSTag Tooltip=\"TemporaryHitPoints\">временные очки здоровья</LSTag>, равные удвоенному уровню вашего персонажа. Когда <LSTag Tooltip=\"TemporaryHitPoints\">временные очки здоровья</LSTag> закончатся, щит выпускает взрывной поток чешуек в радиусе [1], и нанесет [2]. Есть возможность наложить <LSTag Type=\"Status\" Tooltip=\"BLEEDING\">кровотечение</LSTag> на 2 хода.",
+      "replacementText": "Дает <LSTag Tooltip=\"TemporaryHitPoints\">временные ОЗ</LSTag>, равные удвоенному уровню вашего персонажа. Когда <LSTag Tooltip=\"TemporaryHitPoints\">временные ОЗ</LSTag> закончатся, щит выпускает взрывной поток чешуек в радиусе [1], и нанесет [2]. Есть возможность наложить <LSTag Type=\"Status\" Tooltip=\"BLEEDING\">кровотечение</LSTag> на 2 хода."
+    },
+    {
+      "contentuid": "h298282ecgdcceg3f36g9e62g51935866728c",
+      "expectedText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках <LSTag Tooltip=\"AbilityCheck\">характеристик</LSTag> Силы и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>.",
+      "replacementText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> Силы и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>."
+    },
+    {
+      "contentuid": "h357ee2f8gc6c0g20c2gb379gb5e5956b36c8",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Выносливости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Выносливости."
+    },
+    {
+      "contentuid": "h4016a9a2g8d51g2860gce0aga3dae07e0895",
+      "expectedText": "Вы пытаетесь подчинить себе скудоумное существо. Существо с <LSTag Tooltip=\"Intelligence\">Интеллектом</LSTag> 3 или ниже должно пройти <LSTag Tooltip=\"Intelligence\">испытание</LSTag> <LSTag Tooltip=\"SavingThrow\">Интеллекта</LSTag>, иначе оно будет <LSTag Type=\"Status\" Tooltip=\"AWAKEN\">подчинено</LSTag> вами, пока вы не завершите <LSTag Tooltip=\"LongRest\">долгий отдых</LSTag>.",
+      "replacementText": "Вы пытаетесь подчинить себе скудоумное существо. Существо с <LSTag Tooltip=\"Intelligence\">Интеллектом</LSTag> 3 или ниже должно пройти <LSTag Tooltip=\"SavingThrow\">испытание</LSTag> <LSTag Tooltip=\"Intelligence\">Интеллекта</LSTag>, иначе оно будет <LSTag Type=\"Status\" Tooltip=\"AWAKEN\">подчинено</LSTag> вами, пока вы не завершите <LSTag Tooltip=\"LongRest\">долгий отдых</LSTag>."
+    },
+    {
+      "contentuid": "h41db93b6g0ef1ge843g94a8ga0ab1175d337",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Ловкости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Ловкости."
+    },
+    {
+      "contentuid": "h43d4b358gb8f2ga4c7g6624g8428e6a2d7e0",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Мудрости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Мудрости."
+    },
+    {
+      "contentuid": "h4c2c7cc7g3da7g3e9age71cg394d7f82623e",
+      "expectedText": "Прокляньте существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag> и <LSTag Tooltip=\"SavingThrow\">Испытания</LSTag>.",
+      "replacementText": "Прокляньте существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Интеллекта и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>."
+    },
+    {
+      "contentuid": "h4cdd970cg98a9g8973ga41eg3a0152f76dc6",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Выносливости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Выносливости."
+    },
+    {
+      "contentuid": "h4d10531bg4d81g6ccegbf1bgda8710332c45",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Ловкости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Ловкости."
+    },
+    {
+      "contentuid": "h51855810g14b0g7ed1ge485ged81cdef077a",
+      "expectedText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>.",
+      "replacementText": "Прокляните существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> Интеллекта и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>."
+    },
+    {
+      "contentuid": "h5248daffg03b1g4eeeg4498gaafc4796eece",
+      "expectedText": "Безопасное отступление: передвижение не провоцирует <LSTag Tooltip=\"OpportunityAttack\">атаки по возможности</LSTag>.",
+      "replacementText": "Безопасное отступление: передвижение не провоцирует <LSTag Tooltip=\"OpportunityAttack\">внеочередные атаки</LSTag>."
+    },
+    {
+      "contentuid": "h583c93b5gb72dg99a7g150fgbea09cdefdb0",
+      "expectedText": "Цель получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"Intelligence\">проверки характеристик</LSTag> <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>, а также получает состояние <LSTag Type=\"Status\" Tooltip=\"TIMMASK_SPORES\">Смятение</LSTag>.",
+      "replacementText": "Цель получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"Intelligence\">Интеллект</LSTag> (<LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>), а также получает состояние <LSTag Type=\"Status\" Tooltip=\"TIMMASK_SPORES\">Смятение</LSTag>."
+    },
+    {
+      "contentuid": "h58e709b8gc090g659agd6b3g9e417bbbda73",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Интеллекта."
+    },
+    {
+      "contentuid": "h5cc8709eg0974gcec1g323cg0a299d48a147",
+      "expectedText": "У вас есть <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Внимательности</LSTag> для обнаружения скрытых объектов.<br><br>У вас есть <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на <LSTag Tooltip=\"SavingThrow\">испытания</LSTag> для избегания ловушек и <LSTag Tooltip=\"Resistant\">устойчивость</LSTag> к урону от них.<br><br>Вы видите в темноте на расстояние до [1].",
+      "replacementText": "У вас есть <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Внимания для обнаружения скрытых объектов.<br><br>У вас есть <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на <LSTag Tooltip=\"SavingThrow\">испытания</LSTag> для избегания ловушек и <LSTag Tooltip=\"Resistant\">устойчивость</LSTag> к урону от них.<br><br>Вы видите в темноте на расстояние до [1]."
+    },
+    {
+      "contentuid": "h61fc3e75g1ec0gc89ag9436g4e8ddfbca849",
+      "expectedText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках <LSTag Tooltip=\"AbilityCheck\">Силы</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>.",
+      "replacementText": "Прокляните существо своим касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> Силы и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>."
+    },
+    {
+      "contentuid": "h6299a92eg8049g117bga5b7g17d26b0619d6",
+      "expectedText": "Бросить вызов смерти. Вы совершаете испытания от смерти с преимуществом.\n\nБыстрое восстановление. Вы восстанавливаете максимально возможное количество <LSTag Tooltip=\"HitPoints\">очков здоровья</LSTag> при исцелении.",
+      "replacementText": "Бросить вызов смерти. Вы совершаете испытания от смерти с преимуществом.\n\nБыстрое восстановление. Вы восстанавливаете максимально возможное количество <LSTag Tooltip=\"HitPoints\">ОЗ</LSTag> при исцелении."
+    },
+    {
+      "contentuid": "h65fc6538g9b83gcdc4g67cfgc411ccba18fd",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Ловкости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Ловкости."
+    },
+    {
+      "contentuid": "h703b6d99g4f19g3cfeg86abgacc9632e7471",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Выносливости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Выносливости."
+    },
+    {
+      "contentuid": "h7362e90bg474ag92ddg105fg55c4d3f42ec4",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Харизмы."
+    },
+    {
+      "contentuid": "h7a57f594g5b53g2b67g6e93g91c13a46a6ae",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Силы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Силы."
+    },
+    {
+      "contentuid": "h848bdb6bgb349gd182ga57fg8c2e333de3c6",
+      "expectedText": "Прокляньте существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>.",
+      "replacementText": "Прокляньте существо касанием. Оно получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Харизмы и <LSTag Tooltip=\"SavingThrow\">испытания</LSTag>."
+    },
+    {
+      "contentuid": "h89057920g5fe6gc589g4d87ge015cd8a0c2b",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Харизмы."
+    },
+    {
+      "contentuid": "h93b664f7ge625g3785ge62age99ab6de787e",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Силы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Силы."
+    },
+    {
+      "contentuid": "h96997b05g813bg4cedge308g8b97a39ea6cc",
+      "expectedText": "Уменьшите получаемый дробящий, колющий или рубящий урон на 1к10 + ваш модификатор <LSTag Tooltip=\"AbilityModifier\">Ловкости</LSTag> + ваш уровень монаха.<br><br>Если это уменьшает урон до 0, вы можете потратить 1 очко Ки, чтобы использовать «Перенаправление атак».",
+      "replacementText": "Уменьшите получаемый дробящий, колющий или рубящий урон на 1к10 + ваш <LSTag Tooltip=\"AbilityModifier\">модификатор</LSTag> Ловкости + ваш уровень монаха.<br><br>Если это уменьшает урон до 0, вы можете потратить 1 очко Ки, чтобы использовать «Перенаправление атак»."
+    },
+    {
+      "contentuid": "h99671ac5g1722g6772gd253gca4101371e65",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Мудрости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Мудрости."
+    },
+    {
+      "contentuid": "h9dd8a551g9f01g98dbg64f1ga485e59f0e9d",
+      "expectedText": "Вы получаете <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Восприятия</LSTag> для обнаружения скрытых объектов и на <LSTag Tooltip=\"SavingThrow\">испытания</LSTag> для избежания или сопротивления ловушкам.<br><br>Вы получаете <LSTag Tooltip=\"Resistant\">устойчивость</LSTag> к урону от ловушек.<br><br>Вы видите в темноте.",
+      "replacementText": "Вы получаете <LSTag Tooltip=\"Advantage\">преимущество</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Внимания для обнаружения скрытых объектов и на <LSTag Tooltip=\"SavingThrow\">испытания</LSTag> для избежания или сопротивления ловушкам.<br><br>Вы получаете <LSTag Tooltip=\"Resistant\">устойчивость</LSTag> к урону от ловушек.<br><br>Вы видите в темноте."
+    },
+    {
+      "contentuid": "h9de3bf52g05b5ge6b3g5e7fgcfe595cd5d02",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Ловкости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Ловкости."
+    },
+    {
+      "contentuid": "ha11a0af0gf1fdg6d14gc928g6c0b30819c32",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Силы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Силы."
+    },
+    {
+      "contentuid": "ha4995955g8c54g2f20g60dfg3cbbd515279f",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Интеллекта."
+    },
+    {
+      "contentuid": "hac9ec7f6g445ag9437ga0c4g1c9b0eeeaf71",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Мудрости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Мудрости."
+    },
+    {
+      "contentuid": "hba170a9fg16c5g2958gb01bg45ea03cb9d9d",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Интеллекта."
+    },
+    {
+      "contentuid": "hc1282babgcb3dge035g6100g9c90f22e8322",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Харизмы."
+    },
+    {
+      "contentuid": "hc28180b6gd682g61eeg8306g1eedeb4d7eca",
+      "expectedText": "Защитите существо от атак: его <LSTag Tooltip=\"ArmourClass\">Класс доспеха (Броня)</LSTag> увеличивается до 17.",
+      "replacementText": "Защитите существо от атак: его <LSTag Tooltip=\"ArmourClass\">КБ</LSTag> увеличивается до 17."
+    },
+    {
+      "contentuid": "hc349e53bg4534gfd44g5013g08f1ce806f4a",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Интеллекта</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Интеллекта."
+    },
+    {
+      "contentuid": "hd0159c36g4f28g7ca7g887dga2bf48ba4acd",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Мудрости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Мудрости."
+    },
+    {
+      "contentuid": "hd08ff7b2gae53g91e3g1c43g984682ce4af8",
+      "expectedText": "Ваш максимум <LSTag Tooltip=\"HitPoints\">очков здоровья</LSTag> увеличивается на 1 за каждый уровень чародея.",
+      "replacementText": "Ваш максимум <LSTag Tooltip=\"HitPoints\">ОЗ</LSTag> увеличивается на 1 за каждый уровень чародея."
+    },
+    {
+      "contentuid": "hd9a8ca0ag30cagfb8agbc55g0402f2d4ba55",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Выносливости</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Выносливости."
+    },
+    {
+      "contentuid": "hdacc0f70g174fg1d6bgacb2ga2903b808996",
+      "expectedText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на проверки <LSTag Tooltip=\"AbilityCheck\">Харизмы</LSTag>.",
+      "replacementText": "Наносите дополнительный [1] при атаке цели и накладывайте <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> на <LSTag Tooltip=\"AbilityCheck\">проверки</LSTag> Харизмы."
+    },
+    {
+      "contentuid": "he98774ddgb351g4334ga0c4g94eb491799f9",
+      "expectedText": "Защитите существо от атак: его Броня и <LSTag Tooltip=\"ArmourClass\">Класс доспеха</LSTag> увеличиваются до 17.",
+      "replacementText": "Защитите существо от атак: его Броня и <LSTag Tooltip=\"ArmourClass\">КБ</LSTag> увеличиваются до 17."
+    },
+    {
+      "contentuid": "hf12dc8a9g3079g890agb1ffgdf7b91f3c03d",
+      "expectedText": "Вызов смерти. У вас есть преимущество на испытания против смерти.\n\nБыстрое восстановление. Вы восстанавливаете максимально возможное количество <LSTag Tooltip=\"HitPoints\">очков здоровья</LSTag> при исцелении.",
+      "replacementText": "Вызов смерти. У вас есть преимущество на испытания против смерти.\n\nБыстрое восстановление. Вы восстанавливаете максимально возможное количество <LSTag Tooltip=\"HitPoints\">ОЗ</LSTag> при исцелении."
+    },
+    {
+      "contentuid": "hf347385ag4b90g0bccg6810g6a4336d13205",
+      "expectedText": "Цель получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при проверках <LSTag Tooltip=\"Wisdom\">Мудрости</LSTag> <LSTag Tooltip=\"AbilityCheck\">характеристик</LSTag> и <LSTag Tooltip=\"SavingThrow\">Испытаниях</LSTag>, а также становится <LSTag Type=\"Status\" Tooltip=\"BLINDED\">Ослепленной</LSTag>.",
+      "replacementText": "Цель получает <LSTag Tooltip=\"Disadvantage\">помеху</LSTag> при <LSTag Tooltip=\"AbilityCheck\">проверках</LSTag> <LSTag Tooltip=\"Wisdom\">Мудрости</LSTag> и <LSTag Tooltip=\"SavingThrow\">испытаниях</LSTag>, а также становится <LSTag Type=\"Status\" Tooltip=\"BLINDED\">ослепленной</LSTag>."
+    }
+  ],
+  "additions": [
+    {
+      "contentuid": "h02367640g69e6gdb06g9a72g6354c8a4ccb6",
+      "label": "рука исцеления",
+      "type": "Spell",
+      "tooltip": "Target_HandOfHealing",
+      "reviewSource": "c001"
+    },
+    {
+      "contentuid": "h02367640g69e6gdb06g9a72g6354c8a4ccb6",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r110"
+    },
+    {
+      "contentuid": "h054c34e8gf7acg1ce5g9297g2f198a57cc90",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r112"
+    },
+    {
+      "contentuid": "h054c34e8gf7acg1ce5g9297g2f198a57cc90",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r113"
+    },
+    {
+      "contentuid": "h05f1c3ebg02fcg677cga473g464cac2d584f",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r114"
+    },
+    {
+      "contentuid": "h06128f4dg8b4fg7ee1gbb06gbcef6e2bdfac",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r001"
+    },
+    {
+      "contentuid": "h06c20aa3ga24ag4712g8d65gef0c57b09d88",
+      "label": "малая иллюзия",
+      "type": "Spell",
+      "tooltip": "Target_ImprovedMinorIllusion",
+      "reviewSource": "r115"
+    },
+    {
+      "contentuid": "h07ac58a7gdc95gd7d3g0b48g2015e769d0d0",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r116"
+    },
+    {
+      "contentuid": "h07cec1a0g7220ge9ebg9676gffd755fa50d0",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h08797ed7gc753g8f41gd903g4ec54ed567d1",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r117"
+    },
+    {
+      "contentuid": "h0a89d75bg6efag48a6gf526g8742bbe1176f",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r120"
+    },
+    {
+      "contentuid": "h0c8f8629gcdb5g21d2g6ba3g68301d16a9ea",
+      "label": "невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility",
+      "reviewSource": "r121"
+    },
+    {
+      "contentuid": "h0e2f0dfaga02cg9ad3g9586ga7ad2ece81cf",
+      "label": "Проницательности",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h0e2f0dfaga02cg9ad3g9586ga7ad2ece81cf",
+      "label": "Медицины",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h0e363cf3g0162gc215g7872g2aa8512bdbd6",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r122"
+    },
+    {
+      "contentuid": "h0fb46065g45fege74age2e5g0f1ff68942df",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r124"
+    },
+    {
+      "contentuid": "h1558545egaf7dg1079g8177g9f6871b6f525",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r125"
+    },
+    {
+      "contentuid": "h1558545egaf7dg1079g8177g9f6871b6f525",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r126"
+    },
+    {
+      "contentuid": "h15b91354gf2d6ga550g86cag97a1796054d7",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r127"
+    },
+    {
+      "contentuid": "h1669b47agf0fagd245g92f2g0e39a2c90370",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Дрессировка",
+      "type": "Skills",
+      "tooltip": "AnimalHandling",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Выживание",
+      "type": "Skills",
+      "tooltip": "Survival",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Медицина",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16bfd443g2ac4gcdcegaa91gcadfccb20761",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h16ca83e4gd87cge240g4682g2480a4a6ba19",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h173a0fccg668ag5a93gc996gfe83b0867a07",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r128"
+    },
+    {
+      "contentuid": "h17806188g48eag72daga9fag423961387d39",
+      "label": "прилив жизненных сил",
+      "type": "Status",
+      "tooltip": "VITALITY_SURGE",
+      "reviewSource": "c007"
+    },
+    {
+      "contentuid": "h17806188g48eag72daga9fag423961387d39",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r130"
+    },
+    {
+      "contentuid": "h17806188g48eag72daga9fag423961387d39",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r131"
+    },
+    {
+      "contentuid": "h1865c71ag5eb9gf397gb7e8g3c4fd9f68123",
+      "label": "проницательности",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h1865c71ag5eb9gf397gb7e8g3c4fd9f68123",
+      "label": "запугивания",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h1865c71ag5eb9gf397gb7e8g3c4fd9f68123",
+      "label": "убеждения",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h197a4fbbg54d8g3303g20b2ga713257e8f7a",
+      "label": "Ярости дикой природы",
+      "type": "Passive",
+      "tooltip": "HollowWarden_3_WrathOfTheWild",
+      "reviewSource": "r133"
+    },
+    {
+      "contentuid": "h19bace45g8db7g181dgc420ge0fc17190c49",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r134"
+    },
+    {
+      "contentuid": "h1a71759egf1c8g9a25g2327g7210d3bcea88",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r135"
+    },
+    {
+      "contentuid": "h1ad514dega841gc35dg8804ga474e60b45ea",
+      "label": "стальной защитник",
+      "type": "Spell",
+      "tooltip": "Target_SteelDefender",
+      "reviewSource": "c008"
+    },
+    {
+      "contentuid": "h1b7aecd7g65c1g83b6g50ddg7fe12c1c16a8",
+      "label": "невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility",
+      "reviewSource": "r136"
+    },
+    {
+      "contentuid": "h1d68851cgda5ag5482g75f2gc0f7b6817b16",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r138"
+    },
+    {
+      "contentuid": "h1ea9a52fg1499gbdd8g9ab4g8e8ff63c7f3f",
+      "label": "сложной местности",
+      "type": "Status",
+      "tooltip": "DIFFICULT_TERRAIN",
+      "reviewSource": "r139"
+    },
+    {
+      "contentuid": "h1ea9a52fg1499gbdd8g9ab4g8e8ff63c7f3f",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r005"
+    },
+    {
+      "contentuid": "h21000e09gdda6g7a5fg404eg1458b9ccd985",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r141"
+    },
+    {
+      "contentuid": "h21000e09gdda6g7a5fg404eg1458b9ccd985",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r142"
+    },
+    {
+      "contentuid": "h214e9d1dg45fcg6388gdc9cg6130d7c87cf2",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r145"
+    },
+    {
+      "contentuid": "h214e9d1dg45fcg6388gdc9cg6130d7c87cf2",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r144"
+    },
+    {
+      "contentuid": "h221aec9fgee6dgf291gdaedg74950253b4a2",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r146"
+    },
+    {
+      "contentuid": "h23041527g684fg9b54gfd8bgbc94bca6aa62",
+      "label": "Скрытности",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h261201bdgf3e1gc0a9g001bg9f21c4b6eb0b",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h261201bdgf3e1gc0a9g001bg9f21c4b6eb0b",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h269da4dcg7dabg981bg4001gfcda57b7c806",
+      "label": "врождённое мастерство клинка",
+      "type": "Status",
+      "tooltip": "INNATE_BLADEWORK",
+      "reviewSource": "c012"
+    },
+    {
+      "contentuid": "h26a9d040g90ffg7098gc158g401ddd420d2e",
+      "label": "отталкивание",
+      "type": "Passive",
+      "tooltip": "WeaponMasteryPush",
+      "reviewSource": "r147"
+    },
+    {
+      "contentuid": "h2a2d4c40ge64cg5bd8gb073g4424cebf9004",
+      "label": "Стальной защитник",
+      "type": "Spell",
+      "tooltip": "Target_SteelDefender",
+      "reviewSource": "new003"
+    },
+    {
+      "contentuid": "h2ba0acdeg33d2g33c7g5f83gb4c34e1444c0",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r148"
+    },
+    {
+      "contentuid": "h2bd86b9fg5a4bg7828gd29cg98815c2ef7d3",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r149"
+    },
+    {
+      "contentuid": "h2c508ab1g6e88g9fc6g8d98gf93c24fc5e1a",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r150"
+    },
+    {
+      "contentuid": "h2c920020g431dge64eg8e26g01537cb63450",
+      "label": "оглушение",
+      "type": "Passive",
+      "tooltip": "Fighter_9_TacticalMaster_Sap",
+      "reviewSource": "r151"
+    },
+    {
+      "contentuid": "h2e3d13a5gdd90g80a4g970dg3282a7a7bfa9",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r014"
+    },
+    {
+      "contentuid": "h2ff7efe3g2f98g2386g3e31g16cac67905a4",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r015"
+    },
+    {
+      "contentuid": "h317cdc52gc540g98dagc75eg4b43a1c01018",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r152"
+    },
+    {
+      "contentuid": "h32ed567egee36g91e1g2accgb992c0f4d730",
+      "label": "Медицина",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h32ed567egee36g91e1g2accgb992c0f4d730",
+      "label": "История",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h32ed567egee36g91e1g2accgb992c0f4d730",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h32ed567egee36g91e1g2accgb992c0f4d730",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h32ed567egee36g91e1g2accgb992c0f4d730",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h352f38e9g6190gf239gf947g79ecb474c84f",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h352f38e9g6190gf239gf947g79ecb474c84f",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h352f38e9g6190gf239gf947g79ecb474c84f",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h352f38e9g6190gf239gf947g79ecb474c84f",
+      "label": "Атлетика",
+      "type": "Skills",
+      "tooltip": "Athletics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h354b3d9ag3986g5438g5c7fg5f7f7196c4c4",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r154"
+    },
+    {
+      "contentuid": "h354b3d9ag3986g5438g5c7fg5f7f7196c4c4",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r155"
+    },
+    {
+      "contentuid": "h36e08fceg5a47gf889gc415g5a67ba284ba1",
+      "label": "оглушение",
+      "type": "Status",
+      "tooltip": "STUNNED",
+      "reviewSource": "r157"
+    },
+    {
+      "contentuid": "h37588848gdc10g2334gdf51ga179befdb18d",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c023"
+    },
+    {
+      "contentuid": "h38834643g8993gebb9g329bg7091b7ffff24",
+      "label": "Ловкость рук",
+      "type": "Skills",
+      "tooltip": "SleightOfHand",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h391dd984g6a8cge5b0g94c0g187d5c88d2a9",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r158"
+    },
+    {
+      "contentuid": "h3a320da8g90b9g9714ge237g45c9782afbd0",
+      "label": "мощный удар",
+      "type": "Status",
+      "tooltip": "RECKLESSATTACK_FORCEFULBLOW",
+      "reviewSource": "c025"
+    },
+    {
+      "contentuid": "h3aac9e83g2f2ag85ddgcf84ge7224ea85b8b",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r159"
+    },
+    {
+      "contentuid": "h3aac9e83g2f2ag85ddgcf84ge7224ea85b8b",
+      "label": "спрятаться",
+      "type": "Spell",
+      "tooltip": "Shout_Hide",
+      "reviewSource": "r021"
+    },
+    {
+      "contentuid": "h3af4f15fgffa3gf824ga850g5f3edec1f758",
+      "label": "медицину",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h3bb523e2gc26eg22c2g87e9g4e1e0da5e1af",
+      "label": "терпеливая оборона",
+      "type": "Spell",
+      "tooltip": "Shout_PatientDefense",
+      "reviewSource": "c026"
+    },
+    {
+      "contentuid": "h3c143767g21a8g66bcg6a21gf96dcfb36b88",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r160"
+    },
+    {
+      "contentuid": "h3eabef8fg88cagb8c2g7625g98663b906cac",
+      "label": "наложить печать",
+      "type": "Spell",
+      "tooltip": "Target_Seal",
+      "reviewSource": "c028"
+    },
+    {
+      "contentuid": "h3f87293dg3247g4d73gb758gf7485044db3c",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r163"
+    },
+    {
+      "contentuid": "h40770da0g7507g2a0eg4c0dgbab4e296bc1d",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h40770da0g7507g2a0eg4c0dgbab4e296bc1d",
+      "label": "Атлетика",
+      "type": "Skills",
+      "tooltip": "Athletics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h423f4d8eg647cg79b9g302bg9ad97549087a",
+      "label": "Высшую невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r167"
+    },
+    {
+      "contentuid": "h423f4d8eg647cg79b9g302bg9ad97549087a",
+      "label": "слепота",
+      "type": "Spell",
+      "tooltip": "Target_Blindness",
+      "reviewSource": "r166"
+    },
+    {
+      "contentuid": "h4336900ag6e5egc73bgadb8g0a8300eeb536",
+      "label": "мистическая бодрость",
+      "type": "Spell",
+      "tooltip": "Shout_ArcaneVigor",
+      "reviewSource": "c031"
+    },
+    {
+      "contentuid": "h434df1f3gdadag1149g4c36g6bfc2c7a1bec",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r168"
+    },
+    {
+      "contentuid": "h4512f4d8gc99aga64eg600bg8cac11c86e39",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h4512f4d8gc99aga64eg600bg8cac11c86e39",
+      "label": "Атлетика",
+      "type": "Skills",
+      "tooltip": "Athletics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h4527bdb1gf97cg4adcg9003g64255fe6abdf",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r169"
+    },
+    {
+      "contentuid": "h47a0106cg9a69g79a5g7f31g8c859cf2dd61",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r171"
+    },
+    {
+      "contentuid": "h47b388afge0d2g2240g7d34g00c0f0fbd7f3",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r172"
+    },
+    {
+      "contentuid": "h4b29ebdegfa87g42bege4a2g3b10f7973640",
+      "label": "Убеждения",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h4b29ebdegfa87g42bege4a2g3b10f7973640",
+      "label": "Обмана",
+      "type": "Skills",
+      "tooltip": "Deception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h4b3bbd82gcfdegf0b2g8843g1b27f8c2a5b8",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r173"
+    },
+    {
+      "contentuid": "h4b3edb5dg700eg11d2gb46eg867808ec1738",
+      "label": "антимагический выстрел",
+      "type": "Status",
+      "tooltip": "ANTIMAGIC_SHOT",
+      "reviewSource": "c033"
+    },
+    {
+      "contentuid": "h4b3edb5dg700eg11d2gb46eg867808ec1738",
+      "label": "выстрел в живот",
+      "type": "Status",
+      "tooltip": "GUT_SHOT",
+      "reviewSource": "c032"
+    },
+    {
+      "contentuid": "h4d2b70ecgee46g15a5g5c0bga91856311ba5",
+      "label": "устрашающая аура",
+      "type": "Status",
+      "tooltip": "UNNERVING_AURA",
+      "reviewSource": "c034"
+    },
+    {
+      "contentuid": "h4d7a4652g2bf4gcf0dg7e2bg038ddc3b14d4",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r176"
+    },
+    {
+      "contentuid": "h4e972de5g72bbgc7d9gfda3g1c89f2af41d0",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r030"
+    },
+    {
+      "contentuid": "h4ed71b8cg3ed3gd84eg3c79gb92ad8cf0e94",
+      "label": "ускорение",
+      "type": "Spell",
+      "tooltip": "Target_Haste",
+      "reviewSource": "r178"
+    },
+    {
+      "contentuid": "h4fcec4c9gde1eg19b6gebddg9af35fef4ff5",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r180"
+    },
+    {
+      "contentuid": "h5084d2fcg51fdgc84dg02cfg9b81d8b498cd",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c035"
+    },
+    {
+      "contentuid": "h51fe1e07g2424g5ddcg0df6g20465b6f7342",
+      "label": "Уход за животными",
+      "type": "Skills",
+      "tooltip": "AnimalHandling",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h51fe1e07g2424g5ddcg0df6g20465b6f7342",
+      "label": "Проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h51fe1e07g2424g5ddcg0df6g20465b6f7342",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h51fe1e07g2424g5ddcg0df6g20465b6f7342",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h51fe1e07g2424g5ddcg0df6g20465b6f7342",
+      "label": "История",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h53224a2ag2d24g306bg844dge14be06ef6b9",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r183"
+    },
+    {
+      "contentuid": "h53adaf69g02c4gd6a7ge1ddg668563523831",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r185"
+    },
+    {
+      "contentuid": "h552007ebg0886g488bgccfag99d4097696ee",
+      "label": "устрашающая аура",
+      "type": "Status",
+      "tooltip": "UNNERVING_AURA",
+      "reviewSource": "c037"
+    },
+    {
+      "contentuid": "h55f2832cg60b4gcd10g11f2g30f9e75aa0b9",
+      "label": "проницательности",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h55f2832cg60b4gcd10g11f2g30f9e75aa0b9",
+      "label": "запугивания",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h55f2832cg60b4gcd10g11f2g30f9e75aa0b9",
+      "label": "убеждения",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h5648b3eag0325g46d8g5cd1g0463117aab6a",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c038"
+    },
+    {
+      "contentuid": "h58ee4755g4d7eg3830g0e23g9eeb9de00bf1",
+      "label": "оберег от оружия",
+      "type": "Spell",
+      "tooltip": "Shout_BladeWard",
+      "reviewSource": "c039"
+    },
+    {
+      "contentuid": "h5aa5a2a8gba10g31e1gabfeg038d2569ac84",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h5aa5a2a8gba10g31e1gabfeg038d2569ac84",
+      "label": "спрятаться",
+      "type": "Spell",
+      "tooltip": "Shout_Hide",
+      "reviewSource": "r038"
+    },
+    {
+      "contentuid": "h5b47bba7gdab8g8410ga59dgef9c6100ab29",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r188"
+    },
+    {
+      "contentuid": "h5cc8709eg0974gcec1g323cg0a299d48a147",
+      "label": "Внимания",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h5d3f13dbgaaafgc317g4fb1ga68568021092",
+      "label": "проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h5d3f13dbgaaafgc317g4fb1ga68568021092",
+      "label": "история",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h5d3f13dbgaaafgc317g4fb1ga68568021092",
+      "label": "религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h619804afg28a4g6f48g9db2gb39ec7c1d073",
+      "label": "божественная искра",
+      "type": "Spell",
+      "tooltip": "Target_DivineSpark",
+      "reviewSource": "c043"
+    },
+    {
+      "contentuid": "h621ec36dg3794g4862g4538gb2c4399f06cd",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r190"
+    },
+    {
+      "contentuid": "h62e16743gcb72g9068gb2d0gb1a62ea9d321",
+      "label": "малая иллюзия",
+      "type": "Spell",
+      "tooltip": "Target_ImprovedMinorIllusion",
+      "reviewSource": "r192"
+    },
+    {
+      "contentuid": "h633e7853gfe5cgc83fg46c5g12d2c8161229",
+      "label": "Глухота/слепота",
+      "type": "Spell",
+      "tooltip": "Target_Blindness",
+      "reviewSource": "r193"
+    },
+    {
+      "contentuid": "h658ed514ge9dcg9a0fg207fg2dacf4e5e1ad",
+      "label": "вдохновляющая песня",
+      "type": "Spell",
+      "tooltip": "Target_EncouragingSong",
+      "reviewSource": "c044"
+    },
+    {
+      "contentuid": "h67a39d88g2da4ga80bg2675g4c2a3e61a8ce",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r196"
+    },
+    {
+      "contentuid": "h69aa6922g1e3fg07e9g5e91g36b8b2c05d1e",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r197"
+    },
+    {
+      "contentuid": "h6c140161ge881g7f60g8a89gbf47719d5f66",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c045"
+    },
+    {
+      "contentuid": "h6dbe3baeg32b7g2be3gc059gc25854510170",
+      "label": "исчезающий шаг",
+      "type": "Spell",
+      "tooltip": "Target_DisappearingStep",
+      "reviewSource": "c046"
+    },
+    {
+      "contentuid": "h6dbe3baeg32b7g2be3gc059gc25854510170",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r199"
+    },
+    {
+      "contentuid": "h6df157b5g12d3g2b2bgd643g1dd6b4025001",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r200"
+    },
+    {
+      "contentuid": "h717c2effgcfefg6531g04eeg3d6a10c88329",
+      "label": "оберег от оружия",
+      "type": "Spell",
+      "tooltip": "Shout_BladeWard",
+      "reviewSource": "c047"
+    },
+    {
+      "contentuid": "h717c2effgcfefg6531g04eeg3d6a10c88329",
+      "label": "малая иллюзия",
+      "type": "Spell",
+      "tooltip": "Target_ImprovedMinorIllusion",
+      "reviewSource": "r201"
+    },
+    {
+      "contentuid": "h718ebc53g9616gcdc4ge2bcg846a784062a6",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h72a8bf1agc8fbgec94g5bd1g5c0893342c80",
+      "label": "оживление мертвецов",
+      "type": "Spell",
+      "tooltip": "Target_AnimateDead",
+      "reviewSource": "r202"
+    },
+    {
+      "contentuid": "h72a8bf1agc8fbgec94g5bd1g5c0893342c80",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r204"
+    },
+    {
+      "contentuid": "h72a8bf1agc8fbgec94g5bd1g5c0893342c80",
+      "label": "слепота",
+      "type": "Spell",
+      "tooltip": "Target_Blindness",
+      "reviewSource": "r203"
+    },
+    {
+      "contentuid": "h72a8bf1agc8fbgec94g5bd1g5c0893342c80",
+      "label": "порча",
+      "type": "Spell",
+      "tooltip": "Target_Bane",
+      "reviewSource": "r045"
+    },
+    {
+      "contentuid": "h75d54fe5g6285g141fgd2b8gca722e196ecc",
+      "label": "Ловкость рук",
+      "type": "Skills",
+      "tooltip": "SleightOfHand",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h75d54fe5g6285g141fgd2b8gca722e196ecc",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h7601f4ccg5ecfg89a8gf4d4gc425820bf2a2",
+      "label": "малая иллюзия",
+      "type": "Spell",
+      "tooltip": "Target_ImprovedMinorIllusion",
+      "reviewSource": "r205"
+    },
+    {
+      "contentuid": "h7683213dgcd67g8a04g76bdg263469054d80",
+      "label": "оглушение",
+      "type": "Status",
+      "tooltip": "STUNNED",
+      "reviewSource": "r207"
+    },
+    {
+      "contentuid": "h76a090b6gcb17g375dg822fgdf79bae4b00a",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c053"
+    },
+    {
+      "contentuid": "h76a090b6gcb17g375dg822fgdf79bae4b00a",
+      "label": "боевой клич",
+      "type": "Spell",
+      "tooltip": "Target_PurpleDragonRook",
+      "reviewSource": "c052"
+    },
+    {
+      "contentuid": "h76a090b6gcb17g375dg822fgdf79bae4b00a",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h793cd839gb6abg5b14g2409gcd0bd8f9ce42",
+      "label": "смятение",
+      "type": "Spell",
+      "tooltip": "Target_Confusion",
+      "reviewSource": "r210"
+    },
+    {
+      "contentuid": "h7b17de26g4a12g2a89g2353gedd40e2fbe9a",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h7b17de26g4a12g2a89g2353gedd40e2fbe9a",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h7b73f5fagb632g4dd6gbb1bg52e10cb075ff",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r212"
+    },
+    {
+      "contentuid": "h7b73f5fagb632g4dd6gbb1bg52e10cb075ff",
+      "label": "слепота",
+      "type": "Spell",
+      "tooltip": "Target_Blindness",
+      "reviewSource": "r211"
+    },
+    {
+      "contentuid": "h7b73f5fagb632g4dd6gbb1bg52e10cb075ff",
+      "label": "порча",
+      "type": "Spell",
+      "tooltip": "Target_Bane",
+      "reviewSource": "r048"
+    },
+    {
+      "contentuid": "h7b9c5b5dg52ddg7d07gf72dgc579b62da603",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h7b9c5b5dg52ddg7d07gf72dgc579b62da603",
+      "label": "Атлетика",
+      "type": "Skills",
+      "tooltip": "Athletics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h7bd1bb01g45ccge8e6g5722g3072b6b0bf23",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r213"
+    },
+    {
+      "contentuid": "h7d1b5755g3943g8854gdc14g83c3921a9c89",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r049"
+    },
+    {
+      "contentuid": "h7d579a81g52d6g1a4cg3fe1ge97bcb251943",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h804ad0f1g6cb1ge2ecg1066g91b9c7f2effa",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r215"
+    },
+    {
+      "contentuid": "h809e5f68g6c1fg087fg4ebbgd6a42f20a3f2",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r216"
+    },
+    {
+      "contentuid": "h81c2cbd1ge2a2g4781g89a2gf1b79723f601",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r218"
+    },
+    {
+      "contentuid": "h822a72b8g17f5g73a6gd5f7g245ac996eb94",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r219"
+    },
+    {
+      "contentuid": "h822a72b8g17f5g73a6gd5f7g245ac996eb94",
+      "label": "заражение",
+      "type": "Spell",
+      "tooltip": "Target_Contagion",
+      "reviewSource": "r052"
+    },
+    {
+      "contentuid": "h822a72b8g17f5g73a6gd5f7g245ac996eb94",
+      "label": "порча",
+      "type": "Spell",
+      "tooltip": "Target_Bane",
+      "reviewSource": "r053"
+    },
+    {
+      "contentuid": "h8306332bg4a42gfdaag8e32g05d5b2d0a005",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r054"
+    },
+    {
+      "contentuid": "h83374bedgf40agd759g1784gd9c5f24545a3",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r055"
+    },
+    {
+      "contentuid": "h8382539fg0076g44d2gb673g042eb6831f24",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r220"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "Запугивание",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "Выживание",
+      "type": "Skills",
+      "tooltip": "Survival",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h860b399bg558cg749fgb64bg707d53758400",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r221"
+    },
+    {
+      "contentuid": "h8a4c8a20gcc89g49e5g2025g934de8342619",
+      "label": "Атлетика",
+      "type": "Skills",
+      "tooltip": "Athletics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h8bd54844g8c51g684dg0147ga45b20304d23",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r222"
+    },
+    {
+      "contentuid": "h8dbcd1e2ga506gd79fg540bgdeebf6743060",
+      "label": "Скрытности",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h90c565bfgdc8eg1fc2gde60ga457cc60135b",
+      "label": "слияние со стихией",
+      "type": "Spell",
+      "tooltip": "Shout_HarmonyOfFireAndWater",
+      "reviewSource": "c063"
+    },
+    {
+      "contentuid": "h9416ea15g9b17g07abg6c06gd6905fe706ed",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r223"
+    },
+    {
+      "contentuid": "h9416ea15g9b17g07abg6c06gd6905fe706ed",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r224"
+    },
+    {
+      "contentuid": "h9446d065gc473g7595g3b13gfb953f314f52",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r225"
+    },
+    {
+      "contentuid": "h965b7dc5ga4acg4b60g9e4bgcd236212e8b4",
+      "label": "малая иллюзия",
+      "type": "Spell",
+      "tooltip": "Target_ImprovedMinorIllusion",
+      "reviewSource": "r228"
+    },
+    {
+      "contentuid": "h97319f1bgef21gc6f0g305bg9cc81c5b14c1",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r229"
+    },
+    {
+      "contentuid": "h976048b3gf9c6gba32g7185g9373737f96b8",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r230"
+    },
+    {
+      "contentuid": "h976048b3gf9c6gba32g7185g9373737f96b8",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r231"
+    },
+    {
+      "contentuid": "h97912cc4g21bfg2c6egbd0cgbc22ad403d83",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r232"
+    },
+    {
+      "contentuid": "h97d2ab9cgaaf9g4bd4gb544g5862fb5d10b9",
+      "label": "пляшущие огоньки",
+      "type": "Spell",
+      "tooltip": "Target_DancingLights",
+      "reviewSource": "r233"
+    },
+    {
+      "contentuid": "h9aa052ddgf617g4344ga11dg4ad49e29159e",
+      "label": "изгнать",
+      "type": "Status",
+      "tooltip": "TURNED",
+      "reviewSource": "r236"
+    },
+    {
+      "contentuid": "h9ab20eb3gc598g3449gb504g354483f2972b",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r237"
+    },
+    {
+      "contentuid": "h9aba9e0ag4af1g9f8fg922ag7e65e5b8a86b",
+      "label": "сложной местности",
+      "type": "Status",
+      "tooltip": "DIFFICULT_TERRAIN",
+      "reviewSource": "r238"
+    },
+    {
+      "contentuid": "h9b666f81g3924gf39eg6868gd20519f6b190",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9cbc738dgd21bg77f4g2687gd1ac412ca2b4",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r239"
+    },
+    {
+      "contentuid": "h9d97ea6eg0369g70aag3edegb0ac7465f9b3",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9dbb965ag2bcegf72bg5bb2gc4f359dca388",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r240"
+    },
+    {
+      "contentuid": "h9dd8a551g9f01g98dbg64f1ga485e59f0e9d",
+      "label": "Внимания",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9e315a90g0705gb2c6g1a8eg13de362924de",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9e315a90g0705gb2c6g1a8eg13de362924de",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9e96b030g4a5fgfbd9g8d73g10831d134be3",
+      "label": "отравление",
+      "type": "Status",
+      "tooltip": "POISONED",
+      "reviewSource": "r243"
+    },
+    {
+      "contentuid": "h9f395fe8g244dg8ddcgcbe0g3ee47a325f9f",
+      "label": "Запугивание",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9f395fe8g244dg8ddcgcbe0g3ee47a325f9f",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9f395fe8g244dg8ddcgcbe0g3ee47a325f9f",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9f395fe8g244dg8ddcgcbe0g3ee47a325f9f",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9fff4318g1d24gfe2bgf7a2g1e0bcaa80c6d",
+      "label": "Проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9fff4318g1d24gfe2bgf7a2g1e0bcaa80c6d",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "h9fff4318g1d24gfe2bgf7a2g1e0bcaa80c6d",
+      "label": "Обман",
+      "type": "Skills",
+      "tooltip": "Deception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha33a602cg9bb2gec42g889dg5983a5346c84",
+      "label": "Яростью",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r246"
+    },
+    {
+      "contentuid": "ha5f5579fg9ce6ge4abg474ag9e80c16acfae",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r247"
+    },
+    {
+      "contentuid": "ha6aeb659gba2ag0648g1d28g8d765621e3a9",
+      "label": "Проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha6aeb659gba2ag0648g1d28g8d765621e3a9",
+      "label": "Запугивание",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha6aeb659gba2ag0648g1d28g8d765621e3a9",
+      "label": "Исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha6aeb659gba2ag0648g1d28g8d765621e3a9",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha71f769bge1a3g46dfg432fga8899602df6a",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r249"
+    },
+    {
+      "contentuid": "ha765fffag4904gfe52g8d54gd4472a83f8fc",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r250"
+    },
+    {
+      "contentuid": "ha816b389ge8bag72c4gef70g5e1232a276d1",
+      "label": "История",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha816b389ge8bag72c4gef70g5e1232a276d1",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha816b389ge8bag72c4gef70g5e1232a276d1",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha816b389ge8bag72c4gef70g5e1232a276d1",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "ha8f342f0g6dafg2cb0g07ffg5de2b08f710e",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c080"
+    },
+    {
+      "contentuid": "ha93da29dg5863g46a5gb636gdc16581b4520",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r251"
+    },
+    {
+      "contentuid": "haa843db4g20ebg9021gacedg3f8ada559a41",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r252"
+    },
+    {
+      "contentuid": "hadba9481g03c7gb0e4g2fc9gf098670ca5a9",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r255"
+    },
+    {
+      "contentuid": "hadba9481g03c7gb0e4g2fc9gf098670ca5a9",
+      "label": "высвобождение духа",
+      "type": "Spell",
+      "tooltip": "Target_UnleashingASpirit",
+      "reviewSource": "c081"
+    },
+    {
+      "contentuid": "hae6c4966g7a68ga1edg4bc6gae39ac7aeb6b",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "DOWNED",
+      "reviewSource": "r256"
+    },
+    {
+      "contentuid": "hae8770acg873fg844dgedd5g825cc772d72c",
+      "label": "оглушение",
+      "type": "Status",
+      "tooltip": "STUNNED",
+      "reviewSource": "r257"
+    },
+    {
+      "contentuid": "hb012aa29g2700gd0c7g3c87g74a98a1affc6",
+      "label": "притягивающая паутина",
+      "type": "Spell",
+      "tooltip": "Target_ArachnoidStalker_Pull",
+      "reviewSource": "c083"
+    },
+    {
+      "contentuid": "hb012aa29g2700gd0c7g3c87g74a98a1affc6",
+      "label": "прыжок на паутине",
+      "type": "Spell",
+      "tooltip": "Target_ArachnoidStalker_WebSwing",
+      "reviewSource": "c084"
+    },
+    {
+      "contentuid": "hb052fe34g86bfg992cg2672g146c445e9dc4",
+      "label": "Убеждения",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb052fe34g86bfg992cg2672g146c445e9dc4",
+      "label": "Обмана",
+      "type": "Skills",
+      "tooltip": "Deception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb05d9f4bgc914g4d44g95b9ga646b28fd85b",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r259"
+    },
+    {
+      "contentuid": "hb05d9f4bgc914g4d44g95b9ga646b28fd85b",
+      "label": "слепота",
+      "type": "Spell",
+      "tooltip": "Target_Blindness",
+      "reviewSource": "r258"
+    },
+    {
+      "contentuid": "hb0b38705ga312g7e31g9767g722d245f3d33",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r260"
+    },
+    {
+      "contentuid": "hb0fdd4d9g503ege786g4e88g495448e216a3",
+      "label": "медицины",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Расследование",
+      "type": "Skills",
+      "tooltip": "Investigation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Медицина",
+      "type": "Skills",
+      "tooltip": "Medicine",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "История",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb18ef098g90c9g4ad7gaf03g5aee30c02615",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hb3d1182cg5d54g444cgb977g26e77a6a099e",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r261"
+    },
+    {
+      "contentuid": "hb4209506g884fg3190g8d94g0432d0658315",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r262"
+    },
+    {
+      "contentuid": "hb4a3c0b4g39f9g3519g8885g8624730cfa75",
+      "label": "оберег от оружия",
+      "type": "Spell",
+      "tooltip": "Shout_BladeWard",
+      "reviewSource": "c089"
+    },
+    {
+      "contentuid": "hb4ffbe2cg154fg4614ga481g770425e23306",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r264"
+    },
+    {
+      "contentuid": "hb5b80dd1g369bg905ag47a7g28e7465806d8",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r265"
+    },
+    {
+      "contentuid": "hb5fed628gc7a2g2040gd0adgb152d0d9aa4a",
+      "label": "боевой медик",
+      "type": "Spell",
+      "tooltip": "Target_BattleMedic",
+      "reviewSource": "c090"
+    },
+    {
+      "contentuid": "hb6e753d8g25f2gee18g87d6gdda8a5857b4c",
+      "label": "оглушение",
+      "type": "Status",
+      "tooltip": "STUNNED",
+      "reviewSource": "r266"
+    },
+    {
+      "contentuid": "hb7d8ce7cga74egd272g4ed3gebe2eec3f346",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r267"
+    },
+    {
+      "contentuid": "hbd7f0193ge427g3d75gc0adgfdba8212fb8b",
+      "label": "невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility",
+      "reviewSource": "r268"
+    },
+    {
+      "contentuid": "hc17eba4eg936fg2851g0508gb73011778121",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r272"
+    },
+    {
+      "contentuid": "hc17eba4eg936fg2851g0508gb73011778121",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r271"
+    },
+    {
+      "contentuid": "hc41356d2g2208g0d0fg0023g8a9c6958aaac",
+      "label": "ускорение",
+      "type": "Spell",
+      "tooltip": "Target_Haste",
+      "reviewSource": "r273"
+    },
+    {
+      "contentuid": "hc63ea14cgb031g53b1ge9c5gd05f610e629c",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r275"
+    },
+    {
+      "contentuid": "hc7d9adccgd21cg6730g04c3g3a1c38c6c5a9",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r277"
+    },
+    {
+      "contentuid": "hc9341211ge6c1g1fd9gddbeg13315817fedb",
+      "label": "История",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hc9341211ge6c1g1fd9gddbeg13315817fedb",
+      "label": "Природа",
+      "type": "Skills",
+      "tooltip": "Nature",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hc9341211ge6c1g1fd9gddbeg13315817fedb",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hc9341211ge6c1g1fd9gddbeg13315817fedb",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hc973bce4g12d2g5a53g43a8g98cefe571124",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r278"
+    },
+    {
+      "contentuid": "hca271062g4f0eg4316gc46ag52e3d54b2851",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r088"
+    },
+    {
+      "contentuid": "hcb079ee5g1c25gbdc5gf618gc2aef3acfd28",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r279"
+    },
+    {
+      "contentuid": "hcb079ee5g1c25gbdc5gf618gc2aef3acfd28",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r280"
+    },
+    {
+      "contentuid": "hcc3ad546g16bcgfa68g23a7g1b2b0bcd4801",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r282"
+    },
+    {
+      "contentuid": "hcd21cc8fgd961g0feeg16afgf78a1e0a3fba",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r283"
+    },
+    {
+      "contentuid": "hcdd6b1c9gc361g1c98gc596g4eefab4fdf0f",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r285"
+    },
+    {
+      "contentuid": "hce90f19eg2ee2g0ff4g4c21g7ebf85d46c9d",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r286"
+    },
+    {
+      "contentuid": "hcf424f73gfc0dg7cc2gd583ga378200e953d",
+      "label": "Акробатика",
+      "type": "Skills",
+      "tooltip": "Acrobatics",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hd06d9d97g3639gb022g0e2eg25f5ab8ca49e",
+      "label": "героическое вдохновение",
+      "type": "Status",
+      "tooltip": "HEROIC_INSPIRATION_TEMP",
+      "reviewSource": "c095"
+    },
+    {
+      "contentuid": "hd0b1b087g7e7fg7cf3gdc0fg4b7196bb961f",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r289"
+    },
+    {
+      "contentuid": "hd0b1b087g7e7fg7cf3gdc0fg4b7196bb961f",
+      "label": "духи извне",
+      "type": "Passive",
+      "tooltip": "Spirits_3_SpiritsFromBeyond",
+      "reviewSource": "c096"
+    },
+    {
+      "contentuid": "hd21b5d53gc033g82abgfcdag21730bb83c68",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r290"
+    },
+    {
+      "contentuid": "hd21b5d53gc033g82abgfcdag21730bb83c68",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r291"
+    },
+    {
+      "contentuid": "hd31e4d13g939ag101eg9e56g93956331fc9c",
+      "label": "без сознания",
+      "type": "Status",
+      "tooltip": "SLEEP",
+      "reviewSource": "r293"
+    },
+    {
+      "contentuid": "hd365173fgd836g93a3gdf92g64f01d869f29",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r294"
+    },
+    {
+      "contentuid": "hd421ade2g497bg2094g6654geebf64ed20f1",
+      "label": "боевой клич",
+      "type": "Spell",
+      "tooltip": "Shout_ZealousPresence",
+      "reviewSource": "c097"
+    },
+    {
+      "contentuid": "hd5d65420g6479g285bg4c8ag03e208bc40e5",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r295"
+    },
+    {
+      "contentuid": "hd7701b33g6b2fg2417gbd20g2eb61af61f00",
+      "label": "Высшая невидимость",
+      "type": "Spell",
+      "tooltip": "Target_Invisibility_Greater",
+      "reviewSource": "r296"
+    },
+    {
+      "contentuid": "hd8757627g198cg4659gbdcbgf8c916e4b023",
+      "label": "оберег от оружия",
+      "type": "Spell",
+      "tooltip": "Shout_BladeWard",
+      "reviewSource": "c098"
+    },
+    {
+      "contentuid": "hd876484bg06deg6a8egb4b1gc6a59e051290",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hd876484bg06deg6a8egb4b1gc6a59e051290",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hd91012edgb1a6g4aabg14d4g0d685464de55",
+      "label": "Религия",
+      "type": "Skills",
+      "tooltip": "Religion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hd91012edgb1a6g4aabg14d4g0d685464de55",
+      "label": "Магия",
+      "type": "Skills",
+      "tooltip": "Arcana",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hd95cf570g7ab5ga240gfd2eg759fa404ffde",
+      "label": "шоковое прикосновение",
+      "type": "Spell",
+      "tooltip": "Target_ShockingGrasp",
+      "reviewSource": "r297"
+    },
+    {
+      "contentuid": "hd98d7d87g77cegbc88gd214g64ac7bacec24",
+      "label": "смятение",
+      "type": "Spell",
+      "tooltip": "Target_Confusion",
+      "reviewSource": "r298"
+    },
+    {
+      "contentuid": "hda6df4cdg93a3gab23g3fd8ga7f8a4585d19",
+      "label": "Истории",
+      "type": "Skills",
+      "tooltip": "History",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hdb025275gf26dg03dfg7370g4dddf3f0ffb9",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r299"
+    },
+    {
+      "contentuid": "hde63b209g1d1dg2fb9gf3abg0f84f42a69f8",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r302"
+    },
+    {
+      "contentuid": "hdf6371dcga18fg87bcgbe0dgf6e2f7928012",
+      "label": "слепота",
+      "type": "Status",
+      "tooltip": "BLINDED",
+      "reviewSource": "r303"
+    },
+    {
+      "contentuid": "hdfb7e043ga3ecgc3afg13c5g96138794e52b",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r304"
+    },
+    {
+      "contentuid": "he0997113gd8aeg5a32g0cadg6583a1780b19",
+      "label": "проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he0997113gd8aeg5a32g0cadg6583a1780b19",
+      "label": "запугивание",
+      "type": "Skills",
+      "tooltip": "Intimidation",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he0997113gd8aeg5a32g0cadg6583a1780b19",
+      "label": "исполнение",
+      "type": "Skills",
+      "tooltip": "Performance",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he0997113gd8aeg5a32g0cadg6583a1780b19",
+      "label": "убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he0997113gd8aeg5a32g0cadg6583a1780b19",
+      "label": "обман",
+      "type": "Skills",
+      "tooltip": "Deception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he2a10ea7ge923ge756g16a5gec995e896057",
+      "label": "силовой разрушитель",
+      "type": "Status",
+      "tooltip": "FORCE_DEMOLISHER",
+      "reviewSource": "c107"
+    },
+    {
+      "contentuid": "he2f58070g7662g8b76gc3d9gce5303f3d8c8",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he2f58070g7662g8b76gc3d9gce5303f3d8c8",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "he44a89e4gd251g9a1dg6abagca1e9807a226",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r309"
+    },
+    {
+      "contentuid": "he4612c48gfd84gd95cg77b9g94667cfad8a4",
+      "label": "ярости",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r310"
+    },
+    {
+      "contentuid": "he4612c48gfd84gd95cg77b9g94667cfad8a4",
+      "label": "ярость",
+      "type": "Status",
+      "tooltip": "RAGE",
+      "reviewSource": "r311"
+    },
+    {
+      "contentuid": "he5f0f47cg9e31g78f9g3de0gbcdc5fe67dd8",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r098"
+    },
+    {
+      "contentuid": "he73898ceg2342gac1agce15gffad564f5c59",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r314"
+    },
+    {
+      "contentuid": "he8fec49dgf4c3g6a97g790bg3a7f505054bf",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r317"
+    },
+    {
+      "contentuid": "he8fec49dgf4c3g6a97g790bg3a7f505054bf",
+      "label": "лунная живучесть",
+      "type": "Status",
+      "tooltip": "LUNAR_VITALITY",
+      "reviewSource": "c110"
+    },
+    {
+      "contentuid": "he8fec49dgf4c3g6a97g790bg3a7f505054bf",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r318"
+    },
+    {
+      "contentuid": "he98b170fg0b2bg4502g8a0fg3f8f765d62aa",
+      "label": "рывок",
+      "type": "Spell",
+      "tooltip": "Shout_Dash",
+      "reviewSource": "r100"
+    },
+    {
+      "contentuid": "head50b7eg3179gbc89g1334gbee0de9d925c",
+      "label": "ускорение",
+      "type": "Spell",
+      "tooltip": "Target_Haste",
+      "reviewSource": "r320"
+    },
+    {
+      "contentuid": "hec346c79gf7e0ga44egbc79gbe72af6c9ba3",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r322"
+    },
+    {
+      "contentuid": "hecbd9ffcg2be8gbb16g7102g34164bd0d262",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hf1072944g3718g45edgace3ga7e816803e30",
+      "label": "Ловкость рук",
+      "type": "Skills",
+      "tooltip": "SleightOfHand",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hf1f2ce33g9f28ga79dg8ad9g713bd9d1afd1",
+      "label": "магический оберег",
+      "type": "Passive",
+      "tooltip": "ArcaneWard",
+      "reviewSource": "r323"
+    },
+    {
+      "contentuid": "hf2f81938g5ca0gb0eega680g3ec73dd11dd8",
+      "label": "Убеждение",
+      "type": "Skills",
+      "tooltip": "Persuasion",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hf4eda0d1g9d77gcfb5g49f3g7e6523196336",
+      "label": "Скрытность",
+      "type": "Skills",
+      "tooltip": "Stealth",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hf545430ag2493gc858g08d3g0bef38197077",
+      "label": "бардовского вдохновения",
+      "type": "ActionResource",
+      "tooltip": "BardicInspiration",
+      "reviewSource": "r325"
+    },
+    {
+      "contentuid": "hf545430ag2493gc858g08d3g0bef38197077",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r326"
+    },
+    {
+      "contentuid": "hf80f1d43g98c1g4673gb72fgdffcfee338d2",
+      "label": "порча",
+      "type": "Spell",
+      "tooltip": "Target_Bane",
+      "reviewSource": "r106"
+    },
+    {
+      "contentuid": "hfb72e3c9g9b45g5b84g8517gffe9d7e74d19",
+      "label": "шквал исцеления",
+      "type": "Spell",
+      "tooltip": "Target_FlurryOfHealing",
+      "reviewSource": "c113"
+    },
+    {
+      "contentuid": "hfb72e3c9g9b45g5b84g8517gffe9d7e74d19",
+      "label": "шквал вреда",
+      "type": "Spell",
+      "tooltip": "Target_FlurryOfHarm",
+      "reviewSource": "c114"
+    },
+    {
+      "contentuid": "hfcbd3784g4436g3a40g1260g63eb8006c7fa",
+      "label": "Ярости дикой природы",
+      "type": "Passive",
+      "tooltip": "HollowWarden_3_WrathOfTheWild",
+      "reviewSource": "r328"
+    },
+    {
+      "contentuid": "hfcbd3784g4436g3a40g1260g63eb8006c7fa",
+      "label": "устрашающая аура",
+      "type": "Status",
+      "tooltip": "UNNERVING_AURA",
+      "reviewSource": "c115"
+    },
+    {
+      "contentuid": "hff09f5d5ga364g24e6ga7a8g00dbb675ea16",
+      "label": "невидимость",
+      "type": "Status",
+      "tooltip": "INVISIBLE",
+      "reviewSource": "r329"
+    },
+    {
+      "contentuid": "hff4e6b44g07dbg7d46g1dfbg11ee89aaef5b",
+      "label": "Проницательность",
+      "type": "Skills",
+      "tooltip": "Insight",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hff4e6b44g07dbg7d46g1dfbg11ee89aaef5b",
+      "label": "Выживание",
+      "type": "Skills",
+      "tooltip": "Survival",
+      "reviewSource": "bilingual_skill_audit"
+    },
+    {
+      "contentuid": "hff4e6b44g07dbg7d46g1dfbg11ee89aaef5b",
+      "label": "Внимание",
+      "type": "Skills",
+      "tooltip": "Perception",
+      "reviewSource": "bilingual_skill_audit"
+    }
+  ],
+  "excludedExamples": [
+    {
+      "label": "гадалка",
+      "reason": "название самого описываемого эффекта, не ссылка на другую сущность"
+    },
+    {
+      "label": "странник",
+      "reason": "обычное слово внутри названия, совпавшее с иной сущностью"
+    },
+    {
+      "label": "тень",
+      "reason": "самоназвание или контекст освещенности, не механическая ссылка"
+    },
+    {
+      "label": "магия",
+      "reason": "обычное слово или действие, а не навык Магия"
+    }
+  ]
+}
