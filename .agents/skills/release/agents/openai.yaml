@@ -1,0 +1,4 @@
+interface:
+  display_name: "Релиз мода"
+  short_description: "Подготовка, публикация и проверка релиза"
+  default_prompt: "Используй $release для подготовки и проверки нового релиза мода."

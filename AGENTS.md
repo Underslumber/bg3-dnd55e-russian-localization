@@ -1,141 +1,53 @@
 # AGENTS.md
 
-SSOT for project rules. [CLAUDE.md](CLAUDE.md) points here.
+Project-wide rules for coding agents. `CLAUDE.md` imports this file.
 
-## Meta
-- This file and CLAUDE.md are maintained in English, machine-first format.
-- machine-first: dense bullets, key: value, no prose, no decorative markup.
-- Response/commit/changelog language is controlled separately (see Interaction).
+## Project
+- Russian localization mod **DnD 5.5e All-in-One BEYOND** for Baldur's Gate 3.
+- Response, commit, and changelog language: Russian.
+- Repository scope: localization, mod metadata, source assets, build/release automation, tests, documentation, and agent skills.
+- Do not add or modify upstream gameplay logic, Script Extender code, unrelated assets, `.pak` files, build outputs, or temporary files.
 
-## Interaction
-- User questions — use host-native interactive tool (`AskUserQuestion`, `question`, equivalents). No tool available — use numbered list.
-- One decision per question. Dependent decisions — sequential.
-- Numbered-list question format: intro line + `1.`/`2.`/`3.` options only; no trailing summary/request in a separate assistant message.
-- If clarification is required, put it into the intro line before the options, not after them.
-- Do not combine branch selection with operational confirmation.
-- Ask once; reuse the answer within the session.
-- Short status updates are allowed and expected.
-- Response/commit/changelog language: Russian.
+## Autonomy and Git
+- Review, explain, diagnose, and plan requests are read-only unless the user also asks for changes.
+- Change, fix, and build requests authorize safe in-scope local edits and non-destructive validation without additional confirmation.
+- Ask only when an unresolved ambiguity would materially change the result or authorization is required.
+- Never commit, push, create/push a tag, publish, or perform a destructive/external write without explicit user approval for that operation and the current scope.
+- After approval, validate first and then perform the approved operation immediately.
+- Commit messages: Russian and factual.
+- After work on `fix/*` or `feat/*`, offer either merge into `main` with branch deletion or a PR. This does not apply on other branches.
+- Push retries: at most 2 retries with a 3-second delay.
 
-## Git
-- Commit/push only after explicit user approval; after approval — immediately.
-- Commit message: Russian, factual.
-- Branches: `fix/*`, `feat/*`, or `main` (for trivial/direct commits). Branch choice — once, before first file-changing task; agent proposes 2–3 concrete names + `main` based on task context; user picks or provides own name.
-- After `fix/*`/`feat/*` branch work: offer either merge into `main` + delete branch, or create PR.
-- Rule above does not apply outside `fix/*`/`feat/*` branches.
-- Push retry: ≤2, delay 3s.
-- After tag push — immediately emit `[version](url)`, do not wait for CI.
-
-## Scope
-- Allow: localization content, packaging/release metadata.
-- Deny: gameplay logic, Script Extender, unrelated assets, `.pak`, build artifacts.
-- Repo is source-only.
-
-## Paths
-- mod: `Mods/DnD 5.5e AIO Russian`
+## Key paths
 - localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`
-- build_script: `scripts/build.ps1` (single build source of truth)
-- ci: `.github/workflows/build.yml`
-- glossary_primary: `glossary/glossary.official.json` (read first)
-- glossary_fallback: `glossary/glossary.normalized.json` (does not override official)
-- env_schema: `.env.example`
-- env_local: `.env.local` (never commit)
-- skills: `.agents/skills/` — `/translation-update`, `/meta-sync`
-- upstream_en: https://github.com/Yoonmoonsik/dnd55e/blob/main/Mods/DnD2024_897914ef-5c96-053c-44af-0be823f895fe/Localization/English/english.xml
+- build: `scripts/build.ps1`
+- CI/release: `.github/workflows/build.yml`
+- environment schema: `.env.example`
+- official glossary: `glossary/glossary.official.json`
+- fallback glossary: `glossary/glossary.normalized.json`
 
-Top-level (never package): `.git`, `.github`, `.cache`, `.tools`, `build`, staging.
+## Task routing
+- Translation update requests: use `.agents/skills/translation-update/SKILL.md`.
+- Parent metadata/dependency sync requests: use `.agents/skills/meta-sync/SKILL.md`.
+- Release, tag, changelog, publication, or release-verification requests: use `.agents/skills/release/SKILL.md`.
+- `scripts/update-translation-openrouter.py` is a separate OpenRouter pipeline and is not part of `translation-update`.
 
-## Translation
-- `translation-update`: agent skill; uses skill-local scripts in `.agents/skills/translation-update/`; does not call `scripts/update-translation-openrouter.py`
-- `scripts/update-translation-openrouter.py`: separate OpenRouter pipeline; not part of `translation-update`
+## Automation
+- `.github/workflows/autopilot-sync.yml` syncs the upstream translation on a schedule and manually. In `full` mode it also commits and creates a release tag, which triggers `build.yml`.
+- `.github/workflows/daily-translation-review.yml` reviews the translation daily and opens a draft PR into `main`.
+- `.github/autopilot/state.json` holds the last processed upstream state and the release version policy. Read it before deriving a release version by hand.
+- Modes, environments, secrets, and variables: `docs/autopilot.md`.
 
-## Secrets
-- `.env.local` keys: `OPENROUTER_API_KEY`, `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID`, `AUTOPILOT_MODE`, `AUTOPILOT_DEFAULT_RELEASE_CHANNEL`, `MODIO_ACCESS_TOKEN`.
-- Auto-load when present. If missing but required — mention once, reference `.env.example`, list required keys.
-- Never: invent values, print secrets, commit `.env.local`.
+## Content and secrets
+- Read the official glossary before translation work; the fallback glossary never overrides it.
+- Treat `.env.example` and task-specific documentation as the configuration inventory; do not duplicate variable lists in agent instructions.
+- Never invent, print, or commit secrets. `.env.local` is local-only and may be loaded only by scripts that explicitly support it.
+- `scripts/build.ps1` is the packaging SSOT. Do not assemble `.pak` or release ZIP contents manually.
+- `scripts/build.ps1 -VersionTag ...` updates the source `meta.lsx`; inspect and validate the resulting diff.
 
-## Packaging
-- `.pak` contains only `Mods/...`.
-- Required: `meta.lsx`, `russian.xml`.
-- Forbidden in `.pak`: `.git`, `scripts`, `tools`, `.tools`, `build`, staging.
-- Staging — in `%TEMP%`, not inside repo.
-
-## Build & CI
-- Flow: prepare → download Divine → `scripts/build.ps1` → publish.
-- Outputs: `build/*.pak`, `build/info.json`, `build/*.zip` (tag only).
-- Release ZIP: only `.pak` + `info.json`.
-- Triggers: tag `v*` (auto), `workflow_dispatch` (manual). Push without tag — no release artifacts.
-- Telegram: `scripts/send-telegram-notification.ps1`, on start/success/failure for tag builds. Requires `TG_BOT_TOKEN`, `TG_CHAT_ID`, `TG_THREAD_ID`.
-
-## mod.io
-- Publish job: `publish_to_modio`, tag `v*` only, after GitHub release and Nexus upload.
-- Runner: self-hosted Windows with label `bg3-toolkit`.
-- Tool: official BG3 Toolkit/Bg3Tool only; default path `C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe`.
-- Config vars: `BG3TOOL_PATH` optional, `BG3_MODS_PATH` optional, `BG3_TOOLKIT_PROJECTS_PATH` optional, `BG3_PARENT_MOD_REPO=D:\Project\dnd55e`, `BG3_PARENT_MOD_BRANCH=main`, `MODIO_API_BASE` optional, `MODIO_GAME_ID=6715`, `MODIO_MOD_ID=5965149`, `MODIO_PLATFORMS=windows,mac,xboxseriesx,ps5`.
-- Secrets: `MODIO_ACCESS_TOKEN` required for API finalization; never print it or store it outside GitHub Environment secrets / local `.env.local`.
-- Auth: preconfigured Larian/mod.io session on runner; never store account credentials in repo.
-- First publish from runner requires manual auth verification in Toolkit.
-- Source: Toolkit creates/publishes mod.io package; do not upload build ZIP as mod.io source.
-- Parent dependency: before Toolkit publish, update `BG3_PARENT_MOD_REPO`, require clean worktree, reset to `origin/BG3_PARENT_MOD_BRANCH`, then replace the parent mod folder in BG3 Mods.
-- Finalization: after Toolkit upload, API marks the uploaded modfile live via `active=true`; API never uploads the archive.
-- Fallback: `scripts/publish-modio-ui.ps1` may automate official Toolkit GUI if CLI publish is unavailable.
-- Required handles: mod `PublishHandle=5965149`, dependency `PublishHandle=4419649`.
-
-## Versioning
-- SSOT: `ModuleInfo/Version64` via XPath `save/region[@id="Config"]/node[@id="root"]/children/node[@id="ModuleInfo"]/attribute[@id="Version64"]`.
-- Do not change `PublishVersion`.
-- Tag MUST == Version.
-- Formats:
-  - `vX.Y.Z` → `Version64 = X.Y.Z.0`
-  - `vX.Y.Z-suffix` → `Version64 = X.Y.Z.N` (suffix affects tag/channel only, not Version64)
-- `N` for suffixed: `git tag --list "vX.Y.Z-*"`, count prior + 1, starting from `1`.
-- Stable tag (no suffix) always `build = 0`.
-- Before tag: if version already bumped — use it; else `python scripts/set-version.py -VersionTag <tag>`.
-- `build.ps1` derives version from tag, writes to `info.json` + staged `meta.lsx`.
-- Conflict: `Version64` ≠ tag → run `set-version.py` → recheck; still ≠ → release blocked.
-
-## info.json
-- root: `Mods`, `MD5`
-- per mod: `Author`, `Name`, `Folder`, `Version`, `Description`, `UUID`, `Created`, `Dependencies[]`, `Group`
-- dependency UUID: `897914ef-5c96-053c-44af-0be823f895fe`
-
-## Guardrails
-Pre-commit:
-- scope valid (localization/metadata only)
-- no forbidden content
-- no build artifacts
-- no temp/debug; `.gitignore` contains: `build/`, `build-stage*`, `.tools/`, `.cache/`, `*.pak`
-- packaging invariants intact
-- version consistent (if changed)
-
-Pre-release:
-- version == tag
-- version bumped if needed
-- CI/build contract valid
-- outputs correct (no extra files)
-
-## Release & Changelog
-- Every release requires a changelog.
-- Rules: Russian, concise, user-facing, describe WHAT changed, group logically.
-- Source: real diff > commits.
-- `russian.xml`: summarize added/changed/removed with user-visible impact.
-- meta/CI: describe effect, not raw edits.
-- Large diff: group + summarize.
-- No visible changes: «техническое обновление».
-- Do not invent changes; do not include internal noise.
-- Gates: A — commit/push, B — publish (after changelog draft).
-- Release message: version, changelog, `[version](url)` if derivable.
-
-## Release Verification
-- order: `workflow_status → release_presence → assets_presence → asset_name → asset_label`
-- local_archive_name: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
-- asset_name: `DnD.5.5e.AIO.Russian.<tag>.zip` (GitHub-normalized; e.g. `DnD.5.5e.AIO.Russian.v1.2.3.zip`)
-- asset_label: `DnD 5.5e AIO Russian <tag>.zip` (e.g. `DnD 5.5e AIO Russian v1.2.3.zip`)
-- source_of_truth: workflow/release API; local archive name comes from build output, asset name and label come from release API
-- wait_cycle_max: `30s`
-- passive_wait_total_max: `120s` (longer only on explicit request)
-- after_each_cycle: emit user-visible status
-- asset_name_mismatch: stop, report actual name
-- asset_label_mismatch: stop, report actual label
-- workflow_success_missing_asset: stop, report `release_url`, `workflow_url`, `asset_list`
+## Validation
+- After file changes: run `python scripts/validate-repo.py --mode pre-commit` and relevant focused tests.
+- Before commit: run `git diff --check`.
+- Before a release: follow the `release` skill and run `python scripts/validate-repo.py --mode pre-release --version-tag <tag>`.
+- Generated artifacts belong only in ignored `build/` or `%TEMP%`; never commit them.
