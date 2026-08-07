@@ -3347,7 +3347,7 @@
   <content contentuid="hed99b819g6962gbbc5g7eb3gf4fabbc92aaf" version="1">Уровень 9: Знающая защита</content>
   <content contentuid="h58d3ea5cg20f9gc47cg638cg148f2229c69f" version="1">Сотворите заклинание на существо, выходящее из зоны досягаемости.</content>
   <content contentuid="h664f7fdag1793g4256gd73cga50bae7c538a" version="1">Боевой заклинатель: Мстительный клинок</content>
-  <content contentuid="h67a39d88g2da4ga80bg2675g4c2a3e61a8ce" version="1">Боевой заклинатель: &lt;LSTag Type="Spell" Tooltip="Target_ShockingGrasp"&gt;Шоковое прикосновение&lt;/LSTag&gt;</content>
+  <content contentuid="h67a39d88g2da4ga80bg2675g4c2a3e61a8ce" version="1">Боевой заклинатель: Шоковое прикосновение</content>
   <content contentuid="h7e0866bbgdec1g07c2g7725gef3c6eb68247" version="1">Боевой заклинатель: Верный удар</content>
   <content contentuid="h87d3e26ag5e53gdf92g801cg4e8c26aac78e" version="1">Боевой заклинатель: Громовой клинок</content>
   <content contentuid="ha738254bg5dbag724ag511ag8d59cf1fed09" version="1">Боевой заклинатель: Клинок зеленого пламени</content>
@@ -4486,7 +4486,7 @@
   <content contentuid="h3cb9ecd6gc656g434eg9178g4828fbd9e74c" version="1">Посвященный в магию: Магический доспех</content>
   <content contentuid="h3ea7727eg6fb7g4437g8abfg5b8b01c08404" version="1">Посвященный в магию: Ужасный хохот</content>
   <content contentuid="h40603322g7144g4076ga600g816c1a3bf347" version="1">Посвященный в магию: Исцеление ран</content>
-  <content contentuid="h4527bdb1gf97cg4adcg9003g64255fe6abdf" version="1">Посвященный в магию: &lt;LSTag Type="Spell" Tooltip="Target_ShockingGrasp"&gt;Шоковое прикосновение&lt;/LSTag&gt;</content>
+  <content contentuid="h4527bdb1gf97cg4adcg9003g64255fe6abdf" version="1">Посвященный в магию: Шоковое прикосновение</content>
   <content contentuid="h4a25b113gd59eg4b37gb1fag1d64b4e65972" version="1">Посвященный в магию: Отвод</content>
   <content contentuid="h4a465394gc707g4e0bga071g165709a73a35" version="1">Посвященный в магию: Ведьмовской разряд</content>
   <content contentuid="h4ded108bga017g4608gbf95g21aa64af5306" version="1">Посвященный в магию: Ложная жизнь</content>
@@ -4508,8 +4508,8 @@
   <content contentuid="h8cab8439g423ag41e7ga45bg7c1a4c23cde3" version="1">Посвященный в магию: Взрыв сухожилий</content>
   <content contentuid="h8ec3e1ffgcbf4g4037g9bc0g84441c8fa842" version="1">Посвященный в магию: Луч болезни</content>
   <content contentuid="h931b6d31gbc0cg42a0ga0fdg6bf79513d2f8" version="1">Посвященный в магию: Скороход</content>
-  <content contentuid="h965b7dc5ga4acg4b60g9e4bgcd236212e8b4" version="1">Посвященный в магию: &lt;LSTag Type="Spell" Tooltip="Target_ImprovedMinorIllusion"&gt;Малая иллюзия&lt;/LSTag&gt;</content>
-  <content contentuid="h97d2ab9cgaaf9g4bd4gb544g5862fb5d10b9" version="1">Посвященный в магию: &lt;LSTag Type="Spell" Tooltip="Target_DancingLights"&gt;Пляшущие огоньки&lt;/LSTag&gt;</content>
+  <content contentuid="h965b7dc5ga4acg4b60g9e4bgcd236212e8b4" version="1">Посвященный в магию: Малая иллюзия</content>
+  <content contentuid="h97d2ab9cgaaf9g4bd4gb544g5862fb5d10b9" version="1">Посвященный в магию: Пляшущие огоньки</content>
   <content contentuid="h9f283e92g10dfg43b6g837dg39ee82977d4b" version="1">Посвященный в магию: Вспышка мечей</content>
   <content contentuid="ha6ce862fg4edeg49f7g9320gb8580541d70a" version="1">Посвященный в магию: Огненный снаряд</content>
   <content contentuid="haada0dc8gc767g45e4g98c2g6c5644d040c1" version="1">Посвященный в магию: Клинок зелёного пламени</content>
@@ -4758,7 +4758,7 @@
   <content contentuid="hefcb8274gb96dg453agbff3g26f6c5ec90ae" version="1">Доступные классы: Изобретатель, Бард, Чародей, Волшебник</content>
   <content contentuid="hfbe03474g4d63g47c6ga736gb204c33c193f" version="1">Свиток «Раската грома»</content>
   <content contentuid="h05676470gf169g4cf0g9d65g403316fae14c" version="1">Свиток «Руки Хадара»</content>
-  <content contentuid="h06c20aa3ga24ag4712g8d65gef0c57b09d88" version="1">Свиток «&lt;LSTag Type="Spell" Tooltip="Target_ImprovedMinorIllusion"&gt;Малая иллюзия&lt;/LSTag&gt;»</content>
+  <content contentuid="h06c20aa3ga24ag4712g8d65gef0c57b09d88" version="1">Свиток «Малая иллюзия»</content>
   <content contentuid="h07d70d75gb311g4b65gaf4eg8807c20ff75d" version="1">Свиток «Тишина»</content>
   <content contentuid="h08ad9844gea2dg4d56ga406g6d04f66b0031" version="1">Свиток «Маяк надежды»</content>
   <content contentuid="h096ebfe5g0cb5g4dfeg934cg08534e139de2" version="1">Свиток «Верный удар»</content>
