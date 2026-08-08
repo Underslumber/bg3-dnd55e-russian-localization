@@ -5455,4 +5455,5 @@
   <content contentuid="h9ecd6711g2397g780fgf43bg3fef96b7272b" version="1">Каждый раз, когда вы получаете урон, оберег получает этот урон вместо вас; если у вас есть какие-либо сопротивления или уязвимости, примените их перед уменьшением ОЗ оберега. Если урон снижает ОЗ оберега до 0, вы получаете весь оставшийся урон. Пока у оберега 0 ОЗ, он не может поглощать урон, но его магия сохраняется.</content>
   <content contentuid="ha798ee23gc1b7gfd05g86c0ga477ff4d0a9d" version="1">Вы получаете преимущество при испытаниях против заклинаний, а также устойчивость к урону от заклинаний.</content>
   <content contentuid="hb93f37d6g6f2dga4d4ga8a2g7f92495d2388" version="1">Магический оберег</content>
+  <content contentuid="h07de6d7ag5621g4204g93bdg12d04e9defa9" version="1">Один раз за ход, после того как владелец совершает &lt;LSTag Type="Spell" Tooltip="Shout_Dash"&gt;Рывок&lt;/LSTag&gt; или аналогичное действие, он может совершить &lt;LSTag Type="Spell" Tooltip="Projectile_MAG_Mobility_JumpOnDash_Action"&gt;Прыжок в длину&lt;/LSTag&gt;: прыгнуть на расстояние до 30 футов, затратив при этом всего 10 футов движения.</content>
 </contentList>
