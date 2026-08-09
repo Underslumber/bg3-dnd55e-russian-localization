@@ -16,6 +16,7 @@ param(
     [string]$ModioApiBase = "",
     [int]$ModioGameId = 0,
     [int]$ModioModId = 0,
+    [string]$ModioModSlug = "dnd-55e-all-in-one-beyond-russian-localization",
     [string[]]$ModioPlatforms = @(),
     [int]$ModioFinalizeTimeoutSeconds = 900,
     [string]$BrowserPath = "",
@@ -26,6 +27,7 @@ param(
     [switch]$SkipModioApiFinalize,
     [switch]$SkipWebFinalize,
     [switch]$SkipParentModSync,
+    [switch]$SkipLocalizationInputCheck,
     [switch]$SkipAuthCheck,
     [switch]$WhatIf,
     [switch]$KeepStaging
@@ -287,7 +289,11 @@ if ($env:BG3_PARENT_MOD_BRANCH) {
 }
 $resolvedParentModRepoPath = Resolve-FullPath $ParentModRepoPath
 
-foreach ($requiredPath in @($metaPath, $localizationPath, $projectMetaPath, $thumbnailPath)) {
+$requiredPaths = @($metaPath, $projectMetaPath, $thumbnailPath)
+if (-not $SkipLocalizationInputCheck) {
+    $requiredPaths += $localizationPath
+}
+foreach ($requiredPath in $requiredPaths) {
     if (-not (Test-Path -LiteralPath $requiredPath)) {
         throw "Required mod.io publish input was not found: '$requiredPath'."
     }
@@ -383,8 +389,9 @@ if ($WhatIf) {
     }
     if (-not $SkipWebFinalize) {
         & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
-            -BrowserPath $BrowserPath `
-            -Platforms $resolvedModioPlatforms `
+        -BrowserPath $BrowserPath `
+        -ModSlug $ModioModSlug `
+        -Platforms $resolvedModioPlatforms `
             -WhatIf
     }
     $authMessage = if ($SkipAuthCheck) { "auth check skipped" } else { "auth signal validated" }
@@ -470,6 +477,7 @@ if (-not $SkipModioApiFinalize) {
         & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
             -FileId ([int64]$finalizeResult.fileId) `
             -BrowserPath $BrowserPath `
+            -ModSlug $ModioModSlug `
             -Platforms $resolvedModioPlatforms `
             -TimeoutSeconds 180
 

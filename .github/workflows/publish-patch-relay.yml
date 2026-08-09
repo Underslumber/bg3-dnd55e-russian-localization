@@ -1,0 +1,80 @@
+name: Publish Patch Relay to mod.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Patch Relay git ref
+        required: true
+        default: main
+      version_tag:
+        description: Version tag used for Toolkit metadata
+        required: true
+        default: v1.0.4
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: Mod.io
+
+    defaults:
+      run:
+        shell: powershell
+
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+
+    steps:
+      - name: Checkout publisher
+        uses: actions/checkout@v4
+
+      - name: Checkout Patch Relay
+        uses: actions/checkout@v4
+        with:
+          repository: Underslumber/bg3-patch-relay
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          path: patch-relay
+
+      - name: Prepare Toolkit workspace
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = Join-Path $env:GITHUB_WORKSPACE "patch-relay"
+          $workspace = Join-Path $env:RUNNER_TEMP "patch-relay-modio"
+          if (Test-Path -LiteralPath $workspace) {
+              Remove-Item -LiteralPath $workspace -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path $workspace -Force | Out-Null
+          Copy-Item -LiteralPath (Join-Path $source "Mods") -Destination $workspace -Recurse -Force
+          New-Item -ItemType Directory -Path (Join-Path $workspace "Projects") -Force | Out-Null
+          Copy-Item -Path (Join-Path $source "Projects\PatchRelay_146ee64d-4202-44ea-bd9a-87fbcc4aa36e\*") -Destination (Join-Path $workspace "Projects") -Recurse -Force
+          "PATCH_RELAY_WORKSPACE=$workspace" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Publish Patch Relay
+        run: |
+          $ErrorActionPreference = "Stop"
+          $toolkit = $env:BG3TOOL_PATH
+          if (-not $toolkit) {
+              $toolkit = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe"
+          }
+
+          .\scripts\publish-modio.ps1 `
+            -VersionTag "${{ inputs.version_tag }}" `
+            -Workspace $env:PATCH_RELAY_WORKSPACE `
+            -Bg3ToolPath $toolkit `
+            -ModFolder "PatchRelay_146ee64d-4202-44ea-bd9a-87fbcc4aa36e" `
+            -ProjectName "PatchRelay" `
+            -ModPublishHandle 6294995 `
+            -DependencyPublishHandle 4419649 `
+            -ModioGameId 6715 `
+            -ModioModId 6294995 `
+            -ModioModSlug "bg3-underslumber-patch-relay" `
+            -ModioPlatforms "windows" `
+            -SkipParentModSync `
+            -SkipLocalizationInputCheck
