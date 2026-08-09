@@ -70,7 +70,6 @@ jobs:
             -Bg3ToolPath $toolkit `
             -ModFolder "PatchRelay_146ee64d-4202-44ea-bd9a-87fbcc4aa36e" `
             -ProjectName "PatchRelay" `
-            -ParentModRepoPath $env:PATCH_RELAY_WORKSPACE `
             -ModPublishHandle 6294995 `
             -DependencyPublishHandle 4419649 `
             -ModioGameId 6715 `
