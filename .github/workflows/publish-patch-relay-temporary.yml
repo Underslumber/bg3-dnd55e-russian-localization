@@ -23,7 +23,7 @@ jobs:
 
     defaults:
       run:
-        shell: powershell
+        shell: pwsh
 
     env:
       BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
