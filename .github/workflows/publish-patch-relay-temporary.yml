@@ -1,0 +1,115 @@
+name: Publish Patch Relay to mod.io (temporary bridge)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Patch Relay git ref
+        required: true
+        default: v1.0.48
+      version_tag:
+        description: Version tag in vX.Y.Z format
+        required: true
+        default: v1.0.48
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: [self-hosted, Windows, X64, bg3-toolkit]
+    environment: Mod.io
+    timeout-minutes: 35
+
+    defaults:
+      run:
+        shell: powershell
+
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+
+    steps:
+      - name: Checkout publisher
+        uses: actions/checkout@v4
+
+      - name: Checkout complete Patch Relay project
+        uses: actions/checkout@v4
+        with:
+          repository: Underslumber/bg3-patch-relay
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          path: patch-relay
+
+      - name: Resolve version
+        id: version
+        run: |
+          $tag = '${{ inputs.version_tag }}'
+          if ($tag -notmatch '^v(?<major>\d+)\.(?<minor>\d+)\.(?<revision>\d+)$') {
+              throw "Version tag '$tag' must match vX.Y.Z."
+          }
+          "module_version=$($Matches.major).$($Matches.minor).$($Matches.revision).0" >> $env:GITHUB_OUTPUT
+
+      - name: Connect complete project to BG3 Toolkit
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & .\patch-relay\scripts\link-bg3-dev-folders.ps1 -Workspace (Join-Path $env:GITHUB_WORKSPACE 'patch-relay')
+
+      - name: Publish through official Toolkit
+        id: toolkit
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $toolkit = $env:BG3TOOL_PATH
+          if (-not $toolkit) {
+              $toolkit = 'C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe'
+          }
+          if (-not (Test-Path -LiteralPath $toolkit)) {
+              throw "BG3 Toolkit was not found: $toolkit"
+          }
+          $diagnostics = Join-Path $env:RUNNER_TEMP 'patch-relay-modio-publish.log'
+          $uploadedAfter = Get-Date
+          "uploaded_after=$($uploadedAfter.ToString('o'))" >> $env:GITHUB_OUTPUT
+
+          & .\scripts\publish-modio-ui.ps1 `
+            -Bg3ToolPath $toolkit `
+            -ProjectName 'PatchRelay' `
+            -ProjectPath (Join-Path $env:GITHUB_WORKSPACE 'patch-relay\Projects\PatchRelay_146ee64d-4202-44ea-bd9a-87fbcc4aa36e') `
+            -ModuleVersion '${{ steps.version.outputs.module_version }}' `
+            -ModioApiBase $(if ($env:MODIO_API_BASE) { $env:MODIO_API_BASE } else { 'https://g-6715.modapi.io/v1' }) `
+            -ModioGameId 6715 `
+            -ModioModId 6294995 `
+            -ModioAccessToken $env:MODIO_ACCESS_TOKEN `
+            -TimeoutSeconds 900 `
+            -DiagnosticPath $diagnostics
+
+      - name: Finalize mod.io file
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:MODIO_ACCESS_TOKEN) {
+              throw 'MODIO_ACCESS_TOKEN is unavailable.'
+          }
+          $apiBase = if ($env:MODIO_API_BASE) { $env:MODIO_API_BASE } else { 'https://g-6715.modapi.io/v1' }
+          $result = Join-Path $env:RUNNER_TEMP 'patch-relay-modio-result.json'
+          & .\scripts\finalize-modio-file.ps1 `
+            -ApiBase $apiBase `
+            -GameId 6715 `
+            -ModId 6294995 `
+            -AccessToken $env:MODIO_ACCESS_TOKEN `
+            -ExpectedVersion '${{ steps.version.outputs.module_version }}' `
+            -UploadedAfter ([datetime]'${{ steps.toolkit.outputs.uploaded_after }}') `
+            -Platforms @('windows') `
+            -TimeoutSeconds 900 `
+            -ResultPath $result `
+            -SuppressManualEnableRequest
+
+      - name: Upload publication diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patch-relay-modio-${{ inputs.version_tag }}
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/patch-relay-modio-publish.log
+            ${{ runner.temp }}/patch-relay-modio-result.json
+            ${{ runner.temp }}/bg3-toolkit-publish-diagnostics/**
