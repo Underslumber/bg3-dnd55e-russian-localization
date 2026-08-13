@@ -5485,4 +5485,7 @@
   <content contentuid="h89713adeg01adg81acg9f46g71f0e1a5f820" version="1">Уровень 6: Естественное восстановление</content>
   <content contentuid="h939b7cccgc964gc711gd6f5gecea12c2f0bf" version="1">Повторный Пустотный удар</content>
   <content contentuid="hb2dd14b4gba6bgdc59gf8f1g789a1ebe6b74" version="1">Повторный Пустотный удар</content>
+  <content contentuid="h87fda05fg80fdg949dg6eb1g69542080219a" version="1">Получена ячейка заклинания [1]-го уровня. Используйте эту ячейку заклинания, прежде чем создавать еще одну того же уровня.</content>
+  <content contentuid="hbb5691a5g5880g56bdg40c2g576cef554451" version="1">Потратьте очки чародейства, чтобы разблокировать &lt;LSTag Tooltip="SpellSlot"&gt;ячейку заклинания&lt;/LSTag&gt;. Создание еще одной ячейки заклинания того же уровня не даст эффекта, пока не будет использована эта.</content>
+  <content contentuid="hc69907d4g8c9eg708ag8797ge1e6e4d47653" version="1">Потратьте [1] очк. чародейства, чтобы разблокировать &lt;LSTag Tooltip="SpellSlot"&gt;ячейку заклинания&lt;/LSTag&gt; [2]-го уровня. Создание еще одной ячейки заклинания того же уровня не даст эффекта, пока не будет использована эта.</content>
 </contentList>
