@@ -3559,7 +3559,7 @@
   <content contentuid="hcd558b81gae7eg26dag6eaegf0f7e3dd0197" version="1">Уровень 3: Заклинания нежити</content>
   <content contentuid="he206cdceg59e4gfa8cg4328gf3d7938622de" version="1">Уровень 10: Некротическая оболочка</content>
   <content contentuid="hf3e7b3e5gd803gdb85g050dg99a565121fbd" version="1">Уровень 3: Облик ужаса</content>
-  <content contentuid="h08797ed7gc753g8f41gd903g4ec54ed567d1" version="1">Вы направляете энергию Астрального моря, высвобождая поток магии в конусе длиной 30 футов. Каждое существо в области действия должно пройти испытание ловкости, иначе оно получит лучистый урон. Цель видит лишь в пределах 15 футов от себя, а на все, что находится за пределами этого расстояния, накладывается состояние «&lt;LSTag Type="Status" Tooltip="BLINDED"&gt;Слепота&lt;/LSTag&gt;» до конца вашего следующего хода.</content>
+  <content contentuid="h08797ed7gc753g8f41gd903g4ec54ed567d1" version="3">Вы направляете энергию Астрального моря, высвобождая поток магии в конусе длиной 30 футов. Каждое существо в области действия должно пройти испытание ловкости, иначе оно получит лучистый урон. Цель видит лишь в пределах 15 футов от себя, а на все, что находится за пределами этого расстояния, накладывается состояние «&lt;LSTag Type="Status" Tooltip="BLINDED"&gt;Слепота&lt;/LSTag&gt;» до конца вашего следующего хода.</content>
   <content contentuid="hcaaac561g47fbgc64dga290gc1f58fa033fa" version="1">Астральный поток</content>
   <content contentuid="h00d06463gd5ceg24d8gecefgfe155fa64a8a" version="1">Доступные классы: Друид, Волшебник</content>
   <content contentuid="h068c31d3g6f3aga38cg1f1bgb356fb37a648" version="1">Доступные классы: Бард, Чародей, Волшебник</content>
@@ -5488,4 +5488,7 @@
   <content contentuid="h87fda05fg80fdg949dg6eb1g69542080219a" version="1">Получена ячейка заклинания [1]-го уровня. Используйте эту ячейку заклинания, прежде чем создавать еще одну того же уровня.</content>
   <content contentuid="hbb5691a5g5880g56bdg40c2g576cef554451" version="1">Потратьте очки чародейства, чтобы разблокировать &lt;LSTag Tooltip="SpellSlot"&gt;ячейку заклинания&lt;/LSTag&gt;. Создание еще одной ячейки заклинания того же уровня не даст эффекта, пока не будет использована эта.</content>
   <content contentuid="hc69907d4g8c9eg708ag8797ge1e6e4d47653" version="1">Потратьте [1] очк. чародейства, чтобы разблокировать &lt;LSTag Tooltip="SpellSlot"&gt;ячейку заклинания&lt;/LSTag&gt; [2]-го уровня. Создание еще одной ячейки заклинания того же уровня не даст эффекта, пока не будет использована эта.</content>
+  <content contentuid="h0709c013g99b0gdc6cg2addgb8ecc04296bb" version="1">Астральный холод</content>
+  <content contentuid="h7ca33572ga86cgce48gd434gfe816699ddfd" version="1">Астральная слепота</content>
+  <content contentuid="hba2e93bcg0b57g355dg5803gd6ef0f19efec" version="2">Получает помеху на следующую проверку к20.</content>
 </contentList>
