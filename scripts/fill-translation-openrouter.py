@@ -250,6 +250,12 @@ def normalize_russian_for_match(value: str) -> str:
     return normalize_multiline_text(value).lower().replace("ё", "е")
 
 
+# Nominative endings of Russian adjectives. Their oblique forms replace the
+# ending with up to three characters ("дикий" -> "дикого", "дикому", "дикими"),
+# so the stem has to be cut before the ending rather than by a fixed offset.
+ADJECTIVE_NOMINATIVE_ENDINGS = ("ий", "ый", "ой", "ая", "яя", "ое", "ее", "ые", "ие")
+
+
 def extract_russian_term_fragments(term: str) -> list[str]:
     fragments: list[str] = []
     normalized = normalize_russian_for_match(term)
@@ -260,6 +266,11 @@ def extract_russian_term_fragments(term: str) -> list[str]:
         # status noun/adjective pairs such as "невидимость" -> "невидимым".
         if word.endswith("ость") and len(word) > 7:
             fragment = word[:-4]
+        elif word.endswith(ADJECTIVE_NOMINATIVE_ENDINGS) and len(word) > 4:
+            # "дикий" -> "дик" matches "диком", "дикого", "дикими". The fixed
+            # max(4, len - 2) cut below keeps "дики" and rejects every oblique
+            # case of a five-letter adjective.
+            fragment = word[:-2]
         else:
             fragment_length = max(4, len(word) - 2)
             fragment = word[:fragment_length]
