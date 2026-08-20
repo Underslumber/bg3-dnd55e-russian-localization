@@ -9,11 +9,11 @@
                     <children>
                         <node id="ModuleShortDesc">
                             <attribute id="Folder" type="LSString" value="DnD2024_897914ef-5c96-053c-44af-0be823f895fe"/>
-                            <attribute id="MD5" type="LSString" value="13a3aee17cb2262679d55f187359c245"/>
+                            <attribute id="MD5" type="LSString" value="48057b43dc16342ff3caeb4bc2f2b157"/>
                             <attribute id="Name" type="LSString" value="DnD 5.5e All-in-One BEYOND"/>
                             <attribute id="PublishHandle" type="uint64" value="4419649"/>
                             <attribute id="UUID" type="guid" value="897914ef-5c96-053c-44af-0be823f895fe"/>
-                            <attribute id="Version64" type="int64" value="145663351987372032"/>
+                            <attribute id="Version64" type="int64" value="145804037936119808"/>
                         </node>
                     </children>
                 </node>
@@ -32,7 +32,7 @@
                     <attribute id="PublishHandle" type="uint64" value="5965149"/>
                     <attribute id="StartupLevelName" type="FixedString" value=""/>
                     <attribute id="UUID" type="FixedString" value="6401e84d-daf2-416d-adeb-99c03a2487a6"/>
-                    <attribute id="Version64" type="int64" value="563018672898048"/>
+                    <attribute id="Version64" type="int64" value="703687441776640"/>
                     <children>
                         <node id="PublishVersion">
                             <attribute id="Version64" type="int64" value="281477124194304"/>
