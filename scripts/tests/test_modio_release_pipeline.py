@@ -61,3 +61,4 @@ def test_platform_selection_waits_for_react_state_to_settle():
     assert "input.click()" in PUBLISH_WEB[request:settle]
     assert "input.disabled" in PUBLISH_WEB[request:settle]
     assert "Platform controls are missing" in PUBLISH_WEB[request:settle]
+    assert '["xboxseriesx", "XBOX Series X/S"]' in PUBLISH_WEB

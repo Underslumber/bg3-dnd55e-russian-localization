@@ -21,7 +21,7 @@ const requestedPlatforms = (args.get("--platforms") || "windows,mac,xboxseriesx,
 const platformLabels = new Map([
   ["windows", "Windows"],
   ["mac", "Mac"],
-  ["xboxseriesx", "Xbox Series X/S"],
+  ["xboxseriesx", "XBOX Series X/S"],
   ["ps5", "PlayStation 5"],
 ]);
 
