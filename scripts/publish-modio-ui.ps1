@@ -1129,6 +1129,23 @@ function Set-ProjectSettingsVersion {
     }
 }
 
+function Open-ProjectSettingsByCoordinates {
+    param(
+        [int]$ProcessId,
+        [string]$Reason
+    )
+
+    Write-Diagnostic "$Reason Falling back to verified Toolkit-relative coordinates."
+    Minimize-OtherWindows -KeepProcessId $ProcessId
+    Set-ToolkitForeground -ProcessId $ProcessId
+    Send-KeyToForeground -Key "{ESC}"
+    Start-Sleep -Milliseconds 300
+    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 255 -Y 47 -Label "Project menu fallback"
+    Start-Sleep -Seconds 1
+    Invoke-ToolkitRelativeClick -ProcessId $ProcessId -X 320 -Y 70 -Label "Project Settings menu item fallback"
+    Start-Sleep -Seconds 3
+}
+
 function Open-ProjectSettings {
     param(
         [System.Windows.Automation.AutomationElement]$Window,
@@ -1139,7 +1156,8 @@ function Open-ProjectSettings {
 
     $mainWin = Find-ToolkitMainWindowElement -ProcessId $ProcessId
     if (-not $mainWin) {
-        throw "Toolkit main window UIA element not found for menu invoke."
+        return Open-ProjectSettingsByCoordinates -ProcessId $ProcessId `
+            -Reason "Toolkit main window UIA element was not found."
     }
 
     # Find MenuBar fast (Children scope first), then Project menu among MenuBar children.
@@ -1148,7 +1166,8 @@ function Open-ProjectSettings {
         [System.Windows.Automation.ControlType]::MenuBar)
     $menuBar = $mainWin.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $mbCond)
     if (-not $menuBar) {
-        throw "Toolkit MenuBar UIA element not found."
+        return Open-ProjectSettingsByCoordinates -ProcessId $ProcessId `
+            -Reason "Toolkit MenuBar UIA element was not found."
     }
 
     $projectMenu = $null
@@ -1162,7 +1181,8 @@ function Open-ProjectSettings {
         }
     }
     if (-not $projectMenu) {
-        throw "Project menu item was not found via UIA in MenuBar."
+        return Open-ProjectSettingsByCoordinates -ProcessId $ProcessId `
+            -Reason "Project menu item was not found via UIA in MenuBar."
     }
     Write-Diagnostic "Found 'Project' menu item via UIA: '$($projectMenu.Current.Name)'."
 
@@ -1197,7 +1217,8 @@ function Open-ProjectSettings {
         }
     }
     if (-not $settingsItem) {
-        throw "Project Settings menu item was not found in Project submenu (children: $(@($subItems | ForEach-Object { $_.Current.Name }) -join ', '))."
+        return Open-ProjectSettingsByCoordinates -ProcessId $ProcessId `
+            -Reason "Project Settings menu item was not found in Project submenu (children: $(@($subItems | ForEach-Object { $_.Current.Name }) -join ', '))."
     }
     Write-Diagnostic "Found 'Project Settings' menu item via UIA: '$($settingsItem.Current.Name)'."
 
@@ -1631,8 +1652,39 @@ try {
         }
     }
 
-    if (-not (Wait-ForPublishButtonEnabled -ProcessId $process.Id -TimeoutSeconds 60)) {
-        throw "Publish button never became enabled within 60s after PublishLocal."
+    $publishAuthAttemptTimeoutSeconds = 90
+    if (-not (Wait-ForPublishButtonEnabled -ProcessId $process.Id -TimeoutSeconds $publishAuthAttemptTimeoutSeconds)) {
+        Save-DiagnosticScreenshot -Tag "12b-publish-auth-first-wait-timeout"
+        Write-Diagnostic "Publish stayed disabled after ${publishAuthAttemptTimeoutSeconds}s; refreshing Project Settings once before failing."
+
+        try {
+            Invoke-ProjectSettingsFooterButton -ProcessId $process.Id -Button Cancel
+        } catch {
+            Write-Diagnostic "Cancel button refresh failed; falling back to Escape: $($_.Exception.Message)"
+            Set-ToolkitForeground -ProcessId $process.Id
+            Send-KeyToForeground -Key "{ESC}"
+        }
+
+        if (-not (Wait-ProjectSettingsClosed -ProcessId $process.Id -TimeoutSeconds 20)) {
+            Write-Diagnostic "Project Settings stayed open after Cancel; trying Escape once."
+            Set-ToolkitForeground -ProcessId $process.Id
+            Send-KeyToForeground -Key "{ESC}"
+            if (-not (Wait-ProjectSettingsClosed -ProcessId $process.Id -TimeoutSeconds 10)) {
+                throw "Project Settings did not close during the Publish authentication refresh."
+            }
+        }
+
+        $window = Find-WindowByProcessId -ProcessId $process.Id -TimeoutSeconds 60
+        Open-ProjectSettings -Window $window -ProcessId $process.Id
+        if (-not (Find-ProjectSettingsWindow -ProcessId $process.Id -TimeoutSeconds 30)) {
+            throw "Project Settings did not reopen during the Publish authentication refresh."
+        }
+        Save-DiagnosticScreenshot -Tag "12c-after-publish-auth-settings-refresh"
+
+        if (-not (Wait-ForPublishButtonEnabled -ProcessId $process.Id -TimeoutSeconds $publishAuthAttemptTimeoutSeconds)) {
+            $publishAuthTotalTimeoutSeconds = $publishAuthAttemptTimeoutSeconds * 2
+            throw "Publish button never became enabled after a Project Settings refresh and ${publishAuthTotalTimeoutSeconds}s of bounded waiting after PublishLocal."
+        }
     }
 
     $handoffBaseline = Get-ModioHandoffCandidateTitles

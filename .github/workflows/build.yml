@@ -10,13 +10,17 @@ on:
         description: Existing mod.io file ID to finalize without uploading a duplicate
         required: false
         type: string
+      modio_version_tag:
+        description: Existing release tag to publish only to mod.io
+        required: false
+        type: string
 
 permissions:
   contents: write
 
 jobs:
   build:
-    if: github.event_name != 'workflow_dispatch' || inputs.modio_file_id == ''
+    if: github.event_name != 'workflow_dispatch' || (inputs.modio_file_id == '' && inputs.modio_version_tag == '')
     runs-on: windows-latest
     environment: TgBot
     env:
@@ -320,7 +324,18 @@ jobs:
           }
 
   publish_to_modio:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      always() &&
+      (
+        (startsWith(github.ref, 'refs/tags/v') &&
+          needs.build.result == 'success' &&
+          needs.upload_to_nexusmods.result == 'success') ||
+        (github.event_name == 'workflow_dispatch' &&
+          inputs.modio_version_tag != '' &&
+          inputs.modio_file_id == '' &&
+          needs.build.result == 'skipped' &&
+          needs.upload_to_nexusmods.result == 'skipped')
+      )
     needs: [build, upload_to_nexusmods]
     runs-on: [self-hosted, Windows, bg3-toolkit]
     environment: Mod.io
@@ -336,8 +351,10 @@ jobs:
       MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
       MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
       MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
       BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
       BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      MODIO_VERSION_TAG: ${{ inputs.modio_version_tag || github.ref_name }}
       TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
       TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
 
@@ -347,6 +364,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout requested release sources
+        if: github.event_name == 'workflow_dispatch' && inputs.modio_version_tag != ''
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.modio_version_tag }}
+          path: release-source
+
       - name: Notify Telegram about mod.io publish start
         if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
         continue-on-error: true
@@ -355,7 +380,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "⏳ <b>Публикация на mod.io начата</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          $text = "⏳ <b>Публикация на mod.io начата</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Publish release to mod.io
@@ -365,10 +390,14 @@ jobs:
           if (-not $bg3ToolPath) {
               $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe"
           }
+          $publishWorkspace = "${{ github.workspace }}"
+          if ($env:GITHUB_EVENT_NAME -eq "workflow_dispatch") {
+              $publishWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          }
 
           .\scripts\publish-modio.ps1 `
-            -VersionTag "${{ github.ref_name }}" `
-            -Workspace "${{ github.workspace }}" `
+            -VersionTag $env:MODIO_VERSION_TAG `
+            -Workspace $publishWorkspace `
             -Bg3ToolPath $bg3ToolPath
 
       - name: Notify Telegram about mod.io publish success
@@ -379,7 +408,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $modioUrl = "https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization"
-          $text = "✅ <b>Опубликовано на mod.io</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$modioUrl`">Открыть страницу мода</a>"
+          $text = "✅ <b>Опубликовано на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$modioUrl`">Открыть страницу мода</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Notify Telegram about mod.io publish failure
@@ -390,11 +419,11 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
 
   finalize_existing_modio:
-    if: github.event_name == 'workflow_dispatch' && inputs.modio_file_id != ''
+    if: github.event_name == 'workflow_dispatch' && inputs.modio_file_id != '' && inputs.modio_version_tag == ''
     runs-on: [self-hosted, Windows, bg3-toolkit]
     environment: Mod.io
 

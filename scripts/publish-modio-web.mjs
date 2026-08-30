@@ -208,36 +208,59 @@ try {
       );
       process.exitCode = 0;
     } else {
-      const selection = await evaluate(`(() => {
+      const selectionRequest = await evaluate(`(() => {
         const marker = [...document.querySelectorAll('div, span')]
           .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
         const editor = marker?.closest('.tw-space-y-4.tw-relative');
         if (!editor) return { error: 'editor_missing' };
         const requested = ${JSON.stringify(desiredLabels)};
-        const result = [];
+        const found = [];
         let changed = false;
         for (const label of [...editor.querySelectorAll('label')]) {
           const name = label.innerText.trim().split('\\n')[0];
           if (!requested.includes(name)) continue;
           const input = label.querySelector('input[type="checkbox"]');
           if (!input) return { error: 'checkbox_missing', name };
+          found.push(name);
           if (!input.checked) {
-            label.click();
+            if (input.disabled) return { error: 'checkbox_disabled', name };
+            input.click();
             changed = true;
           }
-          result.push({ name, checked: input.checked });
         }
-        return { changed, result };
+        return { changed, found };
       })()`);
-      if (selection.error) {
-        throw new Error(`Platform selection failed: ${JSON.stringify(selection)}.`);
+      if (selectionRequest.error) {
+        throw new Error(`Platform selection failed: ${JSON.stringify(selectionRequest)}.`);
       }
-      const missingPlatforms = desiredLabels.filter(
-        (label) => !selection.result.find((item) => item.name === label && item.checked),
+      const absentPlatforms = desiredLabels.filter(
+        (label) => !selectionRequest.found.includes(label),
       );
-      if (missingPlatforms.length > 0) {
-        throw new Error(`Platform selection is incomplete: ${missingPlatforms.join(", ")}.`);
+      if (absentPlatforms.length > 0) {
+        throw new Error(`Platform controls are missing: ${absentPlatforms.join(", ")}.`);
       }
+
+      const selection = await waitFor("requested platform selection to settle", async () =>
+        evaluate(`(() => {
+          const marker = [...document.querySelectorAll('div, span')]
+            .find((item) => item.textContent.trim() === 'File ID: ${fileId}');
+          const editor = marker?.closest('.tw-space-y-4.tw-relative');
+          if (!editor) return null;
+          const requested = ${JSON.stringify(desiredLabels)};
+          const result = [...editor.querySelectorAll('label')]
+            .map((label) => {
+              const name = label.innerText.trim().split('\\n')[0];
+              const input = label.querySelector('input[type="checkbox"]');
+              return { name, checked: Boolean(input?.checked), disabled: Boolean(input?.disabled) };
+            })
+            .filter((item) => requested.includes(item.name));
+          const complete = requested.every((name) =>
+            result.some((item) => item.name === name && item.checked));
+          return complete ? { result } : null;
+        })()`),
+        250,
+      );
+      selection.changed = selectionRequest.changed;
 
       let publishTriggered = false;
       if (selection.changed) {

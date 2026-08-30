@@ -375,17 +375,21 @@ Write-Host "[publish-modio] Parent mod repo=$resolvedParentModRepoPath branch=$P
 Write-Host "[publish-modio] Parent mod target=$parentModTargetPath"
 Write-Host "[publish-modio] mod.io ApiBase=$ModioApiBase GameId=$ModioGameId ModId=$ModioModId Platforms=$($resolvedModioPlatforms -join ',')"
 
+if (-not $SkipWebFinalize) {
+    Write-Host "[publish-modio] Verifying the mod.io browser session before Toolkit upload."
+    & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
+        -BrowserPath $BrowserPath `
+        -Platforms $resolvedModioPlatforms `
+        -TimeoutSeconds 180 `
+        -WhatIf
+    Write-Host "[publish-modio] mod.io browser session preflight passed."
+}
+
 if ($WhatIf) {
     if (-not $SkipParentModSync) {
         if (-not (Test-Path -LiteralPath $parentModSourcePath)) {
             throw "Parent mod source was not found: '$parentModSourcePath'."
         }
-    }
-    if (-not $SkipWebFinalize) {
-        & (Join-Path $PSScriptRoot "publish-modio-web.ps1") `
-            -BrowserPath $BrowserPath `
-            -Platforms $resolvedModioPlatforms `
-            -WhatIf
     }
     $authMessage = if ($SkipAuthCheck) { "auth check skipped" } else { "auth signal validated" }
     Write-Host "[publish-modio] WhatIf completed: inputs, publish handles, $authMessage, and staging metadata were validated."
@@ -424,16 +428,46 @@ if ($UseToolkitCli -and -not $UseGuiFallback) {
 }
 
 if (-not $cliSucceeded) {
-    & (Join-Path $PSScriptRoot "publish-modio-ui.ps1") `
-        -Bg3ToolPath $resolvedBg3ToolPath `
-        -ProjectName $ProjectName `
-        -ProjectPath $targetProjectPath `
-        -ModuleVersion $modioExpectedVersion `
-        -ModioApiBase $ModioApiBase `
-        -ModioGameId $ModioGameId `
-        -ModioModId $ModioModId `
-        -ModioAccessToken $modioAccessToken `
-        -TimeoutSeconds $TimeoutSeconds
+    $guiAttempt = 0
+    $guiMaxAttempts = 2
+    while ($guiAttempt -lt $guiMaxAttempts) {
+        $guiAttempt++
+        try {
+            Write-Host "[publish-modio] Toolkit GUI publish attempt $guiAttempt/$guiMaxAttempts."
+            & (Join-Path $PSScriptRoot "publish-modio-ui.ps1") `
+                -Bg3ToolPath $resolvedBg3ToolPath `
+                -ProjectName $ProjectName `
+                -ProjectPath $targetProjectPath `
+                -ModuleVersion $modioExpectedVersion `
+                -ModioApiBase $ModioApiBase `
+                -ModioGameId $ModioGameId `
+                -ModioModId $ModioModId `
+                -ModioAccessToken $modioAccessToken `
+                -TimeoutSeconds $TimeoutSeconds
+            break
+        } catch {
+            $guiError = $_.Exception.Message
+            $retryablePreUploadPatterns = @(
+                "Toolkit main window was not found",
+                "Project Settings window did not open",
+                "Project Settings window did not reopen",
+                "Project Settings did not close during the Publish authentication refresh",
+                "Project Settings did not reopen during the Publish authentication refresh",
+                "Project Settings 'Save' button never became enabled",
+                "PublishLocal button never became enabled",
+                "Publish button never became enabled"
+            )
+            $retryablePreUploadFailure = $guiError -match ($retryablePreUploadPatterns -join "|")
+
+            if (-not $retryablePreUploadFailure -or $guiAttempt -ge $guiMaxAttempts) {
+                throw
+            }
+
+            Write-Warning "[publish-modio] Transient pre-upload Toolkit failure: $guiError"
+            Write-Host "[publish-modio] Restarting the Toolkit GUI flow once; no mod.io upload handoff was reached."
+            Start-Sleep -Seconds 5
+        }
+    }
 }
 
 if (-not $SkipModioApiFinalize) {
