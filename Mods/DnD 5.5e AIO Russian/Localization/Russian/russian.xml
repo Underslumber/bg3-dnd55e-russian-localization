@@ -798,7 +798,7 @@
   <content contentuid="hfba39959g9b2dg1bffgffd6g069588fe122e" version="1">Исследователь подземелий</content>
   <content contentuid="h9dd8a551g9f01g98dbg64f1ga485e59f0e9d" version="2">Вы получаете &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; на &lt;LSTag Tooltip="AbilityCheck"&gt;проверки&lt;/LSTag&gt; &lt;LSTag Type="Skills" Tooltip="Perception"&gt;Внимания&lt;/LSTag&gt; для обнаружения скрытых объектов и на &lt;LSTag Tooltip="SavingThrow"&gt;испытания&lt;/LSTag&gt; для избежания или сопротивления ловушкам.&lt;br&gt;&lt;br&gt;Вы получаете &lt;LSTag Tooltip="Resistant"&gt;устойчивость&lt;/LSTag&gt; к урону от ловушек.&lt;br&gt;&lt;br&gt;Вы видите в темноте.</content>
   <content contentuid="h3e8e3421g4852g1a98g9d7cgf3947ee60a89" version="1">Стойкий</content>
-  <content contentuid="h6299a92eg8049g117bga5b7g17d26b0619d6" version="2">Бросить вызов смерти. Вы совершаете испытания от смерти с преимуществом.
+  <content contentuid="h6299a92eg8049g117bga5b7g17d26b0619d6" version="3">Бросить вызов смерти. Вы совершаете испытания от смерти с преимуществом.
 
 Быстрое восстановление. Вы восстанавливаете максимально возможное количество &lt;LSTag Tooltip="HitPoints"&gt;ОЗ&lt;/LSTag&gt; при исцелении.</content>
   <content contentuid="h3f1eb96eg51f4gaf8cg5396g435ffda2161a" version="1">Мастер большого оружия</content>
@@ -1310,7 +1310,7 @@
   <content contentuid="hca029b39g4097g0379g6a74gd52bb5fd4a04" version="1">Черта: Искатель подземелий</content>
   <content contentuid="h5cc8709eg0974gcec1g323cg0a299d48a147" version="2">У вас есть &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; на &lt;LSTag Tooltip="AbilityCheck"&gt;проверки&lt;/LSTag&gt; &lt;LSTag Type="Skills" Tooltip="Perception"&gt;Внимания&lt;/LSTag&gt; для обнаружения скрытых объектов.&lt;br&gt;&lt;br&gt;У вас есть &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; на &lt;LSTag Tooltip="SavingThrow"&gt;испытания&lt;/LSTag&gt; для избегания ловушек и &lt;LSTag Tooltip="Resistant"&gt;устойчивость&lt;/LSTag&gt; к урону от них.&lt;br&gt;&lt;br&gt;Вы видите в темноте на расстояние до [1].</content>
   <content contentuid="h1e93417ag9497g58f3ge9aag2e54d8ba4076" version="1">Черта: Выносливый</content>
-  <content contentuid="hf12dc8a9g3079g890agb1ffgdf7b91f3c03d" version="2">Вызов смерти. У вас есть преимущество на испытания против смерти.
+  <content contentuid="hf12dc8a9g3079g890agb1ffgdf7b91f3c03d" version="3">Вызов смерти. У вас есть преимущество на испытания против смерти.
 
 Быстрое восстановление. Вы восстанавливаете максимально возможное количество &lt;LSTag Tooltip="HitPoints"&gt;ОЗ&lt;/LSTag&gt; при исцелении.</content>
   <content contentuid="h566e69efg081cg4f88g70abg51276f90b3b7" version="1">Уровень 2: Адепт ритуалов</content>
@@ -5691,4 +5691,11 @@
   <content contentuid="ha90d4839gfb92gd4bfg2553g5fabe8f72404" version="1">Оплот</content>
   <content contentuid="ha9361cceg5dd0g35ecg1949g313ca2768512" version="1">Оплот. Когда вы подвергаетесь эффекту, который должен наложить на вас состояние «Распластанность», вы можете использовать свое ответное действие, чтобы удержаться на ногах. Вы не становитесь распластанным.&lt;br&gt;&lt;br&gt;Железный желудок. Каждый раз, когда вы восстанавливаете себе ОЗ, вы дополнительно восстанавливаете количество ОЗ, равное вашему модификатору выносливости.</content>
   <content contentuid="hf41a61b1g3797gaf57g5c43gf6237bafb864" version="1">Энергия холмового гиганта</content>
+  <content contentuid="h1cfa58a7g0e63gc978gdfebg07ca3910c91d" version="1">Быстрое восстановление: D6</content>
+  <content contentuid="h1d8bc12ega854g9fa6g115fg40f33b2e239c" version="1">Быстрое восстановление</content>
+  <content contentuid="h8abbf551g5ac0g6ad5g3629g6c8cc9989df7" version="1">Быстрое восстановление: D12</content>
+  <content contentuid="ha7e36a64gf9b4ge4cdge8cfg3a2c8714b1f5" version="1">Короткий отдых</content>
+  <content contentuid="hdc2803e7g3ab7gce12ge2e6g43b054b38cf0" version="1">Быстрое восстановление: D8</content>
+  <content contentuid="hdde6e8d1g2ffbg6a90g60c2g5429dfd26e6d" version="1">Быстрое восстановление: D10</content>
+  <content contentuid="hfb0b810fg2b5egfcf3g6d93ge130d15d3a4b" version="1">Бонусным действием вы можете потратить одну из своих костей ОЗ, бросить ее и восстановить количество ОЗ, равное результату броска.</content>
 </contentList>
