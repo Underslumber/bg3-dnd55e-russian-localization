@@ -45,3 +45,23 @@ def test_assert_translation_quality_accepts_inflected_glossary_term():
         "Каждая из ваших атак в форме Дикого облика может наносить свой обычный тип урона или урон Излучением.",
         {"Wild Shape": "Дикий облик"},
     )
+
+
+def test_specific_spell_slot_heading_overrides_nested_glossary_term():
+    selected = MODULE.select_relevant_glossary(
+        {
+            "Spell Slots": "Ячейки заклинаний",
+            "Recovering Spell Slots": "Восстановление ячеек заклинаний",
+        },
+        ["Recovering Spell Slots"],
+    )
+
+    assert selected == {
+        "Recovering Spell Slots": "Восстановление ячеек заклинаний",
+    }
+    MODULE.assert_translation_quality(
+        "hc923040bgca3dgc5c9g86f9g4961f50ef2b1",
+        "Recovering Spell Slots",
+        "Восстановление ячеек заклинаний",
+        selected,
+    )
