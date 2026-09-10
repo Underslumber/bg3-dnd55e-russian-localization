@@ -48,12 +48,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -255,7 +255,7 @@ jobs:
       - name: Create or update pull request
         if: steps.preflight.outputs.should_process == 'true' && steps.diff.outputs.russian_changed == 'true'
         id: pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.AUTOPILOT_PUSH_TOKEN || github.token }}
           script: |
@@ -323,7 +323,7 @@ jobs:
 
       - name: Upload artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: daily-translation-review-${{ github.run_number }}
           path: |
@@ -348,7 +348,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Notify Telegram about review finish
         if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')

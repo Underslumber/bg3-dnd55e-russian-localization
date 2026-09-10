@@ -87,12 +87,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -198,7 +198,7 @@ jobs:
           "git_author_email=$gitAuthorEmail" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Upload upstream check artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autopilot-preflight-${{ github.run_id }}
           path: build/autopilot/upstream-check.json
@@ -216,7 +216,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Notify Telegram about sync start
         if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')
@@ -276,13 +276,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.AUTOPILOT_PUSH_TOKEN != '' && secrets.AUTOPILOT_PUSH_TOKEN || github.token }}
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
 
@@ -294,7 +294,7 @@ jobs:
           New-Item -ItemType Directory -Path ".cache/upstream" -Force | Out-Null
 
       - name: Download upstream check artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: autopilot-preflight-${{ github.run_id }}
           path: build/autopilot
@@ -464,7 +464,7 @@ jobs:
 
       - name: Upload autopilot artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: autopilot-sync-${{ github.run_number }}
           path: |
@@ -500,7 +500,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Notify Telegram about sync finish
         if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && (env.TG_BOT_TOKEN != '' || env.BOT_TOKEN != '')
