@@ -246,8 +246,21 @@ def merge_glossaries(official_glossary: dict[str, str], secondary_glossary: dict
     return merged
 
 
+CELL_NOUN_FORMS_FOR_MATCH = re.compile(
+    r"\b(?:ячейка|ячейки|ячейке|ячейку|ячейкой|ячейкою|ячеек|ячейкам|ячейками|ячейках)\b"
+)
+
+
 def normalize_russian_for_match(value: str) -> str:
     return normalize_multiline_text(value).lower().replace("ё", "е")
+
+
+def normalize_russian_for_glossary_match(value: str) -> str:
+    normalized = normalize_russian_for_match(value)
+    # Glossary validation compares this specific noun in a term and its visible
+    # translation. Canonicalize its documented forms here only; output text is
+    # never changed by this matcher.
+    return CELL_NOUN_FORMS_FOR_MATCH.sub("ячейка", normalized)
 
 
 # Nominative endings of Russian adjectives. Their oblique forms replace the
@@ -258,7 +271,7 @@ ADJECTIVE_NOMINATIVE_ENDINGS = ("ий", "ый", "ой", "ая", "яя", "ое", 
 
 def extract_russian_term_fragments(term: str) -> list[str]:
     fragments: list[str] = []
-    normalized = normalize_russian_for_match(term)
+    normalized = normalize_russian_for_glossary_match(term)
     for word in re.findall(r"[а-я]+", normalized):
         if len(word) < 5:
             continue
@@ -584,6 +597,7 @@ def assert_translation_quality(
 
     visible_text = re.sub(r"<[^>]+>", " ", translated_text)
     normalized_visible_text = normalize_russian_for_match(visible_text)
+    normalized_visible_glossary_text = normalize_russian_for_glossary_match(visible_text)
     for source_term, target_term in relevant_glossary.items():
         if source_term and source_term in visible_text:
             raise ValueError(
@@ -599,7 +613,7 @@ def assert_translation_quality(
             # only multi-word glossary phrases are enforced strictly here.
             continue
         fragments = extract_russian_term_fragments(target_term)
-        if fragments and not all(fragment in normalized_visible_text for fragment in fragments):
+        if fragments and not all(fragment in normalized_visible_glossary_text for fragment in fragments):
             raise ValueError(
                 f"Translation for id '{item_id}' does not preserve glossary term '{target_term}' in context."
             )

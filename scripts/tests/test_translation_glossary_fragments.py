@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 
 SCRIPT_PATH = Path(__file__).resolve().parents[1] / "fill-translation-openrouter.py"
 SPEC = importlib.util.spec_from_file_location("fill_translation_openrouter", SCRIPT_PATH)
@@ -11,7 +13,7 @@ SPEC.loader.exec_module(MODULE)
 
 def preserves_term(term: str, translated_text: str) -> bool:
     fragments = MODULE.extract_russian_term_fragments(term)
-    normalized = MODULE.normalize_russian_for_match(translated_text)
+    normalized = MODULE.normalize_russian_for_glossary_match(translated_text)
     return bool(fragments) and all(fragment in normalized for fragment in fragments)
 
 
@@ -36,6 +38,22 @@ def test_unrelated_translation_is_still_rejected():
 def test_longer_words_keep_the_previous_fragment_cut():
     assert MODULE.extract_russian_term_fragments("Спасбросок от смерти") == ["спасброс", "смер"]
     assert MODULE.extract_russian_term_fragments("Невидимость") == ["невидим"]
+
+
+def test_documented_spell_slot_noun_forms_are_accepted():
+    for form in (
+        "ячейка",
+        "ячейки",
+        "ячейке",
+        "ячейку",
+        "ячейкой",
+        "ячейкою",
+        "ячеек",
+        "ячейкам",
+        "ячейками",
+        "ячейках",
+    ):
+        assert preserves_term("Ячейки заклинаний", f"{form} заклинаний"), form
 
 
 def test_assert_translation_quality_accepts_inflected_glossary_term():
@@ -65,3 +83,43 @@ def test_specific_spell_slot_heading_overrides_nested_glossary_term():
         "Восстановление ячеек заклинаний",
         selected,
     )
+
+
+def test_general_spell_slots_mapping_accepts_genitive_plural_in_headings():
+    glossary = {"Spell Slots": "Ячейки заклинаний"}
+    MODULE.assert_translation_quality(
+        "hf7dfcf7fg4e1ag688fg2a49g07e3bc897b31",
+        "Recovering Spell Slots",
+        "Восстановление ячеек заклинаний",
+        glossary,
+    )
+    MODULE.assert_translation_quality(
+        "hc923040bgca3dgc5c9g86f9g4961f50ef2b1",
+        "Converting Spell Slots to Focus Points",
+        "Преобразование ячеек заклинаний в очки фокуса",
+        glossary,
+    )
+    MODULE.assert_translation_quality(
+        "h334bd2c8g7709g2b93g78b1g773fe3b8ebf1",
+        "Recover a Spell Slot",
+        "Восстановите одну ячейку заклинаний",
+        glossary,
+    )
+
+
+@pytest.mark.parametrize(
+    "translated_text",
+    (
+        "Восстановление слотов заклинаний",
+        "Восстановление ячеек",
+        "Восстановите одну ячейка заклинаний",
+    ),
+)
+def test_general_spell_slots_mapping_rejects_missing_required_words(translated_text):
+    with pytest.raises(ValueError):
+        MODULE.assert_translation_quality(
+            "h334bd2c8g7709g2b93g78b1g773fe3b8ebf1",
+            "Recovering Spell Slots",
+            translated_text,
+            {"Spell Slots": "Ячейки заклинаний"},
+        )
