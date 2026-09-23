@@ -448,10 +448,30 @@ async function recoverModioSessionWithLarian() {
   if (actionState.ssoCount === 0) {
     const genericClick = await clickGenericModioLoginAction();
     if (genericClick !== 'clicked') throw new Error('A unique, safe mod.io login action was not available; automatic publication stopped.');
-    actionState = await waitFor('Larian SSO action on the mod.io login page', async () => {
+    actionState = await waitFor('Larian SSO action or redirect from the mod.io login page', async () => {
       const state = await readLoginActionStateSafely();
-      return state?.expectedContext && (state.ssoCount > 0 || state.challenge || state.approvalRequired) ? state : null;
+      return state?.larianHost ||
+        (state?.expectedContext && (state.ssoCount > 0 || state.challenge || state.approvalRequired))
+        ? state : null;
     }, 500, Math.min(timeoutSeconds, 60));
+  }
+  if (actionState.larianHost) {
+    if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
+    if (actionState.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
+    const returnedToModio = await waitFor('authenticated return from Larian to mod.io', async () => {
+      const state = await readModioSessionState().catch(() => null);
+      return state?.host === 'mod.io' && (state.ready || !state.loginRequired) ? state : null;
+    }, 1000, timeoutSeconds).catch(() => null);
+    if (!returnedToModio) {
+      const finalState = await readLoginActionStateSafely();
+      throw new Error('Larian SSO did not return to mod.io: ' + JSON.stringify({
+        larianHost: finalState?.larianHost ?? false,
+        challenge: finalState?.challenge ?? false,
+        approvalRequired: finalState?.approvalRequired ?? false
+      }));
+    }
+    console.log('[publish-modio-web] mod.io session was restored through the BG3 Larian portal.');
+    return;
   }
   if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
   if (actionState.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
