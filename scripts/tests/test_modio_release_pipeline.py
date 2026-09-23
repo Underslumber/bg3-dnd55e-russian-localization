@@ -57,6 +57,7 @@ def test_modio_login_recovery_starts_at_larian_and_never_uses_generic_login():
     assert "generic mod.io login is disabled" in recovery
     assert 'await call("Page.navigate", { url: adminUrl })' in recovery
     assert "console.log(action.href)" not in PUBLISH_WEB
+    assert r"replace(/\\s+/g, ' ')" in PUBLISH_WEB
 
     page_expressions = re.findall(
         r"evaluate\(String\.raw`([\s\S]*?)`\)",
