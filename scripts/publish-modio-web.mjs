@@ -218,6 +218,7 @@ async function readLoginActionState() {
         unsafeSsoTarget: 0
       };
       let eligible = 0;
+      const unsafeTargets = [];
       for (const element of elements) {
         if (!labelsOf(element).some((label) => pattern.test(label))) continue;
         counts.matchingLabels++;
@@ -242,6 +243,7 @@ async function readLoginActionState() {
             let target;
             try { target = new URL(href || element.href, url); } catch {
               counts.unsafeSsoTarget++;
+              unsafeTargets.push({ unparseable: true, linkAction, tag: element.tagName });
               continue;
             }
             const allowedHost = linkAction
@@ -249,13 +251,14 @@ async function readLoginActionState() {
               : target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
             if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) {
               counts.unsafeSsoTarget++;
+              unsafeTargets.push({ protocol: target.protocol, hostname: target.hostname, port: target.port, linkAction });
               continue;
             }
           }
         }
         eligible++;
       }
-      return { eligible, counts };
+      return { eligible, counts, unsafeTargets };
     };
 
     const generic = expectedContext && (modPath || loginRoute || gamePortalRoute)
@@ -289,6 +292,7 @@ async function readLoginActionState() {
       ssoCount: sso.eligible,
       genericRejections: generic.counts,
       ssoRejections: sso.counts,
+      ssoTargets: sso.unsafeTargets || [],
       larianHost,
       challenge,
       approvalRequired
