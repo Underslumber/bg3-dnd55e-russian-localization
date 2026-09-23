@@ -64,4 +64,11 @@ jobs:
             console.log(JSON.stringify({status:"inspected",...result}));
           } finally { try{ws.close()}catch{} }
           '@
-          node --input-type=module -e $nodeScript
+          $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\\actions-runner" }
+          $nodePath = Get-ChildItem -LiteralPath (Join-Path $runnerRoot "externals") -Directory -Filter "node*" |
+            Sort-Object Name -Descending |
+            ForEach-Object { Join-Path $_.FullName "bin\\node.exe" } |
+            Where-Object { Test-Path -LiteralPath $_ } |
+            Select-Object -First 1
+          if (-not $nodePath) { throw "Runner Node.js executable was not found." }
+          & $nodePath --input-type=module -e $nodeScript
