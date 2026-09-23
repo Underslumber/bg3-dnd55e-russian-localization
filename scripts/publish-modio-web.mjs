@@ -301,10 +301,10 @@ async function clickGenericModioLoginAction() {
     const url = new URL(location.href);
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
     const gamePortalRoute = url.pathname === '/g/baldursgate3';
+    const loginRoute = /(?:^|\/)(?:login|signin)(?:\/|$)/i.test(url.pathname);
     const expectedPath = url.pathname === expectedModPath ||
       url.pathname.startsWith(expectedModPath + '/') ||
-      url.pathname === '/login' ||
-      url.pathname === '/signin' || gamePortalRoute;
+      loginRoute || gamePortalRoute;
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') || !expectedPath) return 'wrong_context';
     const visible = (element) => {
@@ -459,7 +459,8 @@ async function recoverModioSessionWithLarian() {
     actionState = await waitFor('Larian SSO action or redirect from the mod.io login page', async () => {
       const state = await readLoginActionStateSafely();
       return state?.larianHost ||
-        (state?.ssoCount > 0 || (state?.expectedContext && (state.challenge || state.approvalRequired)))
+        (state?.ssoCount > 0 || (state?.expectedContext && (state.challenge || state.approvalRequired))) ||
+        (state?.expectedContext && state.loginRoute && state.genericCount === 1 && state.ssoCount === 0)
         ? state : null;
     }, 500, Math.min(timeoutSeconds, 60)).catch(async () => {
       const state = await readLoginActionStateSafely();
@@ -491,6 +492,31 @@ async function recoverModioSessionWithLarian() {
     }
     console.log('[publish-modio-web] mod.io session was restored through the BG3 Larian portal.');
     return;
+  }
+  if (actionState.ssoCount === 0 && actionState.loginRoute && actionState.genericCount === 1) {
+    const secondLoginClick = await clickGenericModioLoginAction();
+    if (secondLoginClick !== 'clicked') {
+      throw new Error('The unique safe mod.io login action on the login route was unavailable.');
+    }
+    actionState = await waitFor('Larian SSO action or redirect after the second BG3 login step', async () => {
+      const state = await readLoginActionStateSafely();
+      return state?.larianHost ||
+        state?.ssoCount > 0 ||
+        (state?.expectedContext && (state.challenge || state.approvalRequired))
+        ? state : null;
+    }, 500, Math.min(timeoutSeconds, 60)).catch(async () => {
+      const state = await readLoginActionStateSafely();
+      const diagnostic = state ? {
+        expectedContext: state.expectedContext,
+        loginRoute: state.loginRoute,
+        genericCount: state.genericCount,
+        ssoCount: state.ssoCount,
+        larianHost: state.larianHost,
+        challenge: state.challenge,
+        approvalRequired: state.approvalRequired
+      } : { readErrorCategory: lastReadErrorCategory };
+      throw new Error('Second BG3 login step did not expose an SSO action: ' + JSON.stringify(diagnostic));
+    });
   }
   if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
   if (actionState.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
