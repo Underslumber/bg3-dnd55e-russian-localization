@@ -252,7 +252,7 @@ async function readLoginActionState() {
       return { eligible, counts };
     };
 
-    const generic = expectedContext && modPath
+    const generic = expectedContext && (modPath || loginRoute)
       ? inspect([...document.querySelectorAll('a, button, [role="button"]')], genericPattern, false)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
     const sso = expectedContext
@@ -294,7 +294,10 @@ async function clickGenericModioLoginAction() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
-    const expectedPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
+    const expectedPath = url.pathname === expectedModPath ||
+      url.pathname.startsWith(expectedModPath + '/') ||
+      url.pathname === '/login' ||
+      url.pathname === '/signin';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') || !expectedPath) return 'wrong_context';
     const visible = (element) => {
@@ -391,18 +394,19 @@ async function recoverModioSessionWithLarian() {
   if (onlyHiddenGenericLogin(actionState)) {
     await call("Page.navigate", { url: "https://mod.io/login" });
     actionState = await waitFor(
-      "visible Larian SSO action on canonical mod.io login page",
+      "safe login action on canonical mod.io login page",
       async () => {
         lastActionState = await readLoginActionStateSafely();
         return lastActionState?.expectedContext &&
           (lastActionState.ssoCount > 0 ||
+            lastActionState.genericCount > 0 ||
             lastActionState.challenge ||
             lastActionState.approvalRequired)
           ? lastActionState : null;
       },
       500,
       Math.min(timeoutSeconds, 60),
-    );
+    ).catch(() => null);
   }
   if (!actionState) {
     const diagnostic = {
