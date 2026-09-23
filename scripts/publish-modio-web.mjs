@@ -26,7 +26,6 @@ const platformLabels = new Map([
 ]);
 
 const adminUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}/admin/settings#files`;
-const larianLoginUrl = "https://larian.com/account/login";
 const bg3PortalUrl = "https://mod.io/g/baldursgate3?portal=studio";
 
 function sleep(milliseconds) {
@@ -370,34 +369,17 @@ async function clickLarianApprovalAction() {
 }
 
 async function recoverModioSessionWithLarian() {
-  console.log('[publish-modio-web] Opening the Larian account site for BG3 mod.io authentication.');
-  await call("Page.navigate", { url: larianLoginUrl });
-  let actionState = await waitFor('Larian account site', async () => {
-    const state = await readLoginActionState().catch(() => null);
-    return state?.larianHost ? state : null;
-  }, 500, Math.min(timeoutSeconds, 45)).catch(() => null);
-  if (!actionState?.larianHost) {
-    throw new Error('The Larian account site did not load; mod.io authentication was not attempted.');
-  }
-  if (actionState.challenge) {
-    throw new Error('The Larian account site requires account authentication; stopping before mod.io publication.');
-  }
-  if (actionState.approvalRequired) {
-    const approval = await clickLarianApprovalAction();
-    if (approval !== 'clicked') {
-      throw new Error('A unique safe approval action was unavailable on the Larian account site.');
-    }
-  }
-
+  console.log('[publish-modio-web] Opening the BG3 portal, then following its Larian SSO link.');
   await call("Page.navigate", { url: bg3PortalUrl });
-  actionState = await waitFor('Larian sign-in/link action on the BG3 portal', async () => {
+  let actionState = await waitFor('Larian sign-in/link action on the BG3 portal', async () => {
     const state = await readLoginActionState().catch(() => null);
     return state?.expectedContext &&
       (state.ssoCount > 0 || state.challenge || state.approvalRequired)
       ? state : null;
   }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
   if (!actionState) {
-    throw new Error('The BG3 portal did not expose a Larian sign-in/link action; generic mod.io login is disabled.');
+    const diagnostic = await readLoginActionState().catch(() => null);
+    throw new Error('The BG3 portal did not expose a Larian sign-in/link action; no generic login was opened. State: ' + JSON.stringify(diagnostic));
   }
   if (actionState.challenge) {
     throw new Error('Larian authentication requires account input; stopping before mod.io publication.');
@@ -405,47 +387,50 @@ async function recoverModioSessionWithLarian() {
   if (actionState.approvalRequired) {
     const approval = await clickLarianApprovalAction();
     if (approval !== 'clicked') {
-      throw new Error('A unique safe approval action was unavailable on the Larian account site.');
+      throw new Error('A unique safe approval action was unavailable on the Larian authentication page.');
     }
   }
   if (actionState.ssoCount !== 1) {
-    throw new Error('The BG3 portal did not expose exactly one safe Larian SSO action.');
+    throw new Error('The BG3 portal did not expose exactly one safe Larian SSO action. State: ' + JSON.stringify(actionState));
   }
 
   const ssoClick = await clickVisibleLarianSsoAction();
   if (ssoClick !== 'clicked') {
-    throw new Error('A unique allowlisted Larian SSO action was not available; generic mod.io login is disabled.');
+    throw new Error('A unique allowlisted Larian SSO action was not available; no generic login was opened.');
   }
 
   const deadline = Date.now() + timeoutSeconds * 1000;
+  let lastState = null;
+  let lastModioState = null;
   while (Date.now() < deadline) {
     await sleep(1000);
-    const state = await readLoginActionState().catch(() => null);
-    if (state?.challenge) {
+    lastState = await readLoginActionState().catch(() => null);
+    if (lastState?.challenge) {
       throw new Error('Larian authentication requires account input; stopping before mod.io publication.');
     }
-    if (state?.larianHost && state.approvalRequired) {
+    if (lastState?.larianHost && lastState.approvalRequired) {
       const approval = await clickLarianApprovalAction();
       if (approval !== 'clicked' && approval !== 'missing') {
         throw new Error('A unique safe Larian approval action was not available.');
       }
     }
 
-    let modioState = await readModioSessionState().catch(() => null);
-    if (modioState?.ready) {
-      console.log('[publish-modio-web] mod.io session was restored through the Larian BG3 portal.');
-      return modioState;
+    lastModioState = await readModioSessionState().catch(() => null);
+    if (lastModioState?.ready) {
+      console.log('[publish-modio-web] mod.io session was restored through the BG3 portal Larian SSO.');
+      return lastModioState;
     }
-    if (modioState?.host === 'mod.io' && !modioState.loginRequired) {
+    if (lastModioState?.host === 'mod.io' && !lastModioState.loginRequired) {
       await call("Page.navigate", { url: adminUrl });
-      modioState = await waitFor('authenticated mod.io file manager after Larian SSO', async () => {
+      lastModioState = await waitFor('authenticated mod.io file manager after Larian SSO', async () => {
         const current = await readModioSessionState().catch(() => null);
         return current?.ready ? current : null;
       }, 500, Math.min(timeoutSeconds, 45)).catch(() => null);
-      if (modioState?.ready) return modioState;
+      if (lastModioState?.ready) return lastModioState;
     }
   }
-  throw new Error('Timed out restoring mod.io through the Larian BG3 portal.');
+  throw new Error('Timed out restoring mod.io through the BG3 portal Larian SSO. State: ' +
+    JSON.stringify({ larian: lastState, modio: lastModioState }));
 }
 try {
   await call("Page.navigate", { url: adminUrl });
