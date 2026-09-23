@@ -321,6 +321,14 @@ async function clickGenericModioLoginAction() {
       .filter((element) => visible(element) &&
         labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label)));
     if (matches.length !== 1) return matches.length ? 'ambiguous' : 'missing';
+    const anchor = matches[0];
+    if (anchor instanceof HTMLAnchorElement) {
+      let target;
+      try { target = new URL(anchor.href, location.href); } catch { return 'invalid_target'; }
+      if (target.protocol !== 'https:' || target.hostname !== 'mod.io' ||
+          !(target.port === '' || target.port === '443')) return 'invalid_target';
+      anchor.target = '_self';
+    }
     matches[0].click();
     return 'clicked';
   })()`);
@@ -367,6 +375,7 @@ async function clickVisibleLarianSsoAction() {
           !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
           !(target.port === '' || target.port === '443')) return 'invalid_target';
     }
+    if (matches[0] instanceof HTMLAnchorElement) matches[0].target = '_self';
     matches[0].click();
     return 'clicked';
   })()`);
@@ -452,7 +461,18 @@ async function recoverModioSessionWithLarian() {
       return state?.larianHost ||
         (state?.ssoCount > 0 || (state?.expectedContext && (state.challenge || state.approvalRequired)))
         ? state : null;
-    }, 500, Math.min(timeoutSeconds, 60));
+    }, 500, Math.min(timeoutSeconds, 60)).catch(async () => {
+      const state = await readLoginActionStateSafely();
+      const diagnostic = state ? {
+        expectedContext: state.expectedContext,
+        genericCount: state.genericCount,
+        ssoCount: state.ssoCount,
+        larianHost: state.larianHost,
+        challenge: state.challenge,
+        approvalRequired: state.approvalRequired
+      } : { readErrorCategory: lastReadErrorCategory };
+      throw new Error('BG3 login transition did not expose an SSO action: ' + JSON.stringify(diagnostic));
+    });
   }
   if (actionState.larianHost) {
     if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
