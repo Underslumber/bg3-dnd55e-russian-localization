@@ -1,4 +1,4 @@
-name: Diagnose BG3-MODIO browser targets
+name: Diagnose BG3-MODIO browser route class
 on:
   push:
     branches: [main]
@@ -11,7 +11,7 @@ jobs:
     if: github.event.head_commit.message == '[diagnose-modio-browser-targets]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
     steps:
-      - name: Read sanitized CDP target classes
+      - name: Read sanitized route shape
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
@@ -26,10 +26,15 @@ jobs:
               $pageHost = ($authority -split ':')[0]
               if ($scheme -ne "https") { "non_https_page"; continue }
               if ($pageHost -eq "mod.io") {
-                if ($path -match '^/g/baldursgate3/?$') { "bg3_portal"; continue }
-                if ($path -match '^/g/baldursgate3/m/') { "bg3_mod_route"; continue }
-                if ($path -match '(?:^|/)(?:login|signin)(?:/|$)') { "modio_login_route"; continue }
-                "modio_other_route"; continue
+                $segments = @($path.Trim('/').Split('/') | Where-Object { $_ })
+                if ($segments.Count -eq 0) { "modio_root"; continue }
+                if ($segments[0] -eq "g") {
+                  if ($segments.Count -ge 2 -and $segments[1] -eq "baldursgate3") { "bg3_route_depth_$($segments.Count)"; continue }
+                  "other_game_route"; continue
+                }
+                if ($segments[0] -match '^(auth|oauth|login|signin|callback)$') { "modio_auth_route_$($segments[0])"; continue }
+                "modio_route_prefix_$($segments[0])"
+                continue
               }
               if ($pageHost -eq "larian.com" -or $pageHost.EndsWith(".larian.com")) { "larian_page"; continue }
               "other_https_page"
@@ -41,9 +46,4 @@ jobs:
               "unrecognized_page"
             }
           }
-          $result = [ordered]@{
-            totalTargets = $targets.Count
-            pageTargets = $pages.Count
-            categories = @($classes | Group-Object | ForEach-Object { [ordered]@{ category = $_.Name; count = $_.Count } })
-          }
-          $result | ConvertTo-Json -Depth 6 -Compress | Write-Output
+          [ordered]@{ totalTargets = $targets.Count; pageTargets = $pages.Count; categories = @($classes | Group-Object | ForEach-Object { [ordered]@{ category = $_.Name; count = $_.Count } }) } | ConvertTo-Json -Depth 6 -Compress | Write-Output
