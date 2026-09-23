@@ -27,7 +27,7 @@ jobs:
           let seq=0; const pending=new Map();
           ws.addEventListener("message",e=>{ let m; try{m=JSON.parse(e.data)}catch{return} if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(new Error("CDP command failed")):p.resolve(m.result)}});
           const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
-          const evaluate=async expression=>(await call("Runtime.evaluate",{expression,returnByValue:true,awaitPromise:true})).result.value;
+          const evaluate=async expression=>{const response=await call("Runtime.evaluate",{expression,returnByValue:true,awaitPromise:true});if(response.exceptionDetails)throw new Error("Browser evaluation failed");return response.result?.value??null};
           try {
             await call("Page.enable");
             await call("Page.navigate",{url:"https://mod.io/g"});
@@ -53,6 +53,7 @@ jobs:
               items[0].click();return true;
             })()`);
             if(!clicked){console.log(JSON.stringify({status:"login_click_not_completed"}));process.exit(0);}
+            await new Promise(r=>setTimeout(r,3000));
             const result=await evaluate(String.raw`(() => {
               const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)!==0&&r.width>0&&r.height>0&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'};
               const labels=e=>[e.innerText,e.textContent,e.getAttribute('aria-label'),e.title].filter(Boolean).map(v=>String(v).replace(/\\s+/g,' ').trim()).filter(Boolean);
@@ -61,7 +62,7 @@ jobs:
               const has=(re)=>all.some(v=>re.test(v));
               return {modio:location.protocol==='https:'&&location.hostname==='mod.io',loginPage=/login|signin/i.test(location.pathname)||location.pathname==='/g'||location.pathname==='/g/',providers:{email:has(/email|e-mail/),google:has(/google/),steam:has(/steam/),discord:has(/discord/),epic:has(/epic/),xbox:has(/xbox/),playstation:has(/playstation|psn/),apple:has(/apple/),larian:has(/larian/),otherProvider:has(/continue with|sign in with|log in with/)},passwordField:[...document.querySelectorAll('input[type="password"]')].some(visible),emailField:[...document.querySelectorAll('input[type="email"],input[autocomplete="email"]')].some(visible),codeField:[...document.querySelectorAll('input[autocomplete="one-time-code"],input[name*="code" i]')].some(visible)};
             })()`);
-            console.log(JSON.stringify({status:"inspected",...result}));
+            console.log(JSON.stringify({status:"inspected",before:state,after:result}));
           } finally { try{ws.close()}catch{} }
           '@
           $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\\actions-runner" }
