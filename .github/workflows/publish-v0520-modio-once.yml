@@ -1,4 +1,4 @@
-name: Diagnose BG3-MODIO browser route class
+name: Diagnose BG3-MODIO game route after SSO
 on:
   push:
     branches: [main]
@@ -11,39 +11,26 @@ jobs:
     if: github.event.head_commit.message == '[diagnose-modio-browser-targets]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
     steps:
-      - name: Read sanitized route shape
+      - name: Read sanitized game route
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
           $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 10)
           $pages = @($targets | Where-Object { $_.type -eq "page" })
-          $classes = foreach ($page in $pages) {
+          $routes = foreach ($page in $pages) {
             $raw = [string]$page.url
-            if ($raw -match '^(?<scheme>https?)://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
-              $scheme = $Matches.scheme.ToLowerInvariant()
-              $authority = $Matches.authority.ToLowerInvariant()
+            if ($raw -match '^https://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
+              $pageHost = ($Matches.authority.ToLowerInvariant() -split ':')[0]
               $path = $Matches.path
-              $pageHost = ($authority -split ':')[0]
-              if ($scheme -ne "https") { "non_https_page"; continue }
-              if ($pageHost -eq "mod.io") {
-                $segments = @($path.Trim('/').Split('/') | Where-Object { $_ })
-                if ($segments.Count -eq 0) { "modio_root"; continue }
-                if ($segments[0] -eq "g") {
-                  if ($segments.Count -ge 2 -and $segments[1] -eq "baldursgate3") { "bg3_route_depth_$($segments.Count)"; continue }
-                  "other_game_route"; continue
-                }
-                if ($segments[0] -match '^(auth|oauth|login|signin|callback)$') { "modio_auth_route_$($segments[0])"; continue }
-                "modio_route_prefix_$($segments[0])"
+              if ($pageHost -ne "mod.io") { if ($pageHost -eq "larian.com" -or $pageHost.EndsWith(".larian.com")) { "larian_page"; continue }; "other_https_page"; continue }
+              $segments = @($path.Trim('/').Split('/') | Where-Object { $_ })
+              if ($segments.Count -ge 2 -and $segments[0] -eq "g") {
+                [ordered]@{ category = "modio_game_route"; gameSlug = $segments[1]; depth = $segments.Count }
                 continue
               }
-              if ($pageHost -eq "larian.com" -or $pageHost.EndsWith(".larian.com")) { "larian_page"; continue }
-              "other_https_page"
-            } elseif ($raw -match '^(about|chrome|edge|devtools):') {
-              "browser_internal_page"
-            } elseif ([string]::IsNullOrWhiteSpace($raw)) {
-              "empty_url"
+              [ordered]@{ category = "modio_non_game_route"; prefix = $(if ($segments.Count) { $segments[0] } else { "root" }); depth = $segments.Count }
             } else {
-              "unrecognized_page"
+              "non_web_or_non_https"
             }
           }
-          [ordered]@{ totalTargets = $targets.Count; pageTargets = $pages.Count; categories = @($classes | Group-Object | ForEach-Object { [ordered]@{ category = $_.Name; count = $_.Count } }) } | ConvertTo-Json -Depth 6 -Compress | Write-Output
+          [ordered]@{ pageTargets = $pages.Count; routes = @($routes) } | ConvertTo-Json -Depth 6 -Compress | Write-Output
