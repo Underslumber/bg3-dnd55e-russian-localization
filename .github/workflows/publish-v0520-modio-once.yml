@@ -26,7 +26,7 @@ jobs:
       - name: Checkout pinned publisher
         uses: actions/checkout@v7
         with:
-          ref: 6af92cf8bf1543c603037717d7f6ad7bb9291968
+          ref: 672b784e3f881736977733eee1ec6684067c0510
           path: publisher
           fetch-depth: 0
       - name: Checkout exact release source
@@ -39,48 +39,11 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git -C publisher rev-parse HEAD).Trim() -ne "6af92cf8bf1543c603037717d7f6ad7bb9291968") { throw "Publisher revision mismatch." }
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "672b784e3f881736977733eee1ec6684067c0510") { throw "Publisher revision mismatch." }
           if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
           if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
-      - name: Diagnose mod.io browser page without changing it
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
-          $diag = @'
-          const targets = await (await fetch("http://127.0.0.1:9222/json/list")).json();
-          const expectedModPath = "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization";
-          const modioPages = targets.filter((item) => {
-            if (item.type !== "page") return false;
-            try {
-              const url = new URL(item.url);
-              return url.protocol === "https:" && url.hostname === "mod.io" &&
-                (url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + "/"));
-            } catch {
-              return false;
-            }
-          });
-          if (modioPages.length !== 1) throw new Error("Expected exactly one browser page for this mod.io release.");
-          const page = modioPages[0];
-          if (!page) throw new Error("No mod.io page target.");
-          const socket = new WebSocket(page.webSocketDebuggerUrl);
-          await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, {once:true}); socket.addEventListener("error", reject, {once:true}); });
-          let id=1; const waiting=new Map();
-          socket.addEventListener("message", (event)=>{ const m=JSON.parse(event.data); if(m.id && waiting.has(m.id)){const cb=waiting.get(m.id); waiting.delete(m.id); m.error?cb.reject(new Error("CDP eval failed")):cb.resolve(m.result);} });
-          const response=await new Promise((resolve,reject)=>{const n=id++; waiting.set(n,{resolve,reject}); socket.send(JSON.stringify({id:n,method:"Runtime.evaluate",params:{returnByValue:true,expression:`(() => { const labels=[...document.querySelectorAll('a,button,[role="button"]')].map(e=>(e.innerText||e.textContent||e.getAttribute('aria-label')||e.title||'').replace(/\\s+/g,' ').trim()); const visible=labels.filter(Boolean); const path=location.pathname.toLowerCase(); return {host:location.hostname,pageKind:path.includes('/admin/settings')?'admin':/(login|signin)/.test(path)?'login':path.includes('/m/')?'mod-page':'other',readyState:document.readyState,larianSignInVisible:visible.some(x=>/^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i.test(x)),genericLoginVisible:visible.some(x=>/^(?:log|sign)\\s+in$/i.test(x)),discussionActionVisible:visible.some(x=>/^(?:join|start)\\s+discussion$/i.test(x))}; })()`}}));});
-          console.log(JSON.stringify(response.result.value)); socket.close();
-          '@
-          $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\actions-runner" }
-          $nodePath = Get-ChildItem -LiteralPath (Join-Path $runnerRoot "externals") -Directory -Filter "node*" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object { Join-Path $_.FullName "bin\node.exe" } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-          if (-not $nodePath) { throw "Node.js was not found in the runner externals directory." }
-          $diagPath = Join-Path $env:RUNNER_TEMP "bg3-modio-browser-diagnostic.mjs"
-          Set-Content -LiteralPath $diagPath -Value $diag -Encoding UTF8
-          try {
-            & $nodePath $diagPath
-            if ($LASTEXITCODE -ne 0) { throw "Browser page diagnostic failed." }
-          } finally {
-            Remove-Item -LiteralPath $diagPath -Force -ErrorAction SilentlyContinue
-          }
       - name: Safe preflight before upload
+        timeout-minutes: 5
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
