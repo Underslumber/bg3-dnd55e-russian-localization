@@ -51,13 +51,22 @@ const targets = await fetch(`http://127.0.0.1:${debugPort}/json/list`).then((res
   }
   return response.json();
 });
-const target =
-  targets.find((candidate) => candidate.type === "page" && candidate.url.includes("mod.io")) ||
-  targets.find((candidate) => candidate.type === "page");
-if (!target) {
-  throw new Error("No browser page is available through CDP.");
+const expectedModPath = "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization";
+const modioTargets = targets.filter((candidate) => {
+  if (candidate.type !== "page") return false;
+  try {
+    const url = new URL(candidate.url);
+    const expectedPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + "/");
+    const loginPath = url.pathname === "/login" || url.pathname === "/signin";
+    return url.protocol === "https:" && url.hostname === "mod.io" && (expectedPath || loginPath);
+  } catch {
+    return false;
+  }
+});
+if (modioTargets.length !== 1) {
+  throw new Error("Expected exactly one browser page for this mod.io release.");
 }
-
+const target = modioTargets[0];
 const socket = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
   socket.addEventListener("open", resolve, { once: true });
