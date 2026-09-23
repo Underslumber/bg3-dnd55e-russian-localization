@@ -1,4 +1,4 @@
-name: Diagnose BG3-MODIO game route after SSO
+name: Publish existing v0.5.20 to mod.io
 on:
   push:
     branches: [main]
@@ -7,30 +7,58 @@ on:
 permissions:
   contents: read
 jobs:
-  diagnose:
-    if: github.event.head_commit.message == '[diagnose-modio-browser-targets]'
+  publish:
+    if: github.event.head_commit.message == '[publish-modio-v0.5.20-one-shot]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: Mod.io
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+      MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
+      MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
+      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      MODIO_VERSION_TAG: v0.5.20
     steps:
-      - name: Read sanitized game route
+      - name: Checkout pinned publisher
+        uses: actions/checkout@v7
+        with:
+          ref: c8b3b44dec291bfcfdbe7d721810a00f2a2b3d06
+          path: publisher
+          fetch-depth: 0
+      - name: Checkout exact release source
+        uses: actions/checkout@v7
+        with:
+          ref: 6be3191e5ace4033b99cd775258e7d7931a1f9cd
+          path: release-source
+          fetch-depth: 0
+      - name: Verify pinned revisions
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 10)
-          $pages = @($targets | Where-Object { $_.type -eq "page" })
-          $routes = foreach ($page in $pages) {
-            $raw = [string]$page.url
-            if ($raw -match '^https://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
-              $pageHost = ($Matches.authority.ToLowerInvariant() -split ':')[0]
-              $path = $Matches.path
-              if ($pageHost -ne "mod.io") { if ($pageHost -eq "larian.com" -or $pageHost.EndsWith(".larian.com")) { "larian_page"; continue }; "other_https_page"; continue }
-              $segments = @($path.Trim('/').Split('/') | Where-Object { $_ })
-              if ($segments.Count -ge 2 -and $segments[0] -eq "g") {
-                [ordered]@{ category = "modio_game_route"; gameSlug = $segments[1]; depth = $segments.Count }
-                continue
-              }
-              [ordered]@{ category = "modio_non_game_route"; prefix = $(if ($segments.Count) { $segments[0] } else { "root" }); depth = $segments.Count }
-            } else {
-              "non_web_or_non_https"
-            }
-          }
-          [ordered]@{ pageTargets = $pages.Count; routes = @($routes) } | ConvertTo-Json -Depth 6 -Compress | Write-Output
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "c8b3b44dec291bfcfdbe7d721810a00f2a2b3d06") { throw "Publisher revision mismatch." }
+          if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
+          if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
+      - name: Safe preflight before upload
+        timeout-minutes: 5
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath -WhatIf
+      - name: Publish existing release to mod.io
+        if: success()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath
