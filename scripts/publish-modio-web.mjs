@@ -97,22 +97,117 @@ async function evaluate(expression) {
   return response.result.value;
 }
 
+async function readModioSessionState() {
+  return evaluate(`(() => {
+    const text = document.body?.innerText || '';
+    const normalizedText = text.toLowerCase();
+    return {
+      ready: location.href.includes('/admin/settings') &&
+        text.includes('File manager') &&
+        text.includes('Admin'),
+      loginRequired: normalizedText.includes('log in') ||
+        normalizedText.includes('sign in') ||
+        normalizedText.includes('войти') ||
+        /\\/(login|signin)(?:[/?#]|$)/i.test(location.href),
+      host: location.hostname
+    };
+  })()`);
+}
+
+async function clickSessionRecoveryAction(mode) {
+  return evaluate(`(() => {
+    const elements = [...document.querySelectorAll('a, button, [role="button"]')]
+      .map((element) => ({
+        element,
+        label: (element.innerText || element.textContent || '').trim(),
+        href: element.href || element.getAttribute('href') || ''
+      }))
+      .filter((item) => item.label || item.href);
+
+    const matches = (item, pattern) => pattern.test(item.label) || pattern.test(item.href);
+    let selected = null;
+    if (${JSON.stringify(mode)} === 'modio') {
+      selected = elements.find((item) =>
+        matches(item, /larian/i) && matches(item, /(log|sign|auth|connect|account|oauth)/i)) ||
+        elements.find((item) => matches(item, /^(log in|sign in|войти)$/i));
+    } else {
+      selected = elements.find((item) =>
+        matches(item, /^(continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i)) ||
+        elements.find((item) =>
+          matches(item, /(continue|authorize|allow access|продолжить|разрешить|предоставить доступ)/i));
+    }
+
+    if (!selected) return { clicked: false };
+    if (selected.element.tagName === 'A' && selected.element.href) {
+      location.assign(selected.element.href);
+    } else {
+      selected.element.click();
+    }
+    return { clicked: true, label: selected.label, href: selected.href };
+  })()`);
+}
+
+async function recoverModioSessionWithLarian() {
+  console.log('[publish-modio-web] mod.io session is signed out; trying the saved Larian SSO session.');
+  let action = await clickSessionRecoveryAction('modio');
+  if (!action?.clicked) {
+    throw new Error('mod.io is signed out and no Larian login action is available.');
+  }
+
+  const deadline = Date.now() + timeoutSeconds * 1000;
+  let lastState = null;
+  let lastActionAt = Date.now();
+  while (Date.now() < deadline) {
+    await sleep(1000);
+    lastState = await readModioSessionState().catch(() => null);
+    if (lastState?.ready) {
+      console.log('[publish-modio-web] mod.io session was restored through Larian SSO.');
+      return;
+    }
+
+    const pageState = await evaluate(`(() => ({
+      host: location.hostname,
+      hasPasswordField: Boolean(document.querySelector('input[type="password"]'))
+    }))()`).catch(() => null);
+    if (!pageState) continue;
+
+    if (/larian\\.com$/i.test(pageState.host) && pageState.hasPasswordField) {
+      throw new Error('The saved Larian browser session is not authenticated; the pre-job recovery hook must restore it before mod.io publication.');
+    }
+
+    if (Date.now() - lastActionAt < 3000) continue;
+    if (/larian\\.com$/i.test(pageState.host)) {
+      action = await clickSessionRecoveryAction('larian');
+      if (action?.clicked) lastActionAt = Date.now();
+      continue;
+    }
+
+    if (/mod\\.io$/i.test(pageState.host) && lastState?.loginRequired) {
+      action = await clickSessionRecoveryAction('modio');
+      if (action?.clicked) lastActionAt = Date.now();
+    }
+  }
+
+  throw new Error(`Timed out restoring the mod.io session through Larian SSO. Last state: ${JSON.stringify(lastState)}`);
+}
+
 try {
   await call("Page.navigate", { url: adminUrl });
-  await waitFor("authenticated mod.io file manager", async () =>
-    evaluate(`(() => ({
-      ready: location.href.includes('/admin/settings') &&
-        document.body.innerText.includes('File manager') &&
-        document.body.innerText.includes('Admin'),
-      loginRequired: document.body.innerText.includes('Log in') ||
-        document.body.innerText.includes('Sign in')
-    }))()`).then((state) => {
-      if (state?.loginRequired) {
-        throw new Error("The saved mod.io browser session is no longer authenticated.");
-      }
-      return state?.ready;
-    }),
-  );
+  let sessionState = await waitFor("mod.io session state", async () => {
+    const state = await readModioSessionState();
+    return state?.ready || state?.loginRequired ? state : null;
+  });
+  if (sessionState.loginRequired) {
+    await recoverModioSessionWithLarian();
+    await call("Page.navigate", { url: adminUrl });
+    sessionState = await waitFor("authenticated mod.io file manager after Larian SSO recovery", async () => {
+      const state = await readModioSessionState();
+      return state?.ready ? state : null;
+    });
+  }
+  if (!sessionState.ready) {
+    throw new Error(`mod.io browser session preflight did not reach the authenticated file manager: ${JSON.stringify(sessionState)}.`);
+  }
 
   if (!fileId) {
     console.log(
@@ -378,3 +473,4 @@ try {
 } finally {
   socket.close();
 }
+
