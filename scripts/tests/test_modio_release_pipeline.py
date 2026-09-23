@@ -1,3 +1,6 @@
+import json
+import re
+import subprocess
 from pathlib import Path
 
 
@@ -41,21 +44,32 @@ def test_modio_browser_session_is_checked_before_toolkit_upload():
     assert "mod.io browser session preflight passed" in PUBLISH
 
 
-def test_modio_login_route_recovers_via_public_discussion_larian_sso_only():
+def test_modio_login_recovery_starts_at_larian_and_never_uses_generic_login():
     recovery = PUBLISH_WEB[
         PUBLISH_WEB.index("async function recoverModioSessionWithLarian()") :
     ]
-    assert "loginRoute" in PUBLISH_WEB
-    assert "const discussionUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}#discussion`" in PUBLISH_WEB
-    assert 'await call("Page.navigate", { url: discussionUrl })' in recovery
-    assert "public mod discussion with the Larian sign-in action" in recovery
+    assert 'const larianLoginUrl = "https://larian.com/account/login"' in PUBLISH_WEB
+    assert 'const bg3PortalUrl = "https://mod.io/g/baldursgate3?portal=studio"' in PUBLISH_WEB
+    assert recovery.index('url: larianLoginUrl') < recovery.index('url: bg3PortalUrl')
     assert "clickVisibleLarianSsoAction" in recovery
-    assert r"/^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i" in PUBLISH_WEB
-    assert "elements.find((item) => matches(item, /^(log in|sign in|войти)$/i))" not in PUBLISH_WEB
+    assert "clickGenericModioLoginAction" not in PUBLISH_WEB
+    assert 'url: "https://mod.io/g"' not in PUBLISH_WEB
+    assert "generic mod.io login is disabled" in recovery
     assert 'await call("Page.navigate", { url: adminUrl })' in recovery
-    assert "href: selected.href" not in PUBLISH_WEB
     assert "console.log(action.href)" not in PUBLISH_WEB
 
+    page_expressions = re.findall(
+        r"evaluate\(String\.raw`([\s\S]*?)`\)",
+        PUBLISH_WEB,
+    )
+    assert page_expressions
+    for expression in page_expressions:
+        subprocess.run(
+            ["node", "-e", f"new Function({json.dumps(expression)});"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
 
 def test_toolkit_transient_failures_have_bounded_recovery():
     assert "Open-ProjectSettingsByCoordinates" in PUBLISH_UI
