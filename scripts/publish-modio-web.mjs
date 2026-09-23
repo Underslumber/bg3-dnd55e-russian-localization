@@ -45,7 +45,9 @@ async function waitFor(description, operation, interval = 750, maxSeconds = time
   throw new Error(`Timed out waiting for ${description}. Last value: ${JSON.stringify(lastValue)}`);
 }
 
-const targets = await fetch(`http://127.0.0.1:${debugPort}/json/list`).then((response) => {
+const targets = await fetch(`http://127.0.0.1:${debugPort}/json/list`, {
+  signal: AbortSignal.timeout(10_000),
+}).then((response) => {
   if (!response.ok) {
     throw new Error(`CDP target list returned HTTP ${response.status}.`);
   }
@@ -67,32 +69,79 @@ if (modioTargets.length !== 1) {
   throw new Error("Expected exactly one browser page for this mod.io release.");
 }
 const target = modioTargets[0];
+const CDP_REQUEST_TIMEOUT_MS = 10_000;
 const socket = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
-  socket.addEventListener("open", resolve, { once: true });
-  socket.addEventListener("error", reject, { once: true });
+  let settled = false;
+  const finish = (error) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timer);
+    socket.removeEventListener("open", onOpen);
+    socket.removeEventListener("error", onError);
+    socket.removeEventListener("close", onClose);
+    if (error) reject(error);
+    else resolve();
+  };
+  const onOpen = () => finish();
+  const onError = () => finish(new Error("CDP WebSocket failed to open."));
+  const onClose = () => finish(new Error("CDP WebSocket closed before opening."));
+  const timer = setTimeout(() => {
+    finish(new Error("Timed out opening CDP WebSocket."));
+    try { socket.close(); } catch {}
+  }, CDP_REQUEST_TIMEOUT_MS);
+  socket.addEventListener("open", onOpen, { once: true });
+  socket.addEventListener("error", onError, { once: true });
+  socket.addEventListener("close", onClose, { once: true });
 });
 
 let nextId = 1;
 const pending = new Map();
+
+function rejectPendingRequests(message) {
+  for (const [id, request] of pending) {
+    clearTimeout(request.timer);
+    pending.delete(id);
+    request.reject(new Error(message));
+  }
+}
+
 socket.addEventListener("message", (event) => {
-  const message = JSON.parse(event.data);
-  if (!message.id || !pending.has(message.id)) {
+  let message;
+  try {
+    message = JSON.parse(event.data);
+  } catch {
+    rejectPendingRequests("Invalid CDP response.");
     return;
   }
-  const { resolve, reject } = pending.get(message.id);
+  if (!message.id || !pending.has(message.id)) return;
+  const request = pending.get(message.id);
   pending.delete(message.id);
-  if (message.error) {
-    reject(new Error(JSON.stringify(message.error)));
-  } else {
-    resolve(message.result);
-  }
+  clearTimeout(request.timer);
+  if (message.error) request.reject(new Error("CDP request failed."));
+  else request.resolve(message.result);
 });
+socket.addEventListener("error", () => rejectPendingRequests("CDP WebSocket error."));
+socket.addEventListener("close", () => rejectPendingRequests("CDP WebSocket closed."));
 
 function call(method, params = {}) {
   const id = nextId++;
-  socket.send(JSON.stringify({ id, method, params }));
-  return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pending.delete(id);
+      const error = new Error("CDP request timed out.");
+      error.code = "cdp_timeout";
+      reject(error);
+    }, CDP_REQUEST_TIMEOUT_MS);
+    pending.set(id, { resolve, reject, timer });
+    try {
+      socket.send(JSON.stringify({ id, method, params }));
+    } catch {
+      clearTimeout(timer);
+      pending.delete(id);
+      reject(new Error("CDP request could not be sent."));
+    }
+  });
 }
 
 async function evaluate(expression) {
@@ -149,45 +198,97 @@ async function readLoginActionState() {
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
     const expectedContext = onModio && (modPath || loginRoute);
-    const visible = (element) => {
+    const genericPattern = /^(?:log in|sign in|войти)$/i;
+    const ssoPattern = /^(?:log in|sign in) with larian(?: studios)?$/i;
+
+    const labelsOf = (element) => [element.innerText, element.textContent,
+      element.getAttribute('aria-label'), element.title]
+      .filter(Boolean).map((value) => String(value).replace(/\\s+/g, ' ').trim()).filter(Boolean);
+    const isVisible = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' &&
+        Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0;
+    };
+    const isEnabled = (element) =>
+      !element.disabled && element.getAttribute('aria-disabled') !== 'true';
+    const inspect = (elements, pattern, countUnsafeTarget) => {
+      const counts = {
+        matchingLabels: 0,
+        hiddenOrOutOfBounds: 0,
+        disabled: 0,
+        ariaDisabled: 0,
+        unsafeSsoTarget: 0
+      };
+      let eligible = 0;
+      for (const element of elements) {
+        if (!labelsOf(element).some((label) => pattern.test(label))) continue;
+        counts.matchingLabels++;
+        if (!isVisible(element)) {
+          counts.hiddenOrOutOfBounds++;
+          continue;
+        }
+        if (element.disabled) {
+          counts.disabled++;
+          continue;
+        }
+        if (element.getAttribute('aria-disabled') === 'true') {
+          counts.ariaDisabled++;
+          continue;
+        }
+        if (countUnsafeTarget) {
+          let target;
+          try { target = new URL(element.href); } catch {
+            counts.unsafeSsoTarget++;
+            continue;
+          }
+          if (target.protocol !== 'https:' ||
+              !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
+              !(target.port === '' || target.port === '443')) {
+            counts.unsafeSsoTarget++;
+            continue;
+          }
+        }
+        eligible++;
+      }
+      return { eligible, counts };
+    };
+
+    const generic = expectedContext && modPath
+      ? inspect([...document.querySelectorAll('a, button, [role="button"]')], genericPattern, false)
+      : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
+    const sso = expectedContext
+      ? inspect([...document.querySelectorAll('a[href]')], ssoPattern, true)
+      : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
+
+    const larianHost = url.protocol === 'https:' &&
+      (url.hostname === 'larian.com' || url.hostname.endsWith('.larian.com')) &&
+      (url.port === '' || url.port === '443');
+    const visibleApproval = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
       return style.visibility !== 'hidden' && style.display !== 'none' &&
         Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
-    const labelsOf = (element) => [element.innerText, element.textContent,
-      element.getAttribute('aria-label'), element.title]
-      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
-    const genericCount = expectedContext && modPath
-      ? [...document.querySelectorAll('a, button, [role="button"]')]
-          .filter((element) => visible(element) &&
-            labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label))).length
-      : 0;
-    const ssoLinks = expectedContext
-      ? [...document.querySelectorAll('a[href]')].filter((element) => {
-          if (!visible(element) ||
-              !labelsOf(element).some((label) => /^(?:log in|sign in) with larian(?: studios)?$/i.test(label))) return false;
-          try {
-            const target = new URL(element.href);
-            return target.protocol === 'https:' &&
-              (target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) &&
-              (target.port === '' || target.port === '443');
-          } catch { return false; }
-        })
-      : [];
-    const larianHost = url.protocol === 'https:' &&
-      (url.hostname === 'larian.com' || url.hostname.endsWith('.larian.com')) &&
-      (url.port === '' || url.port === '443');
     const challenge = larianHost && Boolean(document.querySelector(
       'input[type="password"], input[autocomplete="one-time-code"], iframe[src*="captcha"], [class*="captcha"], [id*="captcha"]'
     ));
     const approvalRequired = larianHost && [...document.querySelectorAll('button, [role="button"]')]
-      .some((element) => visible(element) &&
+      .some((element) => visibleApproval(element) &&
         labelsOf(element).some((label) =>
           /^(?:continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i.test(label)
         ));
-    return { expectedContext, genericCount, ssoCount: ssoLinks.length, larianHost, challenge, approvalRequired };
+    return {
+      expectedContext,
+      genericCount: generic.eligible,
+      ssoCount: sso.eligible,
+      genericRejections: generic.counts,
+      ssoRejections: sso.counts,
+      larianHost,
+      challenge,
+      approvalRequired
+    };
   })()`);
 }
 
@@ -257,19 +358,36 @@ async function recoverModioSessionWithLarian() {
     await call("Page.navigate", { url: discussionUrl });
   }
   let lastActionState = null;
+  let lastReadErrorCategory = null;
+  async function readLoginActionStateSafely() {
+    try {
+      const state = await readLoginActionState();
+      lastReadErrorCategory = null;
+      return state;
+    } catch (error) {
+      lastReadErrorCategory =
+        error?.code === 'cdp_timeout' ? 'cdp_timeout' : 'cdp_read_failed';
+      return null;
+    }
+  }
   let actionState = await waitFor('safe mod.io login action', async () => {
-    lastActionState = await readLoginActionState().catch(() => null);
+    lastActionState = await readLoginActionStateSafely();
     return lastActionState?.expectedContext &&
       (lastActionState.ssoCount > 0 || lastActionState.genericCount > 0 || lastActionState.challenge)
       ? lastActionState : null;
   }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
   if (!actionState) {
-    const diagnostic = lastActionState && {
-      expectedContext: lastActionState.expectedContext,
-      genericCount: lastActionState.genericCount,
-      ssoCount: lastActionState.ssoCount,
-      challenge: lastActionState.challenge,
-      approvalRequired: lastActionState.approvalRequired
+    const diagnostic = {
+      readErrorCategory: lastReadErrorCategory,
+      ...(lastActionState ? {
+        expectedContext: lastActionState.expectedContext,
+        genericCount: lastActionState.genericCount,
+        ssoCount: lastActionState.ssoCount,
+        genericRejections: lastActionState.genericRejections,
+        ssoRejections: lastActionState.ssoRejections,
+        challenge: lastActionState.challenge,
+        approvalRequired: lastActionState.approvalRequired
+      } : {})
     };
     throw new Error('No unique safe mod.io login action became available: ' + JSON.stringify(diagnostic));
   }
@@ -278,7 +396,7 @@ async function recoverModioSessionWithLarian() {
     const genericClick = await clickGenericModioLoginAction();
     if (genericClick !== 'clicked') throw new Error('A unique, safe mod.io login action was not available; automatic publication stopped.');
     actionState = await waitFor('Larian SSO action on the mod.io login page', async () => {
-      const state = await readLoginActionState().catch(() => null);
+      const state = await readLoginActionStateSafely();
       return state?.expectedContext && (state.ssoCount > 0 || state.challenge || state.approvalRequired) ? state : null;
     }, 500, Math.min(timeoutSeconds, 60));
   }
@@ -294,7 +412,7 @@ async function recoverModioSessionWithLarian() {
       console.log('[publish-modio-web] mod.io session was restored through Larian SSO.');
       return;
     }
-    actionState = await readLoginActionState().catch(() => null);
+    actionState = await readLoginActionStateSafely();
     if (actionState?.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
     if (actionState?.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
     if (currentState?.host === 'mod.io' && !currentState.loginRequired) return;
