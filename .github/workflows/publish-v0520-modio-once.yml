@@ -26,7 +26,7 @@ jobs:
       - name: Checkout pinned publisher
         uses: actions/checkout@v7
         with:
-          ref: f804b92aaeadba99abbdc32d72dabfa9e276ec37
+          ref: 687a04724a337c51f9b52109bc576e601184889b
           path: publisher
           fetch-depth: 0
       - name: Checkout exact release source
@@ -39,7 +39,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git -C publisher rev-parse HEAD).Trim() -ne "f804b92aaeadba99abbdc32d72dabfa9e276ec37") { throw "Publisher revision mismatch." }
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "687a04724a337c51f9b52109bc576e601184889b") { throw "Publisher revision mismatch." }
           if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
           if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
       - name: Safe preflight before upload
