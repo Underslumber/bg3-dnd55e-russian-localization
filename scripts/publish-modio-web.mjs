@@ -203,15 +203,13 @@ async function readLoginActionState() {
 
     const labelsOf = (element) => [element.innerText, element.textContent,
       element.getAttribute('aria-label'), element.title]
-      .filter(Boolean).map((value) => String(value).replace(/\\s+/g, ' ').trim()).filter(Boolean);
+      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
     const isVisible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
       return style.visibility !== 'hidden' && style.display !== 'none' &&
         Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0;
     };
-    const isEnabled = (element) =>
-      !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     const inspect = (elements, pattern, countUnsafeTarget) => {
       const counts = {
         matchingLabels: 0,
