@@ -248,7 +248,8 @@ async function readLoginActionState() {
             }
             const allowedHost = linkAction
               ? target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io') || target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')
-              : target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
+              : (gamePortalRoute && (target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io'))) ||
+                target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
             if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) {
               counts.unsafeSsoTarget++;
               unsafeTargets.push({ protocol: target.protocol, hostname: target.hostname, port: target.port, linkAction });
@@ -337,8 +338,10 @@ async function clickVisibleLarianSsoAction() {
     } else {
       let target;
       try { target = new URL(matches[0].href); } catch { return 'invalid_target'; }
-      if (target.protocol !== 'https:' ||
-          !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
+      const allowlistedHost =
+        target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com') ||
+        (gamePortalRoute && (target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io')));
+      if (target.protocol !== 'https:' || !allowlistedHost ||
           !(target.port === '' || target.port === '443')) return 'invalid_target';
     }
     if (matches[0] instanceof HTMLAnchorElement) matches[0].target = '_self';
