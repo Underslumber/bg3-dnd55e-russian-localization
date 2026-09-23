@@ -261,7 +261,7 @@ async function readLoginActionState() {
     const generic = expectedContext && (modPath || loginRoute || gamePortalRoute)
       ? inspect([...document.querySelectorAll('a, button, [role="button"]')], genericPattern, false)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
-    const sso = expectedContext
+    const sso = onModio
       ? inspect([...document.querySelectorAll('a[href], button, [role="button"]')], ssoPattern, true)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
 
@@ -334,8 +334,7 @@ async function clickVisibleLarianSsoAction() {
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
     const gamePortalRoute = url.pathname === '/g/baldursgate3';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
-        !(url.port === '' || url.port === '443') ||
-        !(modPath || loginRoute || gamePortalRoute)) return 'wrong_context';
+        !(url.port === '' || url.port === '443')) return 'wrong_context';
     const visible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
@@ -451,7 +450,7 @@ async function recoverModioSessionWithLarian() {
     actionState = await waitFor('Larian SSO action or redirect from the mod.io login page', async () => {
       const state = await readLoginActionStateSafely();
       return state?.larianHost ||
-        (state?.expectedContext && (state.ssoCount > 0 || state.challenge || state.approvalRequired))
+        (state?.ssoCount > 0 || (state?.expectedContext && (state.challenge || state.approvalRequired)))
         ? state : null;
     }, 500, Math.min(timeoutSeconds, 60));
   }
