@@ -48,9 +48,11 @@ def test_modio_login_recovery_starts_at_larian_and_never_uses_generic_login():
     recovery = PUBLISH_WEB[
         PUBLISH_WEB.index("async function recoverModioSessionWithLarian()") :
     ]
-    assert 'const larianLoginUrl = "https://larian.com/account/login"' in PUBLISH_WEB
     assert 'const bg3PortalUrl = "https://mod.io/g/baldursgate3?portal=studio"' in PUBLISH_WEB
-    assert recovery.index('url: larianLoginUrl') < recovery.index('url: bg3PortalUrl')
+    assert "larianLoginUrl" not in PUBLISH_WEB
+    assert "Opening the BG3 portal, then following its Larian SSO link" in recovery
+    assert 'await call("Page.navigate", { url: bg3PortalUrl })' in recovery
+    assert "State: " in recovery
     assert "clickVisibleLarianSsoAction" in recovery
     assert "clickGenericModioLoginAction" not in PUBLISH_WEB
     assert 'url: "https://mod.io/g"' not in PUBLISH_WEB
