@@ -245,7 +245,9 @@ async function readLoginActionState() {
               counts.unsafeSsoTarget++;
               continue;
             }
-            const allowedHost = target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
+            const allowedHost = linkAction
+              ? target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io') || target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')
+              : target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
             if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) {
               counts.unsafeSsoTarget++;
               continue;
