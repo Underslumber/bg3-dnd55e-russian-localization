@@ -32,8 +32,8 @@ function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function waitFor(description, operation, interval = 750) {
-  const deadline = Date.now() + timeoutSeconds * 1000;
+async function waitFor(description, operation, interval = 750, maxSeconds = timeoutSeconds) {
+  const deadline = Date.now() + maxSeconds * 1000;
   let lastValue;
   while (Date.now() < deadline) {
     lastValue = await operation();
@@ -280,7 +280,7 @@ async function recoverModioSessionWithLarian() {
     actionState = await waitFor('Larian SSO action on the mod.io login page', async () => {
       const state = await readLoginActionState().catch(() => null);
       return state?.expectedContext && (state.ssoCount > 0 || state.challenge || state.approvalRequired) ? state : null;
-    });
+    }, 500, Math.min(timeoutSeconds, 60));
   }
   if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
   if (actionState.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
