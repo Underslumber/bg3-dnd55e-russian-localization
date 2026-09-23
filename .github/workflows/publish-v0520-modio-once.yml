@@ -48,7 +48,19 @@ jobs:
           $ErrorActionPreference = "Stop"
           $diag = @'
           const targets = await (await fetch("http://127.0.0.1:9222/json/list")).json();
-          const page = targets.find((item) => item.type === "page" && item.url.includes("mod.io"));
+          const expectedModPath = "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization";
+          const modioPages = targets.filter((item) => {
+            if (item.type !== "page") return false;
+            try {
+              const url = new URL(item.url);
+              return url.protocol === "https:" && url.hostname === "mod.io" &&
+                (url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + "/"));
+            } catch {
+              return false;
+            }
+          });
+          if (modioPages.length !== 1) throw new Error("Expected exactly one browser page for this mod.io release.");
+          const page = modioPages[0];
           if (!page) throw new Error("No mod.io page target.");
           const socket = new WebSocket(page.webSocketDebuggerUrl);
           await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, {once:true}); socket.addEventListener("error", reject, {once:true}); });
