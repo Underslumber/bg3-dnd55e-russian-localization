@@ -31,8 +31,8 @@ jobs:
                 $scheme = $Matches.scheme.ToLowerInvariant()
                 $authority = $Matches.authority.ToLowerInvariant()
                 $path = $Matches.path
-                $host = ($authority -split ':')[0]
-                if ($scheme -eq "https" -and $host -eq "mod.io") {
+                $pageHost = ($authority -split ':')[0]
+                if ($scheme -eq "https" -and $pageHost -eq "mod.io") {
                   if ($path -eq "/g/baldursgate3") { "bg3_game_portal"; continue }
                   if ($path -eq "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization" -or $path.StartsWith("/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization/")) { "target_mod_admin_or_listing"; continue }
                   if ($path -eq "/login" -or $path -eq "/signin") { "login_route"; continue }
