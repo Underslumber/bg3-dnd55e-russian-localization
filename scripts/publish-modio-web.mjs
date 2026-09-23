@@ -161,7 +161,7 @@ async function readModioSessionState() {
     const onModio = url.protocol === 'https:' && url.hostname === 'mod.io' &&
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
-    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3';
     const loginRoute = /(?:^|\/)(?:login|signin)(?:\/|$)/i.test(url.pathname);
     const pageText = document.body?.innerText || '';
     const visible = (element) => {
@@ -195,7 +195,7 @@ async function readLoginActionState() {
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
-    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3';
     const expectedContext = onModio && (modPath || loginRoute || gamePortalRoute);
     const genericPattern = /^(?:log in|sign in|войти)$/i;
     const ssoPattern = /^(?:log in|sign in) with larian(?: studios)?$|^link your larian studios account$/i;
@@ -300,7 +300,7 @@ async function clickGenericModioLoginAction() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
-    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3';
     const expectedPath = url.pathname === expectedModPath ||
       url.pathname.startsWith(expectedModPath + '/') ||
       url.pathname === '/login' ||
@@ -332,7 +332,7 @@ async function clickVisibleLarianSsoAction() {
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
-    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') ||
         !(modPath || loginRoute || gamePortalRoute)) return 'wrong_context';
@@ -377,7 +377,7 @@ async function recoverModioSessionWithLarian() {
   console.log('[publish-modio-web] mod.io session is signed out; trying the saved Larian SSO session.');
   let currentState = await readModioSessionState().catch(() => null);
   if (!currentState?.ready || currentState?.host !== 'mod.io') {
-    await call("Page.navigate", { url: `https://mod.io/g/${gameSlug}?portal=studio` });
+    await call("Page.navigate", { url: `https://mod.io/g/${gameSlug}` });
   }
   let lastActionState = null;
   let lastReadErrorCategory = null;
