@@ -368,12 +368,42 @@ async function recoverModioSessionWithLarian() {
       return null;
     }
   }
+  const onlyHiddenGenericLogin = (state) =>
+    state?.expectedContext &&
+    state.genericCount === 0 &&
+    state.ssoCount === 0 &&
+    state.genericRejections?.matchingLabels === 1 &&
+    state.genericRejections?.hiddenOrOutOfBounds === 1 &&
+    state.genericRejections?.disabled === 0 &&
+    state.genericRejections?.ariaDisabled === 0 &&
+    !state.challenge &&
+    !state.approvalRequired;
+
   let actionState = await waitFor('safe mod.io login action', async () => {
     lastActionState = await readLoginActionStateSafely();
     return lastActionState?.expectedContext &&
-      (lastActionState.ssoCount > 0 || lastActionState.genericCount > 0 || lastActionState.challenge)
+      (lastActionState.ssoCount > 0 ||
+        lastActionState.genericCount > 0 ||
+        lastActionState.challenge ||
+        onlyHiddenGenericLogin(lastActionState))
       ? lastActionState : null;
   }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
+  if (onlyHiddenGenericLogin(actionState)) {
+    await call("Page.navigate", { url: "https://mod.io/login" });
+    actionState = await waitFor(
+      "visible Larian SSO action on canonical mod.io login page",
+      async () => {
+        lastActionState = await readLoginActionStateSafely();
+        return lastActionState?.expectedContext &&
+          (lastActionState.ssoCount > 0 ||
+            lastActionState.challenge ||
+            lastActionState.approvalRequired)
+          ? lastActionState : null;
+      },
+      500,
+      Math.min(timeoutSeconds, 60),
+    );
+  }
   if (!actionState) {
     const diagnostic = {
       readErrorCategory: lastReadErrorCategory,
