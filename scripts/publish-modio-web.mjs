@@ -58,7 +58,7 @@ const modioTargets = targets.filter((candidate) => {
     const url = new URL(candidate.url);
     const expectedPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + "/");
     const loginPath = url.pathname === "/login" || url.pathname === "/signin";
-    return url.protocol === "https:" && url.hostname === "mod.io" && (expectedPath || loginPath);
+    return url.protocol === "https:" && url.hostname === "mod.io" && (url.port === "" || url.port === "443") && (expectedPath || loginPath);
   } catch {
     return false;
   }
@@ -110,23 +110,30 @@ async function evaluate(expression) {
 async function readModioSessionState() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
-    const onModio = url.protocol === 'https:' && url.hostname === 'mod.io';
-    const modPath = /^\/g\/baldursgate3\/m\/dnd-55e-all-in-one-beyond-russian-localization(?:\/|$)/i.test(url.pathname);
+    const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
+    const expectedAdminPath = expectedModPath + '/admin/settings';
+    const onModio = url.protocol === 'https:' && url.hostname === 'mod.io' &&
+      (url.port === '' || url.port === '443');
+    const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = /(?:^|\/)(?:login|signin)(?:\/|$)/i.test(url.pathname);
     const pageText = document.body?.innerText || '';
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' &&
+        Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
+        !element.disabled && element.getAttribute('aria-disabled') !== 'true';
+    };
+    const labelsOf = (element) => [element.innerText, element.textContent,
+      element.getAttribute('aria-label'), element.title]
+      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
     return {
-      ready: onModio && url.pathname.includes('/admin/settings') &&
+      ready: onModio && url.pathname === expectedAdminPath &&
         pageText.includes('File manager') && pageText.includes('Admin'),
       loginRequired: onModio && (loginRoute || (modPath &&
-        [...document.querySelectorAll('a, button, [role="button"]')].some((element) => {
-          const style = getComputedStyle(element);
-          const bounds = element.getBoundingClientRect();
-          const label = String(element.innerText || element.getAttribute('aria-label') || '')
-            .replace(/\s+/g, ' ').trim();
-          return style.visibility !== 'hidden' && style.display !== 'none' &&
-            Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
-            !element.disabled && /^(?:log in|sign in|войти)$/i.test(label);
-        }))),
+        [...document.querySelectorAll('a, button, [role="button"]')].some((element) =>
+          visible(element) && labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label))
+        ))),
       loginRoute,
       host: onModio ? 'mod.io' : 'other'
     };
@@ -136,9 +143,11 @@ async function readModioSessionState() {
 async function readLoginActionState() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
-    const onModio = url.protocol === 'https:' && url.hostname === 'mod.io';
-    const modPath = /^\/g\/baldursgate3\/m\/dnd-55e-all-in-one-beyond-russian-localization(?:\/|$)/i.test(url.pathname);
-    const loginRoute = /^(?:\/(?:login|signin))(?:\/|$)/i.test(url.pathname);
+    const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
+    const onModio = url.protocol === 'https:' && url.hostname === 'mod.io' &&
+      (url.port === '' || url.port === '443');
+    const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
+    const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
     const expectedContext = onModio && (modPath || loginRoute);
     const visible = (element) => {
       const style = getComputedStyle(element);
@@ -147,15 +156,18 @@ async function readLoginActionState() {
         Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
-    const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\s+/g, ' ').trim();
+    const labelsOf = (element) => [element.innerText, element.textContent,
+      element.getAttribute('aria-label'), element.title]
+      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
     const genericCount = expectedContext && modPath
       ? [...document.querySelectorAll('a, button, [role="button"]')]
-          .filter((element) => visible(element) && /^(?:log in|sign in|войти)$/i.test(labelOf(element))).length
+          .filter((element) => visible(element) &&
+            labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label))).length
       : 0;
     const ssoLinks = expectedContext
       ? [...document.querySelectorAll('a[href]')].filter((element) => {
-          if (!visible(element) || !/^(?:log in|sign in) with larian(?: studios)?$/i.test(labelOf(element))) return false;
+          if (!visible(element) ||
+              !labelsOf(element).some((label) => /^(?:log in|sign in) with larian(?: studios)?$/i.test(label))) return false;
           try {
             const target = new URL(element.href);
             return target.protocol === 'https:' &&
@@ -165,13 +177,16 @@ async function readLoginActionState() {
         })
       : [];
     const larianHost = url.protocol === 'https:' &&
-      (url.hostname === 'larian.com' || url.hostname.endsWith('.larian.com'));
+      (url.hostname === 'larian.com' || url.hostname.endsWith('.larian.com')) &&
+      (url.port === '' || url.port === '443');
     const challenge = larianHost && Boolean(document.querySelector(
       'input[type="password"], input[autocomplete="one-time-code"], iframe[src*="captcha"], [class*="captcha"], [id*="captcha"]'
     ));
     const approvalRequired = larianHost && [...document.querySelectorAll('button, [role="button"]')]
       .some((element) => visible(element) &&
-        /^(?:continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i.test(labelOf(element)));
+        labelsOf(element).some((label) =>
+          /^(?:continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i.test(label)
+        ));
     return { expectedContext, genericCount, ssoCount: ssoLinks.length, larianHost, challenge, approvalRequired };
   })()`);
 }
@@ -179,8 +194,10 @@ async function readLoginActionState() {
 async function clickGenericModioLoginAction() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
-    const expectedPath = /^\/g\/baldursgate3\/m\/dnd-55e-all-in-one-beyond-russian-localization(?:\/|$)/i.test(url.pathname);
-    if (url.protocol !== 'https:' || url.hostname !== 'mod.io' || !expectedPath) return 'wrong_context';
+    const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
+    const expectedPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
+    if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
+        !(url.port === '' || url.port === '443') || !expectedPath) return 'wrong_context';
     const visible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
@@ -188,10 +205,12 @@ async function clickGenericModioLoginAction() {
         Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
-    const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\s+/g, ' ').trim();
+    const labelsOf = (element) => [element.innerText, element.textContent,
+      element.getAttribute('aria-label'), element.title]
+      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
     const matches = [...document.querySelectorAll('a, button, [role="button"]')]
-      .filter((element) => visible(element) && /^(?:log in|sign in|войти)$/i.test(labelOf(element)));
+      .filter((element) => visible(element) &&
+        labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label)));
     if (matches.length !== 1) return matches.length ? 'ambiguous' : 'missing';
     matches[0].click();
     return 'clicked';
@@ -201,9 +220,11 @@ async function clickGenericModioLoginAction() {
 async function clickVisibleLarianSsoAction() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
-    const modPath = /^\/g\/baldursgate3\/m\/dnd-55e-all-in-one-beyond-russian-localization(?:\/|$)/i.test(url.pathname);
-    const loginRoute = /^(?:\/(?:login|signin))(?:\/|$)/i.test(url.pathname);
-    if (url.protocol !== 'https:' || url.hostname !== 'mod.io' || !(modPath || loginRoute)) return 'wrong_context';
+    const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
+    const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
+    const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
+    if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
+        !(url.port === '' || url.port === '443') || !(modPath || loginRoute)) return 'wrong_context';
     const visible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
@@ -211,10 +232,12 @@ async function clickVisibleLarianSsoAction() {
         Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
-    const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\s+/g, ' ').trim();
+    const labelsOf = (element) => [element.innerText, element.textContent,
+      element.getAttribute('aria-label'), element.title]
+      .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
     const matches = [...document.querySelectorAll('a[href]')].filter((element) =>
-      visible(element) && /^(?:log in|sign in) with larian(?: studios)?$/i.test(labelOf(element))
+      visible(element) &&
+      labelsOf(element).some((label) => /^(?:log in|sign in) with larian(?: studios)?$/i.test(label))
     );
     if (matches.length !== 1) return matches.length ? 'ambiguous' : 'missing';
     let target;
@@ -233,10 +256,23 @@ async function recoverModioSessionWithLarian() {
   if (!currentState?.ready || currentState?.host !== 'mod.io') {
     await call("Page.navigate", { url: discussionUrl });
   }
+  let lastActionState = null;
   let actionState = await waitFor('safe mod.io login action', async () => {
-    const state = await readLoginActionState().catch(() => null);
-    return state?.expectedContext && (state.ssoCount > 0 || state.genericCount > 0 || state.challenge) ? state : null;
-  });
+    lastActionState = await readLoginActionState().catch(() => null);
+    return lastActionState?.expectedContext &&
+      (lastActionState.ssoCount > 0 || lastActionState.genericCount > 0 || lastActionState.challenge)
+      ? lastActionState : null;
+  }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
+  if (!actionState) {
+    const diagnostic = lastActionState && {
+      expectedContext: lastActionState.expectedContext,
+      genericCount: lastActionState.genericCount,
+      ssoCount: lastActionState.ssoCount,
+      challenge: lastActionState.challenge,
+      approvalRequired: lastActionState.approvalRequired
+    };
+    throw new Error('No unique safe mod.io login action became available: ' + JSON.stringify(diagnostic));
+  }
   if (actionState.challenge) throw new Error('Larian authentication requires user action; automatic publication stopped safely.');
   if (actionState.ssoCount === 0) {
     const genericClick = await clickGenericModioLoginAction();
@@ -250,7 +286,6 @@ async function recoverModioSessionWithLarian() {
   if (actionState.approvalRequired) throw new Error('Larian requires an interactive approval; automatic publication stopped safely.');
   const ssoClick = await clickVisibleLarianSsoAction();
   if (ssoClick !== 'clicked') throw new Error('A unique, allowlisted Larian SSO action was not available; automatic publication stopped.');
-
   const deadline = Date.now() + timeoutSeconds * 1000;
   while (Date.now() < deadline) {
     await sleep(1000);
