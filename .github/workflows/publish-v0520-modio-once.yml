@@ -1,4 +1,4 @@
-name: Inspect mod.io login methods on BG3-MODIO
+name: Publish existing v0.5.20 to mod.io
 on:
   push:
     branches: [main]
@@ -7,71 +7,58 @@ on:
 permissions:
   contents: read
 jobs:
-  inspect:
-    if: github.event.head_commit.message == '[inspect-modio-login-methods]'
+  publish:
+    if: github.event.head_commit.message == '[publish-modio-v0.5.20-one-shot]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: Mod.io
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+      MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
+      MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
+      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      MODIO_VERSION_TAG: v0.5.20
     steps:
-      - name: Open mod.io account login and report safe method categories
+      - name: Checkout pinned publisher
+        uses: actions/checkout@v7
+        with:
+          ref: 2f1ae81d379853cd7a9d04859c068a6708495f0a
+          path: publisher
+          fetch-depth: 0
+      - name: Checkout exact release source
+        uses: actions/checkout@v7
+        with:
+          ref: 6be3191e5ace4033b99cd775258e7d7931a1f9cd
+          path: release-source
+          fetch-depth: 0
+      - name: Verify pinned revisions
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          $nodeScript = @'
-          const pages = (await fetch("http://127.0.0.1:9222/json/list").then(r => r.json()))
-            .filter(t => t.type === "page" && /^https:\/\/mod\.io(?:\/|$)/i.test(t.url));
-          if (pages.length !== 1) {
-            console.log(JSON.stringify({status:"wrong_target_count", modioPages:pages.length}));
-            process.exit(2);
-          }
-          const ws = new WebSocket(pages[0].webSocketDebuggerUrl);
-          await new Promise((resolve,reject)=>{ ws.addEventListener("open",resolve,{once:true}); ws.addEventListener("error",()=>reject(new Error("CDP connect failed")),{once:true}); });
-          let seq=0; const pending=new Map();
-          ws.addEventListener("message",e=>{ let m; try{m=JSON.parse(e.data)}catch{return} if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(new Error("CDP command failed")):p.resolve(m.result)}});
-          const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
-          const evaluate=async expression=>{const response=await call("Runtime.evaluate",{expression,returnByValue:true,awaitPromise:true});if(response.exceptionDetails)throw new Error("Browser evaluation failed");return response.result?.value??null};
-          try {
-            await call("Page.enable");
-            await call("Page.navigate",{url:"https://mod.io/g"});
-            let state=null;
-            for(let i=0;i<30;i++){
-              await new Promise(r=>setTimeout(r,500));
-              state=await evaluate(String.raw`(() => {
-                const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)!==0&&r.width>0&&r.height>0&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'};
-                const labels=e=>[e.innerText,e.textContent,e.getAttribute('aria-label'),e.title].filter(Boolean).map(v=>String(v).replace(/\\s+/g,' ').trim()).filter(Boolean);
-                const buttons=[...document.querySelectorAll('a,button,[role="button"]')].filter(visible);
-                const login=buttons.filter(e=>labels(e).some(v=>/^(log in|sign in|войти)$/i.test(v)));
-                return {modio:location.protocol==='https:'&&location.hostname==='mod.io', root:location.pathname==='/g'||location.pathname==='/g/', loginCount:login.length, loginTag:login.length===1?login[0].tagName:null, loginHrefSameSite:login.length===1&&login[0] instanceof HTMLAnchorElement?(()=>{try{return new URL(login[0].href,location.href).hostname==='mod.io'}catch{return false}})():null};
-              })()`);
-              if(state?.modio&&state?.loginCount!==undefined) break;
-            }
-            if(!state?.modio||state.loginCount!==1){console.log(JSON.stringify({status:"login_control_not_unique",modio:state?.modio,root:state?.root,loginCount:state?.loginCount}));process.exit(0);}
-            const clicked=await evaluate(String.raw`(() => {
-              const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)!==0&&r.width>0&&r.height>0&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'};
-              const labels=e=>[e.innerText,e.textContent,e.getAttribute('aria-label'),e.title].filter(Boolean).map(v=>String(v).replace(/\\s+/g,' ').trim()).filter(Boolean);
-              const items=[...document.querySelectorAll('a,button,[role="button"]')].filter(e=>visible(e)&&labels(e).some(v=>/^(log in|sign in|войти)$/i.test(v)));
-              if(items.length!==1)return false;
-              if(items[0] instanceof HTMLAnchorElement)items[0].target='_self';
-              items[0].click();return true;
-            })()`);
-            if(!clicked){console.log(JSON.stringify({status:"login_click_not_completed"}));process.exit(0);}
-            await new Promise(r=>setTimeout(r,3000));
-            const result=await evaluate(String.raw`(() => {
-              const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)!==0&&r.width>0&&r.height>0&&!e.disabled&&e.getAttribute('aria-disabled')!=='true'};
-              const labels=e=>[e.innerText,e.textContent,e.getAttribute('aria-label'),e.title].filter(Boolean).map(v=>String(v).replace(/\\s+/g,' ').trim()).filter(Boolean);
-              const controls=[...document.querySelectorAll('a,button,[role="button"]')].filter(visible);
-              const all=controls.flatMap(labels).map(v=>v.toLowerCase());
-              const has=(re)=>all.some(v=>re.test(v));
-              return {modio:location.protocol==='https:'&&location.hostname==='mod.io',loginPage=/login|signin/i.test(location.pathname)||location.pathname==='/g'||location.pathname==='/g/',providers:{email:has(/email|e-mail/),google:has(/google/),steam:has(/steam/),discord:has(/discord/),epic:has(/epic/),xbox:has(/xbox/),playstation:has(/playstation|psn/),apple:has(/apple/),larian:has(/larian/),otherProvider:has(/continue with|sign in with|log in with/)},passwordField:[...document.querySelectorAll('input[type="password"]')].some(visible),emailField:[...document.querySelectorAll('input[type="email"],input[autocomplete="email"]')].some(visible),codeField:[...document.querySelectorAll('input[autocomplete="one-time-code"],input[name*="code" i]')].some(visible)};
-            })()`);
-            console.log(JSON.stringify({status:"inspected",before:state,after:result}));
-          } finally { try{ws.close()}catch{} }
-          '@
-          $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\\actions-runner" }
-          $nodePath = Get-ChildItem -LiteralPath (Join-Path $runnerRoot "externals") -Directory -Filter "node*" |
-            Sort-Object Name -Descending |
-            ForEach-Object { Join-Path $_.FullName "bin\\node.exe" } |
-            Where-Object { Test-Path -LiteralPath $_ } |
-            Select-Object -First 1
-          if (-not $nodePath) { throw "Runner Node.js executable was not found." }
-          $tempScript = Join-Path $env:RUNNER_TEMP ("modio-login-diagnostic-" + [Guid]::NewGuid().ToString("N") + ".mjs")
-          [IO.File]::WriteAllText($tempScript, $nodeScript, [Text.UTF8Encoding]::new($false))
-          try { & $nodePath $tempScript } finally { Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue }
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "2f1ae81d379853cd7a9d04859c068a6708495f0a") { throw "Publisher revision mismatch." }
+          if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
+          if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
+      - name: Safe preflight before upload
+        timeout-minutes: 5
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath -WhatIf
+      - name: Publish existing release to mod.io
+        if: success()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath
