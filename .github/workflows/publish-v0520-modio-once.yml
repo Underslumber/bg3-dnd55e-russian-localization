@@ -26,15 +26,26 @@ jobs:
             $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 10)
             $pages = @($targets | Where-Object { $_.type -eq "page" })
             $categories = foreach ($page in $pages) {
-              try {
-                $uri = [Uri]$page.url
-                if ($uri.Scheme -ne "https" -or $uri.Host -ne "mod.io") { "non_modio"; continue }
-                if ($uri.AbsolutePath -eq "/g/baldursgate3") { "bg3_game_portal"; continue }
-                if ($uri.AbsolutePath -eq "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization" -or $uri.AbsolutePath.StartsWith("/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization/")) { "target_mod_admin_or_listing"; continue }
-                if ($uri.AbsolutePath -eq "/login" -or $uri.AbsolutePath -eq "/signin") { "login_route"; continue }
-                "other_modio_path"
-              } catch {
-                "unparseable"
+              $raw = [string]$page.url
+              if ($raw -match '^(?<scheme>https?)://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
+                $scheme = $Matches.scheme.ToLowerInvariant()
+                $authority = $Matches.authority.ToLowerInvariant()
+                $path = $Matches.path
+                $host = ($authority -split ':')[0]
+                if ($scheme -eq "https" -and $host -eq "mod.io") {
+                  if ($path -eq "/g/baldursgate3") { "bg3_game_portal"; continue }
+                  if ($path -eq "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization" -or $path.StartsWith("/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization/")) { "target_mod_admin_or_listing"; continue }
+                  if ($path -eq "/login" -or $path -eq "/signin") { "login_route"; continue }
+                  "other_modio_path"
+                } else {
+                  "other_web_origin"
+                }
+              } elseif ($raw -match '^(about|chrome|edge|devtools):') {
+                "browser_internal_page"
+              } elseif ([string]::IsNullOrWhiteSpace($raw)) {
+                "empty_url"
+              } else {
+                "non_http_or_unrecognized"
               }
             }
             $result.browser = [ordered]@{
@@ -53,23 +64,15 @@ jobs:
             $response = Invoke-RestMethod -Method Get -Uri "$base/games/$game/mods/$mod/files" -Headers $headers -TimeoutSec 20
             $files = @()
             if ($null -ne $response.data) { $files = @($response.data) } else { $files = @($response) }
-            $result.modfiles = [ordered]@{
-              status = "ok"
-              count = $files.Count
-              items = @($files | Select-Object -First 30 | ForEach-Object {
-                $active = $null
-                if ($_.PSObject.Properties.Name -contains "active") { $active = $_.active }
-                [ordered]@{ id = $_.id; version = $_.version; active = $active; date_added = $_.date_added; virus_status = $_.virus_status }
-              })
-            }
+            $matches = @($files | Where-Object { $_.version -eq "0.5.20.0" } | ForEach-Object {
+              [ordered]@{ id = $_.id; version = $_.version; date_added = $_.date_added; virus_status = $_.virus_status }
+            })
+            $newest = @($files | Sort-Object { [long]$_.date_added } -Descending | Select-Object -First 5 | ForEach-Object {
+              [ordered]@{ id = $_.id; version = $_.version; date_added = $_.date_added; virus_status = $_.virus_status }
+            })
+            $result.modfiles = [ordered]@{ status = "ok"; count = $files.Count; targetVersion = $matches; newest = $newest }
             $modResponse = Invoke-RestMethod -Method Get -Uri "$base/games/$game/mods/$mod" -Headers $headers -TimeoutSec 20
-            $result.mod = [ordered]@{
-              status = "ok"
-              id = $modResponse.id
-              visible = $modResponse.visible
-              statusCode = $modResponse.status
-              modfile = $modResponse.modfile
-            }
+            $result.mod = [ordered]@{ status = "ok"; id = $modResponse.id; visible = $modResponse.visible; statusCode = $modResponse.status; modfile = $modResponse.modfile }
           } catch {
             $status = $null
             if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
