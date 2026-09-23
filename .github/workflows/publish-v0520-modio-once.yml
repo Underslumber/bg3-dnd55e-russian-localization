@@ -1,0 +1,63 @@
+name: Publish existing v0.5.20 to mod.io
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-v0520-modio-once.yml"
+permissions:
+  contents: read
+jobs:
+  publish:
+    if: github.event.head_commit.message == '[publish-modio-v0.5.20-one-shot]'
+    runs-on: [self-hosted, Windows, bg3-toolkit]
+    environment: Mod.io
+    env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
+      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
+      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
+      MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
+      MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
+      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      MODIO_VERSION_TAG: v0.5.20
+    steps:
+      - name: Checkout pinned publisher
+        uses: actions/checkout@v7
+        with:
+          ref: 8098e064d8a965b0d859180018956230395dc597
+          path: publisher
+          fetch-depth: 0
+      - name: Checkout exact release source
+        uses: actions/checkout@v7
+        with:
+          ref: 6be3191e5ace4033b99cd775258e7d7931a1f9cd
+          path: release-source
+          fetch-depth: 0
+      - name: Verify pinned revisions
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "8098e064d8a965b0d859180018956230395dc597") { throw "Publisher revision mismatch." }
+          if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
+          if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
+      - name: Safe preflight before upload
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath -WhatIf
+      - name: Publish existing release to mod.io
+        if: success()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath
