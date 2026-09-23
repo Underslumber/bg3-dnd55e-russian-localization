@@ -53,20 +53,17 @@ const targets = await fetch(`http://127.0.0.1:${debugPort}/json/list`, {
   }
   return response.json();
 });
-const expectedModPath = "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization";
 const modioTargets = targets.filter((candidate) => {
   if (candidate.type !== "page") return false;
   try {
     const url = new URL(candidate.url);
-    const expectedPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + "/");
-    const loginPath = url.pathname === "/login" || url.pathname === "/signin";
-    return url.protocol === "https:" && url.hostname === "mod.io" && (url.port === "" || url.port === "443") && (expectedPath || loginPath);
+    return url.protocol === "https:" && url.hostname === "mod.io" && (url.port === "" || url.port === "443");
   } catch {
     return false;
   }
 });
 if (modioTargets.length !== 1) {
-  throw new Error("Expected exactly one browser page for this mod.io release.");
+  throw new Error(`Expected exactly one HTTPS mod.io browser page; found ${modioTargets.length}.`);
 }
 const target = modioTargets[0];
 const CDP_REQUEST_TIMEOUT_MS = 10_000;
