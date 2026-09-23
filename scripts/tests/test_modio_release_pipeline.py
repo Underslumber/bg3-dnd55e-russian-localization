@@ -57,6 +57,7 @@ def test_modio_login_recovery_starts_at_larian_and_never_uses_generic_login():
     assert "clickGenericModioLoginAction" not in PUBLISH_WEB
     assert "new URL(href || element.href, url)" in PUBLISH_WEB
     assert "ssoTargets: sso.unsafeTargets || []" in PUBLISH_WEB
+    assert "(gamePortalRoute && (target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io')))" in PUBLISH_WEB
     assert 'url: "https://mod.io/g"' not in PUBLISH_WEB
     assert "generic mod.io login is disabled" in recovery
     assert 'await call("Page.navigate", { url: adminUrl })' in recovery
