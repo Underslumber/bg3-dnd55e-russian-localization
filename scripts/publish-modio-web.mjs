@@ -221,7 +221,7 @@ async function clickVisibleLarianSsoAction() {
 async function recoverModioSessionWithLarian() {
   console.log('[publish-modio-web] mod.io session is signed out; trying the saved Larian SSO session.');
   let currentState = await readModioSessionState().catch(() => null);
-  if (currentState?.loginRoute || currentState?.host !== 'mod.io') {
+  if (!currentState?.ready || currentState?.host !== 'mod.io') {
     await call("Page.navigate", { url: discussionUrl });
   }
   let actionState = await waitFor('safe mod.io login action', async () => {
