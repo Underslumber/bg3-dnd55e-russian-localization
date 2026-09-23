@@ -164,7 +164,7 @@ async function readModioSessionState() {
     const onModio = url.protocol === 'https:' && url.hostname === 'mod.io' &&
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
-    const gameIndexRoute = url.pathname === '/g';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
     const loginRoute = /(?:^|\/)(?:login|signin)(?:\/|$)/i.test(url.pathname);
     const pageText = document.body?.innerText || '';
     const visible = (element) => {
@@ -180,7 +180,7 @@ async function readModioSessionState() {
     return {
       ready: onModio && url.pathname === expectedAdminPath &&
         pageText.includes('File manager') && pageText.includes('Admin'),
-      loginRequired: onModio && (loginRoute || ((modPath || gameIndexRoute) &&
+      loginRequired: onModio && (loginRoute || ((modPath || gamePortalRoute) &&
         [...document.querySelectorAll('a, button, [role="button"]')].some((element) =>
           visible(element) && labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label))
         ))),
@@ -198,10 +198,10 @@ async function readLoginActionState() {
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
-    const gameIndexRoute = url.pathname === '/g';
-    const expectedContext = onModio && (modPath || loginRoute || gameIndexRoute);
+    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
+    const expectedContext = onModio && (modPath || loginRoute || gamePortalRoute);
     const genericPattern = /^(?:log in|sign in|войти)$/i;
-    const ssoPattern = /^(?:log in|sign in) with larian(?: studios)?$/i;
+    const ssoPattern = /^(?:log in|sign in) with larian(?: studios)?$|^link your larian studios account$/i;
 
     const labelsOf = (element) => [element.innerText, element.textContent,
       element.getAttribute('aria-label'), element.title]
@@ -237,16 +237,23 @@ async function readLoginActionState() {
           continue;
         }
         if (countUnsafeTarget) {
-          let target;
-          try { target = new URL(element.href); } catch {
-            counts.unsafeSsoTarget++;
-            continue;
-          }
-          if (target.protocol !== 'https:' ||
-              !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
-              !(target.port === '' || target.port === '443')) {
-            counts.unsafeSsoTarget++;
-            continue;
+          const linkAction = gamePortalRoute && labelsOf(element).some((label) => /^link your larian studios account$/i.test(label));
+          const href = element.getAttribute('href');
+          if (linkAction && !href) {
+            // The exact, visible BG3 portal button is the documented linking action.
+          } else {
+            let target;
+            try { target = new URL(href || element.href); } catch {
+              counts.unsafeSsoTarget++;
+              continue;
+            }
+            const allowedHost = linkAction
+              ? target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io') || target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')
+              : target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
+            if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) {
+              counts.unsafeSsoTarget++;
+              continue;
+            }
           }
         }
         eligible++;
@@ -254,11 +261,11 @@ async function readLoginActionState() {
       return { eligible, counts };
     };
 
-    const generic = expectedContext && (modPath || loginRoute || gameIndexRoute)
+    const generic = expectedContext && (modPath || loginRoute || gamePortalRoute)
       ? inspect([...document.querySelectorAll('a, button, [role="button"]')], genericPattern, false)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
     const sso = expectedContext
-      ? inspect([...document.querySelectorAll('a[href]')], ssoPattern, true)
+      ? inspect([...document.querySelectorAll('a[href], button, [role="button"]')], ssoPattern, true)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
 
     const larianHost = url.protocol === 'https:' &&
@@ -296,11 +303,11 @@ async function clickGenericModioLoginAction() {
   return evaluate(String.raw`(() => {
     const url = new URL(location.href);
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
     const expectedPath = url.pathname === expectedModPath ||
       url.pathname.startsWith(expectedModPath + '/') ||
       url.pathname === '/login' ||
-      url.pathname === '/signin' ||
-      url.pathname === '/g';
+      url.pathname === '/signin' || gamePortalRoute;
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') || !expectedPath) return 'wrong_context';
     const visible = (element) => {
@@ -328,10 +335,10 @@ async function clickVisibleLarianSsoAction() {
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
-    const gameIndexRoute = url.pathname === '/g';
+    const gamePortalRoute = url.pathname === '/g/baldursgate3' && url.searchParams.get('portal') === 'studio';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') ||
-        !(modPath || loginRoute || gameIndexRoute)) return 'wrong_context';
+        !(modPath || loginRoute || gamePortalRoute)) return 'wrong_context';
     const visible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
@@ -342,16 +349,28 @@ async function clickVisibleLarianSsoAction() {
     const labelsOf = (element) => [element.innerText, element.textContent,
       element.getAttribute('aria-label'), element.title]
       .filter(Boolean).map((value) => String(value).replace(/\s+/g, ' ').trim()).filter(Boolean);
-    const matches = [...document.querySelectorAll('a[href]')].filter((element) =>
+    const matches = [...document.querySelectorAll('a[href], button, [role="button"]')].filter((element) =>
       visible(element) &&
-      labelsOf(element).some((label) => /^(?:log in|sign in) with larian(?: studios)?$/i.test(label))
+      labelsOf(element).some((label) => /^(?:log in|sign in) with larian(?: studios)?$|^link your larian studios account$/i.test(label))
     );
     if (matches.length !== 1) return matches.length ? 'ambiguous' : 'missing';
-    let target;
-    try { target = new URL(matches[0].href); } catch { return 'invalid_target'; }
-    if (target.protocol !== 'https:' ||
-        !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
-        !(target.port === '' || target.port === '443')) return 'invalid_target';
+    const linkAction = labelsOf(matches[0]).some((label) => /^link your larian studios account$/i.test(label));
+    if (linkAction) {
+      if (!gamePortalRoute) return 'wrong_context';
+      const href = matches[0].getAttribute('href');
+      if (href) {
+        let target;
+        try { target = new URL(href, location.href); } catch { return 'invalid_target'; }
+        const allowedHost = target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io') || target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
+        if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) return 'invalid_target';
+      }
+    } else {
+      let target;
+      try { target = new URL(matches[0].href); } catch { return 'invalid_target'; }
+      if (target.protocol !== 'https:' ||
+          !(target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com')) ||
+          !(target.port === '' || target.port === '443')) return 'invalid_target';
+    }
     matches[0].click();
     return 'clicked';
   })()`);
@@ -397,7 +416,7 @@ async function recoverModioSessionWithLarian() {
       ? lastActionState : null;
   }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
   if (onlyHiddenGenericLogin(actionState)) {
-    await call("Page.navigate", { url: "https://mod.io/g" });
+    await call("Page.navigate", { url: `https://mod.io/g/${gameSlug}?portal=studio` });
     actionState = await waitFor(
       "safe login action on canonical mod.io login page",
       async () => {
