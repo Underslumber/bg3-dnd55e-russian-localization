@@ -54,10 +54,13 @@ jobs:
           await new Promise((resolve, reject) => { socket.addEventListener("open", resolve, {once:true}); socket.addEventListener("error", reject, {once:true}); });
           let id=1; const waiting=new Map();
           socket.addEventListener("message", (event)=>{ const m=JSON.parse(event.data); if(m.id && waiting.has(m.id)){const cb=waiting.get(m.id); waiting.delete(m.id); m.error?cb.reject(new Error("CDP eval failed")):cb.resolve(m.result);} });
-          const response=await new Promise((resolve,reject)=>{const n=id++; waiting.set(n,{resolve,reject}); socket.send(JSON.stringify({id:n,method:"Runtime.evaluate",params:{returnByValue:true,expression:`(() => { const labels=[...document.querySelectorAll('a,button,[role="button"]')].map(e=>(e.innerText||e.textContent||e.getAttribute('aria-label')||e.title||'').replace(/\\s+/g,' ').trim()).filter(x=>/larian|sign in|log in|discussion|join|comment|войти|авториз/i.test(x)).slice(0,40); return {url:location.origin+location.pathname+location.hash,title:document.title,readyState:document.readyState,labels}; })()`}}));});
+          const response=await new Promise((resolve,reject)=>{const n=id++; waiting.set(n,{resolve,reject}); socket.send(JSON.stringify({id:n,method:"Runtime.evaluate",params:{returnByValue:true,expression:`(() => { const labels=[...document.querySelectorAll('a,button,[role="button"]')].map(e=>(e.innerText||e.textContent||e.getAttribute('aria-label')||e.title||'').replace(/\\s+/g,' ').trim()); const visible=labels.filter(Boolean); const path=location.pathname.toLowerCase(); return {host:location.hostname,pageKind:path.includes('/admin/settings')?'admin':/(login|signin)/.test(path)?'login':path.includes('/m/')?'mod-page':'other',readyState:document.readyState,larianSignInVisible:visible.some(x=>/^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i.test(x)),genericLoginVisible:visible.some(x=>/^(?:log|sign)\\s+in$/i.test(x)),discussionActionVisible:visible.some(x=>/^(?:join|start)\\s+discussion$/i.test(x))}; })()`}}));});
           console.log(JSON.stringify(response.result.value)); socket.close();
           '@
-          node --input-type=module -e $diag
+          $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\actions-runner" }
+          $nodePath = Get-ChildItem -LiteralPath (Join-Path $runnerRoot "externals") -Directory -Filter "node*" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object { Join-Path $_.FullName "bin\node.exe" } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $nodePath) { throw "Node.js was not found in the runner externals directory." }
+          & $nodePath --input-type=module -e $diag
           if ($LASTEXITCODE -ne 0) { throw "Browser page diagnostic failed." }
       - name: Safe preflight before upload
         shell: powershell
