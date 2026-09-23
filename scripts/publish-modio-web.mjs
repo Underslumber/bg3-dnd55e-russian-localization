@@ -113,7 +113,7 @@ async function readModioSessionState() {
           const style = getComputedStyle(element);
           const bounds = element.getBoundingClientRect();
           const label = String(element.innerText || element.getAttribute('aria-label') || '')
-            .replace(/\\s+/g, ' ').trim();
+            .replace(/\s+/g, ' ').trim();
           return style.visibility !== 'hidden' && style.display !== 'none' &&
             Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
             !element.disabled && /^(?:log in|sign in|войти)$/i.test(label);
@@ -139,7 +139,7 @@ async function readLoginActionState() {
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
     const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\\s+/g, ' ').trim();
+      .replace(/\s+/g, ' ').trim();
     const genericCount = expectedContext && modPath
       ? [...document.querySelectorAll('a, button, [role="button"]')]
           .filter((element) => visible(element) && /^(?:log in|sign in|войти)$/i.test(labelOf(element))).length
@@ -180,7 +180,7 @@ async function clickGenericModioLoginAction() {
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
     const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\\s+/g, ' ').trim();
+      .replace(/\s+/g, ' ').trim();
     const matches = [...document.querySelectorAll('a, button, [role="button"]')]
       .filter((element) => visible(element) && /^(?:log in|sign in|войти)$/i.test(labelOf(element)));
     if (matches.length !== 1) return matches.length ? 'ambiguous' : 'missing';
@@ -203,7 +203,7 @@ async function clickVisibleLarianSsoAction() {
         !element.disabled && element.getAttribute('aria-disabled') !== 'true';
     };
     const labelOf = (element) => String(element.innerText || element.getAttribute('aria-label') || '')
-      .replace(/\\s+/g, ' ').trim();
+      .replace(/\s+/g, ' ').trim();
     const matches = [...document.querySelectorAll('a[href]')].filter((element) =>
       visible(element) && /^(?:log in|sign in) with larian(?: studios)?$/i.test(labelOf(element))
     );
