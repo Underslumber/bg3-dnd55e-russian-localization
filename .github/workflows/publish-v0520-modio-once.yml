@@ -1,4 +1,4 @@
-name: Diagnose v0.5.20 mod.io runner state
+name: Publish existing v0.5.20 to mod.io
 on:
   push:
     branches: [main]
@@ -7,75 +7,58 @@ on:
 permissions:
   contents: read
 jobs:
-  diagnose:
-    if: github.event.head_commit.message == '[diagnose-modio-v0520-state]'
+  publish:
+    if: github.event.head_commit.message == '[publish-modio-v0.5.20-one-shot]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
     environment: Mod.io
     env:
+      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
       MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
       MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
       MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
       MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
+      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
+      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
+      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
+      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
+      MODIO_VERSION_TAG: v0.5.20
     steps:
-      - name: Read sanitized browser and mod.io file state
+      - name: Checkout pinned publisher
+        uses: actions/checkout@v7
+        with:
+          ref: 38bd2838db21e2f5bbe51cb070f9db0f6f580a5b
+          path: publisher
+          fetch-depth: 0
+      - name: Checkout exact release source
+        uses: actions/checkout@v7
+        with:
+          ref: 6be3191e5ace4033b99cd775258e7d7931a1f9cd
+          path: release-source
+          fetch-depth: 0
+      - name: Verify pinned revisions
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          $result = [ordered]@{}
-          try {
-            $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 10)
-            $pages = @($targets | Where-Object { $_.type -eq "page" })
-            $categories = foreach ($page in $pages) {
-              $raw = [string]$page.url
-              if ($raw -match '^(?<scheme>https?)://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
-                $scheme = $Matches.scheme.ToLowerInvariant()
-                $authority = $Matches.authority.ToLowerInvariant()
-                $path = $Matches.path
-                $pageHost = ($authority -split ':')[0]
-                if ($scheme -eq "https" -and $pageHost -eq "mod.io") {
-                  if ($path -eq "/g/baldursgate3") { "bg3_game_portal"; continue }
-                  if ($path -eq "/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization" -or $path.StartsWith("/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization/")) { "target_mod_admin_or_listing"; continue }
-                  if ($path -eq "/login" -or $path -eq "/signin") { "login_route"; continue }
-                  "other_modio_path"
-                } else {
-                  "other_web_origin"
-                }
-              } elseif ($raw -match '^(about|chrome|edge|devtools):') {
-                "browser_internal_page"
-              } elseif ([string]::IsNullOrWhiteSpace($raw)) {
-                "empty_url"
-              } else {
-                "non_http_or_unrecognized"
-              }
-            }
-            $result.browser = [ordered]@{
-              status = "ok"
-              pageCount = $pages.Count
-              categories = @($categories | Group-Object | ForEach-Object { [ordered]@{ category = $_.Name; count = $_.Count } })
-            }
-          } catch {
-            $result.browser = [ordered]@{ status = "unavailable"; errorType = $_.Exception.GetType().Name }
-          }
-          try {
-            $base = $env:MODIO_API_BASE.TrimEnd("/")
-            $game = $env:MODIO_GAME_ID
-            $mod = $env:MODIO_MOD_ID
-            $headers = @{ Authorization = "Bearer $env:MODIO_ACCESS_TOKEN"; Accept = "application/json" }
-            $response = Invoke-RestMethod -Method Get -Uri "$base/games/$game/mods/$mod/files" -Headers $headers -TimeoutSec 20
-            $files = @()
-            if ($null -ne $response.data) { $files = @($response.data) } else { $files = @($response) }
-            $matches = @($files | Where-Object { $_.version -eq "0.5.20.0" } | ForEach-Object {
-              [ordered]@{ id = $_.id; version = $_.version; date_added = $_.date_added; virus_status = $_.virus_status }
-            })
-            $newest = @($files | Sort-Object { [long]$_.date_added } -Descending | Select-Object -First 5 | ForEach-Object {
-              [ordered]@{ id = $_.id; version = $_.version; date_added = $_.date_added; virus_status = $_.virus_status }
-            })
-            $result.modfiles = [ordered]@{ status = "ok"; count = $files.Count; targetVersion = $matches; newest = $newest }
-            $modResponse = Invoke-RestMethod -Method Get -Uri "$base/games/$game/mods/$mod" -Headers $headers -TimeoutSec 20
-            $result.mod = [ordered]@{ status = "ok"; id = $modResponse.id; visible = $modResponse.visible; statusCode = $modResponse.status; modfile = $modResponse.modfile }
-          } catch {
-            $status = $null
-            if ($_.Exception.Response) { $status = [int]$_.Exception.Response.StatusCode }
-            $result.modioApi = [ordered]@{ status = "error"; httpStatus = $status; errorType = $_.Exception.GetType().Name }
-          }
-          $result | ConvertTo-Json -Depth 8 -Compress | Write-Output
+          if ((git -C publisher rev-parse HEAD).Trim() -ne "38bd2838db21e2f5bbe51cb070f9db0f6f580a5b") { throw "Publisher revision mismatch." }
+          if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
+          if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
+      - name: Safe preflight before upload
+        timeout-minutes: 5
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath -WhatIf
+      - name: Publish existing release to mod.io
+        if: success()
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $bg3ToolPath = $env:BG3TOOL_PATH
+          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
+          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
+          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
+          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath
