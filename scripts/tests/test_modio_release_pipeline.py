@@ -41,6 +41,22 @@ def test_modio_browser_session_is_checked_before_toolkit_upload():
     assert "mod.io browser session preflight passed" in PUBLISH
 
 
+def test_modio_login_route_recovers_via_public_discussion_larian_sso_only():
+    recovery = PUBLISH_WEB[
+        PUBLISH_WEB.index("async function recoverModioSessionWithLarian()") :
+    ]
+    assert "loginRoute" in PUBLISH_WEB
+    assert "const discussionUrl = \`https://mod.io/g/\${gameSlug}/m/\${modSlug}#discussion\`" in PUBLISH_WEB
+    assert 'await call("Page.navigate", { url: discussionUrl })' in recovery
+    assert "public mod discussion with the Larian sign-in action" in recovery
+    assert "clickVisibleLarianSsoAction" in recovery
+    assert r"/^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i" in PUBLISH_WEB
+    assert "elements.find((item) => matches(item, /^(log in|sign in|войти)$/i))" not in PUBLISH_WEB
+    assert 'await call("Page.navigate", { url: adminUrl })' in recovery
+    assert "href: selected.href" not in PUBLISH_WEB
+    assert "console.log(action.href)" not in PUBLISH_WEB
+
+
 def test_toolkit_transient_failures_have_bounded_recovery():
     assert "Open-ProjectSettingsByCoordinates" in PUBLISH_UI
     assert "refreshing Project Settings once before failing" in PUBLISH_UI

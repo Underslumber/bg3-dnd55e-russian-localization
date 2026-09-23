@@ -26,6 +26,7 @@ const platformLabels = new Map([
 ]);
 
 const adminUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}/admin/settings#files`;
+const discussionUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}#discussion`;
 
 function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -109,49 +110,76 @@ async function readModioSessionState() {
         normalizedText.includes('sign in') ||
         normalizedText.includes('войти') ||
         /\\/(login|signin)(?:[/?#]|$)/i.test(location.href),
+      loginRoute: /\\/(login|signin)(?:[/?#]|$)/i.test(location.pathname),
       host: location.hostname
     };
-  })()`);
+  })`);
 }
 
-async function clickSessionRecoveryAction(mode) {
+async function clickVisibleLarianSsoAction() {
   return evaluate(`(() => {
-    const elements = [...document.querySelectorAll('a, button, [role="button"]')]
-      .map((element) => ({
-        element,
-        label: (element.innerText || element.textContent || '').trim(),
-        href: element.href || element.getAttribute('href') || ''
-      }))
-      .filter((item) => item.label || item.href);
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' &&
+        Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
+        !element.disabled;
+    };
+    const selected = [...document.querySelectorAll('a, button, [role="button"]')]
+      .filter(visible)
+      .find((element) => {
+        const label = [element.innerText, element.textContent, element.getAttribute('aria-label'), element.title]
+          .filter(Boolean).join(' ').replace(/\\s+/g, ' ').trim();
+        return /^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i.test(label);
+      });
+    if (!selected) return false;
+    selected.click();
+    return true;
+  })`);
+}
 
-    const matches = (item, pattern) => pattern.test(item.label) || pattern.test(item.href);
-    let selected = null;
-    if (${JSON.stringify(mode)} === 'modio') {
-      selected = elements.find((item) =>
-        matches(item, /larian/i) && matches(item, /(log|sign|auth|connect|account|oauth)/i)) ||
-        elements.find((item) => matches(item, /^(log in|sign in|войти)$/i));
-    } else {
-      selected = elements.find((item) =>
-        matches(item, /^(continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i)) ||
-        elements.find((item) =>
-          matches(item, /(continue|authorize|allow access|продолжить|разрешить|предоставить доступ)/i));
-    }
-
-    if (!selected) return { clicked: false };
-    if (selected.element.tagName === 'A' && selected.element.href) {
-      location.assign(selected.element.href);
-    } else {
-      selected.element.click();
-    }
-    return { clicked: true, label: selected.label, href: selected.href };
-  })()`);
+async function clickLarianAuthorizationAction() {
+  return evaluate(`(() => {
+    const visible = (element) => {
+      const style = getComputedStyle(element);
+      const bounds = element.getBoundingClientRect();
+      return style.visibility !== 'hidden' && style.display !== 'none' &&
+        Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
+        !element.disabled;
+    };
+    const selected = [...document.querySelectorAll('a, button, [role="button"]')]
+      .filter(visible)
+      .find((element) => {
+        const label = (element.innerText || element.textContent || '').replace(/\\s+/g, ' ').trim();
+        return /^(continue|authorize|allow|confirm|proceed|продолжить|разрешить|подтвердить)$/i.test(label) ||
+          /^(continue|authorize|allow access|продолжить|разрешить|предоставить доступ)$/i.test(label);
+      });
+    if (!selected) return false;
+    selected.click();
+    return true;
+  })`);
 }
 
 async function recoverModioSessionWithLarian() {
   console.log('[publish-modio-web] mod.io session is signed out; trying the saved Larian SSO session.');
-  let action = await clickSessionRecoveryAction('modio');
-  if (!action?.clicked) {
-    throw new Error('mod.io is signed out and no Larian login action is available.');
+  const currentState = await readModioSessionState().catch(() => null);
+  if (currentState?.loginRoute) {
+    await call("Page.navigate", { url: discussionUrl });
+    await waitFor("public mod discussion with the Larian sign-in action", async () =>
+      evaluate(`(() => [...document.querySelectorAll('a, button, [role="button"]')].some((element) => {
+        const style = getComputedStyle(element);
+        const bounds = element.getBoundingClientRect();
+        const label = [element.innerText, element.textContent, element.getAttribute('aria-label'), element.title]
+          .filter(Boolean).join(' ').replace(/\\s+/g, ' ').trim();
+        return style.visibility !== 'hidden' && style.display !== 'none' &&
+          Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
+          !element.disabled && /^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i.test(label);
+      }))`),
+    );
+  }
+
+  if (!await clickVisibleLarianSsoAction()) {
+    throw new Error('mod.io is signed out and the public mod page has no visible Larian sign-in action.');
   }
 
   const deadline = Date.now() + timeoutSeconds * 1000;
@@ -167,8 +195,9 @@ async function recoverModioSessionWithLarian() {
 
     const pageState = await evaluate(`(() => ({
       host: location.hostname,
-      hasPasswordField: Boolean(document.querySelector('input[type="password"]'))
-    }))()`).catch(() => null);
+      hasPasswordField: Boolean(document.querySelector('input[type="password"]')),
+      loginRoute: /\\/(login|signin)(?:[/?#]|$)/i.test(location.pathname)
+    }))`).catch(() => null);
     if (!pageState) continue;
 
     if (/larian\\.com$/i.test(pageState.host) && pageState.hasPasswordField) {
@@ -177,18 +206,16 @@ async function recoverModioSessionWithLarian() {
 
     if (Date.now() - lastActionAt < 3000) continue;
     if (/larian\\.com$/i.test(pageState.host)) {
-      action = await clickSessionRecoveryAction('larian');
-      if (action?.clicked) lastActionAt = Date.now();
+      if (await clickLarianAuthorizationAction()) lastActionAt = Date.now();
       continue;
     }
 
-    if (/mod\\.io$/i.test(pageState.host) && lastState?.loginRequired) {
-      action = await clickSessionRecoveryAction('modio');
-      if (action?.clicked) lastActionAt = Date.now();
+    if (/mod\\.io$/i.test(pageState.host) && !pageState.loginRoute) {
+      await call("Page.navigate", { url: adminUrl });
     }
   }
 
-  throw new Error(`Timed out restoring the mod.io session through Larian SSO. Last state: ${JSON.stringify(lastState)}`);
+  throw new Error('Timed out restoring the mod.io session through Larian SSO. Last state: ' + JSON.stringify(lastState));
 }
 
 try {
@@ -206,7 +233,7 @@ try {
     });
   }
   if (!sessionState.ready) {
-    throw new Error(`mod.io browser session preflight did not reach the authenticated file manager: ${JSON.stringify(sessionState)}.`);
+    throw new Error('mod.io browser session preflight did not reach the authenticated file manager: ' + JSON.stringify(sessionState) + '.');
   }
 
   if (!fileId) {
