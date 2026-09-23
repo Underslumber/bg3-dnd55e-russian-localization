@@ -46,7 +46,7 @@ def test_modio_login_route_recovers_via_public_discussion_larian_sso_only():
         PUBLISH_WEB.index("async function recoverModioSessionWithLarian()") :
     ]
     assert "loginRoute" in PUBLISH_WEB
-    assert "const discussionUrl = \`https://mod.io/g/\${gameSlug}/m/\${modSlug}#discussion\`" in PUBLISH_WEB
+    assert "const discussionUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}#discussion`" in PUBLISH_WEB
     assert 'await call("Page.navigate", { url: discussionUrl })' in recovery
     assert "public mod discussion with the Larian sign-in action" in recovery
     assert "clickVisibleLarianSsoAction" in recovery

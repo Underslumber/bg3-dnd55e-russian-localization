@@ -113,7 +113,7 @@ async function readModioSessionState() {
       loginRoute: /\\/(login|signin)(?:[/?#]|$)/i.test(location.pathname),
       host: location.hostname
     };
-  })`);
+  })()`);
 }
 
 async function clickVisibleLarianSsoAction() {
@@ -135,7 +135,7 @@ async function clickVisibleLarianSsoAction() {
     if (!selected) return false;
     selected.click();
     return true;
-  })`);
+  })()`);
 }
 
 async function clickLarianAuthorizationAction() {
@@ -157,7 +157,7 @@ async function clickLarianAuthorizationAction() {
     if (!selected) return false;
     selected.click();
     return true;
-  })`);
+  })()`);
 }
 
 async function recoverModioSessionWithLarian() {
@@ -174,7 +174,7 @@ async function recoverModioSessionWithLarian() {
         return style.visibility !== 'hidden' && style.display !== 'none' &&
           Number(style.opacity) !== 0 && bounds.width > 0 && bounds.height > 0 &&
           !element.disabled && /^(?:log|sign)\\s+in\\s+with\\s+larian(?:\\s+studios)?$/i.test(label);
-      }))`),
+      }))()`),
     );
   }
 
@@ -197,7 +197,7 @@ async function recoverModioSessionWithLarian() {
       host: location.hostname,
       hasPasswordField: Boolean(document.querySelector('input[type="password"]')),
       loginRoute: /\\/(login|signin)(?:[/?#]|$)/i.test(location.pathname)
-    }))`).catch(() => null);
+    }))()`).catch(() => null);
     if (!pageState) continue;
 
     if (/larian\\.com$/i.test(pageState.host) && pageState.hasPasswordField) {
