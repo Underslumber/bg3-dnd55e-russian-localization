@@ -60,8 +60,14 @@ jobs:
           $runnerRoot = if ($env:RUNNER_ROOT) { $env:RUNNER_ROOT } else { "C:\actions-runner" }
           $nodePath = Get-ChildItem -LiteralPath (Join-Path $runnerRoot "externals") -Directory -Filter "node*" -ErrorAction SilentlyContinue | Sort-Object Name -Descending | ForEach-Object { Join-Path $_.FullName "bin\node.exe" } | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
           if (-not $nodePath) { throw "Node.js was not found in the runner externals directory." }
-          & $nodePath --input-type=module -e $diag
-          if ($LASTEXITCODE -ne 0) { throw "Browser page diagnostic failed." }
+          $diagPath = Join-Path $env:RUNNER_TEMP "bg3-modio-browser-diagnostic.mjs"
+          Set-Content -LiteralPath $diagPath -Value $diag -Encoding UTF8
+          try {
+            & $nodePath $diagPath
+            if ($LASTEXITCODE -ne 0) { throw "Browser page diagnostic failed." }
+          } finally {
+            Remove-Item -LiteralPath $diagPath -Force -ErrorAction SilentlyContinue
+          }
       - name: Safe preflight before upload
         shell: powershell
         run: |
