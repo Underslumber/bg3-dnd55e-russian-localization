@@ -240,7 +240,7 @@ async function readLoginActionState() {
             // The exact, visible BG3 portal button is the documented linking action.
           } else {
             let target;
-            try { target = new URL(href || element.href); } catch {
+            try { target = new URL(href || element.href, url); } catch {
               counts.unsafeSsoTarget++;
               continue;
             }
