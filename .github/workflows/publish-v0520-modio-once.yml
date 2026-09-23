@@ -1,4 +1,4 @@
-name: Publish existing v0.5.20 to mod.io
+name: Diagnose BG3-MODIO browser targets
 on:
   push:
     branches: [main]
@@ -7,58 +7,43 @@ on:
 permissions:
   contents: read
 jobs:
-  publish:
-    if: github.event.head_commit.message == '[publish-modio-v0.5.20-one-shot]'
+  diagnose:
+    if: github.event.head_commit.message == '[diagnose-modio-browser-targets]'
     runs-on: [self-hosted, Windows, bg3-toolkit]
-    environment: Mod.io
-    env:
-      BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
-      MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
-      MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
-      MODIO_GAME_ID: ${{ vars.MODIO_GAME_ID }}
-      MODIO_MOD_ID: ${{ vars.MODIO_MOD_ID }}
-      MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
-      MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
-      BG3_PARENT_MOD_REPO: ${{ vars.BG3_PARENT_MOD_REPO }}
-      BG3_PARENT_MOD_BRANCH: ${{ vars.BG3_PARENT_MOD_BRANCH }}
-      MODIO_VERSION_TAG: v0.5.20
     steps:
-      - name: Checkout pinned publisher
-        uses: actions/checkout@v7
-        with:
-          ref: 8258761e47e155e0c92f58b148adbc12adf35f11
-          path: publisher
-          fetch-depth: 0
-      - name: Checkout exact release source
-        uses: actions/checkout@v7
-        with:
-          ref: 6be3191e5ace4033b99cd775258e7d7931a1f9cd
-          path: release-source
-          fetch-depth: 0
-      - name: Verify pinned revisions
+      - name: Read sanitized CDP target classes
         shell: powershell
         run: |
           $ErrorActionPreference = "Stop"
-          if ((git -C publisher rev-parse HEAD).Trim() -ne "8258761e47e155e0c92f58b148adbc12adf35f11") { throw "Publisher revision mismatch." }
-          if ((git -C release-source rev-parse HEAD).Trim() -ne "6be3191e5ace4033b99cd775258e7d7931a1f9cd") { throw "Release source revision mismatch." }
-          if ((git -C release-source describe --tags --exact-match HEAD).Trim() -ne "v0.5.20") { throw "Release source is not exactly tag v0.5.20." }
-      - name: Safe preflight before upload
-        timeout-minutes: 5
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
-          $bg3ToolPath = $env:BG3TOOL_PATH
-          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
-          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
-          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
-          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath -WhatIf
-      - name: Publish existing release to mod.io
-        if: success()
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
-          $bg3ToolPath = $env:BG3TOOL_PATH
-          if (-not $bg3ToolPath) { $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe" }
-          $publishScript = Join-Path $env:GITHUB_WORKSPACE "publisher\scripts\publish-modio.ps1"
-          $releaseWorkspace = Join-Path $env:GITHUB_WORKSPACE "release-source"
-          & $publishScript -VersionTag $env:MODIO_VERSION_TAG -Workspace $releaseWorkspace -Bg3ToolPath $bg3ToolPath
+          $targets = @(Invoke-RestMethod -Uri "http://127.0.0.1:9222/json/list" -TimeoutSec 10)
+          $pages = @($targets | Where-Object { $_.type -eq "page" })
+          $classes = foreach ($page in $pages) {
+            $raw = [string]$page.url
+            if ($raw -match '^(?<scheme>https?)://(?<authority>[^/?#]+)(?<path>[^?#]*)') {
+              $scheme = $Matches.scheme.ToLowerInvariant()
+              $authority = $Matches.authority.ToLowerInvariant()
+              $path = $Matches.path
+              $pageHost = ($authority -split ':')[0]
+              if ($scheme -ne "https") { "non_https_page"; continue }
+              if ($pageHost -eq "mod.io") {
+                if ($path -match '^/g/baldursgate3/?$') { "bg3_portal"; continue }
+                if ($path -match '^/g/baldursgate3/m/') { "bg3_mod_route"; continue }
+                if ($path -match '(?:^|/)(?:login|signin)(?:/|$)') { "modio_login_route"; continue }
+                "modio_other_route"; continue
+              }
+              if ($pageHost -eq "larian.com" -or $pageHost.EndsWith(".larian.com")) { "larian_page"; continue }
+              "other_https_page"
+            } elseif ($raw -match '^(about|chrome|edge|devtools):') {
+              "browser_internal_page"
+            } elseif ([string]::IsNullOrWhiteSpace($raw)) {
+              "empty_url"
+            } else {
+              "unrecognized_page"
+            }
+          }
+          $result = [ordered]@{
+            totalTargets = $targets.Count
+            pageTargets = $pages.Count
+            categories = @($classes | Group-Object | ForEach-Object { [ordered]@{ category = $_.Name; count = $_.Count } })
+          }
+          $result | ConvertTo-Json -Depth 6 -Compress | Write-Output
