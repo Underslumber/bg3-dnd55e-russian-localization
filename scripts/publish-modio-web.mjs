@@ -377,7 +377,7 @@ async function recoverModioSessionWithLarian() {
   console.log('[publish-modio-web] mod.io session is signed out; trying the saved Larian SSO session.');
   let currentState = await readModioSessionState().catch(() => null);
   if (!currentState?.ready || currentState?.host !== 'mod.io') {
-    await call("Page.navigate", { url: discussionUrl });
+    await call("Page.navigate", { url: `https://mod.io/g/${gameSlug}?portal=studio` });
   }
   let lastActionState = null;
   let lastReadErrorCategory = null;
