@@ -71,4 +71,6 @@ jobs:
             Where-Object { Test-Path -LiteralPath $_ } |
             Select-Object -First 1
           if (-not $nodePath) { throw "Runner Node.js executable was not found." }
-          & $nodePath --input-type=module -e $nodeScript
+          $tempScript = Join-Path $env:RUNNER_TEMP ("modio-login-diagnostic-" + [Guid]::NewGuid().ToString("N") + ".mjs")
+          [IO.File]::WriteAllText($tempScript, $nodeScript, [Text.UTF8Encoding]::new($false))
+          try { & $nodePath $tempScript } finally { Remove-Item -LiteralPath $tempScript -Force -ErrorAction SilentlyContinue }
