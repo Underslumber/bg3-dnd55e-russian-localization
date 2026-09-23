@@ -164,6 +164,7 @@ async function readModioSessionState() {
     const onModio = url.protocol === 'https:' && url.hostname === 'mod.io' &&
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
+    const gameIndexRoute = url.pathname === '/g';
     const loginRoute = /(?:^|\/)(?:login|signin)(?:\/|$)/i.test(url.pathname);
     const pageText = document.body?.innerText || '';
     const visible = (element) => {
@@ -179,7 +180,7 @@ async function readModioSessionState() {
     return {
       ready: onModio && url.pathname === expectedAdminPath &&
         pageText.includes('File manager') && pageText.includes('Admin'),
-      loginRequired: onModio && (loginRoute || (modPath &&
+      loginRequired: onModio && (loginRoute || ((modPath || gameIndexRoute) &&
         [...document.querySelectorAll('a, button, [role="button"]')].some((element) =>
           visible(element) && labelsOf(element).some((label) => /^(?:log in|sign in|войти)$/i.test(label))
         ))),
@@ -197,7 +198,8 @@ async function readLoginActionState() {
       (url.port === '' || url.port === '443');
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
-    const expectedContext = onModio && (modPath || loginRoute);
+    const gameIndexRoute = url.pathname === '/g';
+    const expectedContext = onModio && (modPath || loginRoute || gameIndexRoute);
     const genericPattern = /^(?:log in|sign in|войти)$/i;
     const ssoPattern = /^(?:log in|sign in) with larian(?: studios)?$/i;
 
@@ -252,7 +254,7 @@ async function readLoginActionState() {
       return { eligible, counts };
     };
 
-    const generic = expectedContext && (modPath || loginRoute)
+    const generic = expectedContext && (modPath || loginRoute || gameIndexRoute)
       ? inspect([...document.querySelectorAll('a, button, [role="button"]')], genericPattern, false)
       : { eligible: 0, counts: { matchingLabels: 0, hiddenOrOutOfBounds: 0, disabled: 0, ariaDisabled: 0, unsafeSsoTarget: 0 } };
     const sso = expectedContext
@@ -297,7 +299,8 @@ async function clickGenericModioLoginAction() {
     const expectedPath = url.pathname === expectedModPath ||
       url.pathname.startsWith(expectedModPath + '/') ||
       url.pathname === '/login' ||
-      url.pathname === '/signin';
+      url.pathname === '/signin' ||
+      url.pathname === '/g';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
         !(url.port === '' || url.port === '443') || !expectedPath) return 'wrong_context';
     const visible = (element) => {
@@ -325,8 +328,10 @@ async function clickVisibleLarianSsoAction() {
     const expectedModPath = '/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization';
     const modPath = url.pathname === expectedModPath || url.pathname.startsWith(expectedModPath + '/');
     const loginRoute = url.pathname === '/login' || url.pathname === '/signin';
+    const gameIndexRoute = url.pathname === '/g';
     if (url.protocol !== 'https:' || url.hostname !== 'mod.io' ||
-        !(url.port === '' || url.port === '443') || !(modPath || loginRoute)) return 'wrong_context';
+        !(url.port === '' || url.port === '443') ||
+        !(modPath || loginRoute || gameIndexRoute)) return 'wrong_context';
     const visible = (element) => {
       const style = getComputedStyle(element);
       const bounds = element.getBoundingClientRect();
@@ -392,7 +397,7 @@ async function recoverModioSessionWithLarian() {
       ? lastActionState : null;
   }, 500, Math.min(timeoutSeconds, 60)).catch(() => null);
   if (onlyHiddenGenericLogin(actionState)) {
-    await call("Page.navigate", { url: "https://mod.io/login" });
+    await call("Page.navigate", { url: "https://mod.io/g" });
     actionState = await waitFor(
       "safe login action on canonical mod.io login page",
       async () => {
