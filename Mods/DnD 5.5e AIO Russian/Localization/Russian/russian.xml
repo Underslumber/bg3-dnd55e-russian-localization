@@ -5946,4 +5946,12 @@
   <content contentuid="haca7c6e3gc3ddg4793gac4cge56c04325c04" version="1">Призыв элементаля: вода</content>
   <content contentuid="hd68889f0g5d0bg4b5eg94d8ga94e8c6a2787" version="1">Доступно классам: друид, следопыт, волшебник</content>
   <content contentuid="hf8aab6c9gc95cg492fg9fd6g7ff1a7b55e72" version="1">Свиток призыва элементаля</content>
+  <content contentuid="h21a7273cg6587g4568g8b06gea4a80033289" version="1">Свиток оглушающей кары</content>
+  <content contentuid="h28c8447dg26a8g41c1g952cgeebf94864fec" version="1">Посвященный в магию: Дрожь земли</content>
+  <content contentuid="h2aff1a0dg832fgb4b6g0e9fgd82db7aa5212" version="1">Дрожь земли</content>
+  <content contentuid="h3310c159g253eg4839g9f91ga53946126139" version="1">Посвященный в магию: Дрожь земли</content>
+  <content contentuid="h340d4946g2a94g46e0ga5e7g8f20554ef1e2" version="1">Доступные классы: Бард, Друид, Чародей, Волшебник</content>
+  <content contentuid="hc3fe6b09g9b2eg449aga16dg620b49fed335" version="1">Доступные классы: паладин</content>
+  <content contentuid="he17e2324g5221g4179ga084g607b2b2104d5" version="1">Вы вызываете дрожь земли в радиусе [1] от вас. Каждое существо в этой области, кроме вас, должно пройти испытание Ловкости. При провале существо получает [2] и становится &lt;LSTag Type="Status" Tooltip="PRONE"&gt;распластанным&lt;/LSTag&gt;. Земля в этой области становится &lt;LSTag Type="Status" Tooltip="DIFFICULT_TERRAIN"&gt;пересеченной местностью&lt;/LSTag&gt;.</content>
+  <content contentuid="he5526d60g3dddg44e5ga3f1g488cc255b98c" version="1">Свиток дрожи земли</content>
 </contentList>
