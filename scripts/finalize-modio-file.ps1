@@ -127,9 +127,11 @@ function Get-ModioFiles {
     $platformStatusFilters = @("", "pending_only", "approved_only", "live_and_pending", "live_and_approved")
 
     foreach ($platformStatus in $platformStatusFilters) {
-        $uri = "{0}/games/{1}/mods/{2}/files" -f $script:ApiBase, $script:GameId, $script:ModId
+        # mod.io's default first page is ordered oldest-first. Always inspect
+        # the newest 100 files, including for each optional platform-status view.
+        $uri = "{0}/games/{1}/mods/{2}/files?_sort=-date_added&_limit=100" -f $script:ApiBase, $script:GameId, $script:ModId
         if ($platformStatus) {
-            $uri = "$uri?platform_status=$([Uri]::EscapeDataString($platformStatus))"
+            $uri = "$uri&platform_status=$([Uri]::EscapeDataString($platformStatus))"
         }
 
         try {

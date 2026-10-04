@@ -1369,7 +1369,9 @@ function Wait-ForUploadHandoff {
         $epoch = [datetime]::new(1970, 1, 1, 0, 0, 0, [DateTimeKind]::Utc)
         # 120s margin absorbs minor client/server clock skew.
         $afterUnix = [int64][Math]::Floor(($StartedAt.ToUniversalTime() - $epoch).TotalSeconds) - 120
-        $filesUri = "{0}/games/{1}/mods/{2}/files" -f $ModioApiBase.TrimEnd("/"), $ModioGameId, $ModioModId
+        # mod.io defaults to the oldest files first; request the newest page so
+        # recent uploads remain discoverable after a mod exceeds 100 files.
+        $filesUri = "{0}/games/{1}/mods/{2}/files?_sort=-date_added&_limit=100" -f $ModioApiBase.TrimEnd("/"), $ModioGameId, $ModioModId
         $headers = @{ Authorization = "Bearer $ModioAccessToken"; Accept = "application/json" }
         Write-Diagnostic "Wait-ForUploadHandoff: polling mod.io API ($filesUri) for a file uploaded after $($StartedAt.ToString('o'))."
 
