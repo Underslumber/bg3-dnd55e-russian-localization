@@ -5959,4 +5959,6 @@
   <content contentuid="ha5fdea82gb306g4991g925bge9926ec8d69f" version="1">Пляска смерти: скелет</content>
   <content contentuid="hd4d76441g18c5g426bga7f2g5e08f7cd3d34" version="1">Вы поднимаете по два дополнительных существа-нежити за каждый уровень ячейки заклинания выше 5-го.</content>
   <content contentuid="hd9b560f9g047eg40fegb6cbg51813e5ee9fe" version="1">Пляска смерти: зомби</content>
+  <content contentuid="h52b5b3ecgc218g46ffg95bagbe3ef3d81398" version="1">В вашей руке появляется мерцающее пламя. Это пламя не излучает тепла и ничего не воспламеняет; оно испускает яркий свет в радиусе [1] и тусклый свет еще на [1].&lt;br&gt;&lt;br&gt;Пока заклинание действует, вы можете метать огонь в существо или объект, нанося [2]. Заклинание прекращается, если вы сотворите его снова.</content>
+  <content contentuid="h84fdaae4gf5f2g4d7dg9fd2gb5a952add89b" version="1">Метнуть огонь в существо или объект. Совершите дистанционную атаку заклинанием.</content>
 </contentList>
