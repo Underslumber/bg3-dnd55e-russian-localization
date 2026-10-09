@@ -5972,4 +5972,85 @@
   <content contentuid="hb56ec774g35a5g4be0gbde5g6f4227d59afb" version="1">Существо обездвижено темными отростками и не может двигаться. В конце каждого своего хода оно проходит испытание силы, получая [1] при провале.&lt;br&gt;&lt;br&gt;&lt;LSTag Tooltip="AttackRoll"&gt;Броски атаки&lt;/LSTag&gt; против этого существа совершаются с &lt;LSTag Tooltip="Advantage"&gt;преимуществом&lt;/LSTag&gt;, в то время как броски атаки самого существа и его &lt;LSTag Tooltip="SavingThrow"&gt;испытания&lt;/LSTag&gt; ловкости совершаются с &lt;LSTag Tooltip="Disadvantage"&gt;помехой&lt;/LSTag&gt;.&lt;br&gt;&lt;br&gt;В начале каждого своего хода &lt;LSTag Type="Status" Tooltip="RESTRAINED"&gt;обездвиженное&lt;/LSTag&gt; существо проходит проверку силы (&lt;LSTag Type="Skills" Tooltip="Athletics"&gt;Атлетика&lt;/LSTag&gt;) против вашего КС испытаний против заклинаний. В случае успеха оно освобождается и больше не считается обездвиженным.</content>
   <content contentuid="he02336d4gdd7eg4829gb4d7ge797695759a8" version="1">В начале каждого своего хода &lt;LSTag Type="Status" Tooltip="RESTRAINED"&gt;обездвиженное&lt;/LSTag&gt; существо проходит проверку силы (&lt;LSTag Type="Skills" Tooltip="Athletics"&gt;Атлетика&lt;/LSTag&gt;) против вашего КС испытаний против заклинаний. В случае успеха оно освобождается и больше не считается обездвиженным.</content>
   <content contentuid="hf30d582fg341eg451bgb278g1c024892f548" version="1">Не может двигаться. &lt;LSTag Tooltip="AttackRoll"&gt;Броски атаки&lt;/LSTag&gt; против этого существа совершаются с &lt;LSTag Tooltip="Advantage"&gt;преимуществом&lt;/LSTag&gt;, в то время как его собственные броски атаки совершаются с &lt;LSTag Tooltip="Disadvantage"&gt;помехой&lt;/LSTag&gt;. Оно также получает помеху при &lt;LSTag Tooltip="SavingThrow"&gt;испытаниях&lt;/LSTag&gt; ловкости.&lt;br&gt;&lt;br&gt;В начале каждого своего хода &lt;LSTag Type="Status" Tooltip="RESTRAINED"&gt;обездвиженное&lt;/LSTag&gt; существо проходит проверку силы (&lt;LSTag Type="Skills" Tooltip="Athletics"&gt;Атлетика&lt;/LSTag&gt;). КС равен 8 плюс ваш модификатор ловкости и бонус умения. В случае успеха оно освобождается и больше не считается обездвиженным.</content>
+  <content contentuid="h01ecf9a2gaaffg446eg90ffgb171786299bc" version="1">В качестве части сотворения этого заклинания вы тратите [1] своих костей ОЗ. Выберите существо в пределах дистанции. Если его текущие ОЗ составляют [2] или меньше, существо погружается в магический сон на 1 минуту. Заклинание прекращается, если цель получает урон или если кто-то в пределах [3] от нее использует действие, чтобы вывести ее из-под действия заклинания.&lt;br&gt;&lt;br&gt;Существа, которые не спят (например, эльфы), или обладающие иммунитетом к состоянию «Истощение», автоматически преуспевают в спасбросках против этого заклинания.</content>
+  <content contentuid="h0f770979g8277g43ddg9148ga9313641c119" version="1">Поглощение: D12</content>
+  <content contentuid="h0fbc88c5g4d04g4812gb274g3c471a5ea76b" version="1">Вибрирующие соки</content>
+  <content contentuid="h19cc1044g6cbfg4234g9ddage152861f56b7" version="1">Багровая плеть: D8</content>
+  <content contentuid="h1b46bca9g422dg4230gaa48g020b1860afe0" version="1">Магия фей: Сонливость</content>
+  <content contentuid="h1bb63f4fg9c65g40b8gbabdg3a42f19911d3" version="1">Багровая плеть: D6</content>
+  <content contentuid="h208ace86g27dfg42a9gaaf9gea3daa5b6fff" version="1">Руна проклятия крови: D12</content>
+  <content contentuid="h218e981bg0992g4497g9cd2gac3aa4a68ab1" version="1">Сонливость: D8</content>
+  <content contentuid="h2b511a68gcebag4ee5g8544gb65c7fcf9de5" version="1">Сонливость: D6</content>
+  <content contentuid="h2b55cbd1g9005g4e28g8aa3gc86f1fa9bde6" version="1">Посвященный в магию: Поглощение</content>
+  <content contentuid="h2de0004ag5b77g48c6ga80eg0460ac14d524" version="1">Посвященный в магию: Багровая плеть</content>
+  <content contentuid="h32544316gabe3g47b4gbf17gbf9c2e8f017a" version="1">Посвященный в магию: Поглощение</content>
+  <content contentuid="h36dd5fa4g4ae2g443eg938dgb9a7c0dfdd95" version="1">Вибрирующие соки: D6</content>
+  <content contentuid="h3e9ea50dg4178g4b19g995dgf7cc3a13f920" version="1">Вы тратите одну дополнительную кость ОЗ за каждый уровень ячейки заклинания выше 1-го. Кроме того, ваша концентрация может длиться дольше при использовании ячейки заклинания 2-го уровня (до 10 минут) или 3-го и выше (до 1 часа).</content>
+  <content contentuid="h41d743f7gaa0cg454eg9e5bge4557a4c923f" version="1">Поглощение: D6</content>
+  <content contentuid="h451367ceg43e4g488eg9d16g1ff87dbc32b5" version="1">Прилив крови</content>
+  <content contentuid="h4ab20771g566bg49eag94a1g794f97207602" version="1">Кипение крови: D12</content>
+  <content contentuid="h533bc738g9f3cg4066g916bg7947fa13ee60" version="1">Кипение крови</content>
+  <content contentuid="h53990d25gc7f0g4f88gb950g110385ea847d" version="1">Прилив крови: D10</content>
+  <content contentuid="h5d8b1bfdgb2c5g4df8gaf93gf641cd22a7f1" version="1">Пелена крови: D8</content>
+  <content contentuid="h5f77a0a5g6029g4b77g90a2g2c3430341346" version="1">Количество затрачиваемых вами костей ОЗ увеличивается на одну за каждый уровень ячейки заклинания выше 1-го.</content>
+  <content contentuid="h62f8a9ebg2b57g4beag87b3g190825c82222" version="1">В качестве части сотворения этого заклинания вы расходуете [1] своих костей ОЗ. Существо, которое вы видите в пределах дистанции, должно пройти &lt;LSTag Tooltip="SavingThrow"&gt;испытание&lt;/LSTag&gt; выносливости. При провале цель получает [2] и получает &lt;LSTag Tooltip="Disadvantage"&gt;помеху&lt;/LSTag&gt; при проверках ловкости (&lt;LSTag Type="Skills" Tooltip="Stealth"&gt;скрытности&lt;/LSTag&gt;) из-за громко вибрирующей крови. Чтобы определить этот урон, бросьте кости ОЗ, израсходованные на сотворение этого заклинания.&lt;br&gt;&lt;br&gt;Цель повторяет испытание в конце каждого своего хода, завершая действие заклинания при успехе.</content>
+  <content contentuid="h647c2728g9796g4a1cg96fegdaf7d5adcf32" version="1">В качестве части сотворения этого заклинания вы расходуете одну из своих костей ОЗ. Вы или согласное существо в пределах [1] от вас получает состояние &lt;LSTag Type="Status" Tooltip="INVISIBLE"&gt;невидимости&lt;/LSTag&gt; на [2] ход. (среднее значение израсходованной кости ОЗ). Цель немедленно теряет состояние невидимости, если совершает бросок атаки, наносит урон или сотворяет заклинание.</content>
+  <content contentuid="h69754b8bg1e33g4b45g89c4gace3508bf404" version="1">Посвященный в магию: Багровая плеть</content>
+  <content contentuid="h6aaf22b0g35bfg4758g905agc84e31da4669" version="1">Кипение крови: D10</content>
+  <content contentuid="h6d1146a5ga872g4467g9560g6d1a87287e50" version="1">Коснувшийся фей: Сонливость</content>
+  <content contentuid="h6e5466bdgdec0g4182gaf97g90beaea8118e" version="1">Посвященный в магию: Поглощение</content>
+  <content contentuid="h6e675f13g21ccg47efgbb46gf5fa950155c1" version="1">Вы увеличиваете урон, расходуя дополнительную кость ОЗ за каждый уровень ячейки заклинания выше 1-го.</content>
+  <content contentuid="h6f332b10g34a4g4747g86c0g8128cf330c99" version="1">Посвященный в магию: Кипение крови</content>
+  <content contentuid="h6f827734g94acg4d95ga41cgc95d5fe3f678" version="1">В конце каждого своего хода существо проходит &lt;LSTag Tooltip="SavingThrow"&gt;испытание&lt;/LSTag&gt; выносливости. При провале оно получает [1]. При успехе эффект прекращается.</content>
+  <content contentuid="h75112bfeg918bg449bg81ecg78389941cdf5" version="1">Кровавая пелена: D12</content>
+  <content contentuid="h77494f21gc7e9g496bg94f0g97e2c6ed3eb6" version="1">Кипение крови: D6</content>
+  <content contentuid="h783cb9bcg506eg4753gb874g2e664c9c12f3" version="1">Прилив крови: D6</content>
+  <content contentuid="h817e3225g2909g454cgbe3eg0000bdcc068f" version="1">Извивающаяся плеть из свернувшейся крови, вызванная «Багровой плетью».</content>
+  <content contentuid="h8392f5e6g9217g496bga290gd92f8e61f338" version="1">Посвященный в магию: Прилив крови</content>
+  <content contentuid="h8bd93e0age230g4cf5gbdb9g4a153f81ee4d" version="1">Прилив крови: D12</content>
+  <content contentuid="h945a7ed1g8fe1g4aa9g9bb6g7567ad9979b4" version="1">Поглощение: D8</content>
+  <content contentuid="h9462bc3fg900eg4cd7g98f8gf61308a5341e" version="1">Посвященный в магию: Кипение крови</content>
+  <content contentuid="h95105393gc043g4088gaf68g04299c6eb4cf" version="1">Вы расходуете две дополнительные кости ОЗ за каждый уровень ячейки заклинания выше 1-го, и текущие ОЗ, которые может иметь существо для воздействия, соответственно увеличиваются.</content>
+  <content contentuid="h9aaef43bg1ddag444dgb87ag1a423141a644" version="1">Посвященный в магию: Кровавая пелена</content>
+  <content contentuid="ha01d0015g9f12g4233gab78gd2b829f5bb40" version="1">Багровая плеть: Дополнительная атака</content>
+  <content contentuid="ha056ef8fg8fa3g4604ga6d1gc4b7b964ac07" version="1">Вибрирующие соки: D12</content>
+  <content contentuid="ha30a36b5g09cbg497dgac51gf4227f3d96cd" version="1">Руна погибели крови: D6</content>
+  <content contentuid="ha87886d7g3abbg45fegaf8eg372f5f7c2f5f" version="1">Посвященный в магию: Кипение крови</content>
+  <content contentuid="haea15fe6g0525g4e04gbba0g1f3fa17d133c" version="1">Один раз за ход, когда владелец наносит урон нежити этим оружием, оно наносит дополнительные [1].</content>
+  <content contentuid="haf6db600g1cecg48cag96c0g52a1bd0797be" version="1">Посвященный в магию: Прилив крови</content>
+  <content contentuid="hb0bfe514ga569g4836g8f65g83b8ea3a97d1" version="1">Руна кровавой погибели: D8</content>
+  <content contentuid="hb1d320c7g6ef3g4843g9765gb5d7e10f2e2f" version="1">Получает &lt;LSTag Tooltip="Disadvantage"&gt;помеху&lt;/LSTag&gt; при проверках Ловкости (&lt;LSTag Type="Skills" Tooltip="Stealth"&gt;Скрытность&lt;/LSTag&gt;). В конце каждого своего хода существо повторяет &lt;LSTag Tooltip="SavingThrow"&gt;испытание&lt;/LSTag&gt; Выносливости, прекращая действие эффекта в случае успеха.</content>
+  <content contentuid="hb473b980ga8eag4c12gbb39gbe0c078c4dd1" version="1">В качестве части накладывания этого заклинания вы расходуете одну из своих костей ОЗ. Из вашей руки на 1 минуту вырывается извивающийся кнут из свернувшейся крови. Он считается простым оружием, которым вы владеете, и обладает свойствами «Легкое», «Фехтовальное» и «Досягаемость». Вы используете модификатор своей характеристики накладывания заклинаний для бросков атаки и урона этим оружием. Оно наносит [1] урона, используя ту же кость, что и израсходованная кость ОЗ.</content>
+  <content contentuid="hb4822b45gb756g4c64g93eeg831206a2f6eb" version="1">Когда вы совершаете действие Атака, вы можете атаковать Багровым кнутом [1] раза.</content>
+  <content contentuid="hb6439bfeg4527g4bbbg8383g9c326a2e293c" version="1">Покров крови: D6</content>
+  <content contentuid="hb7e60f1fg77ecg4bf3ga4dag5e983f313b90" version="1">Посвященный в магию: Кровавая пелена</content>
+  <content contentuid="hbaf487a6gf3acg4766ga6d7gc2299eb8c007" version="1">Вибрирующие соки: D10</content>
+  <content contentuid="hbc549562gf1c5g4e19g8a7agabd6fd9950f0" version="1">В качестве части накладывания этого заклинания вы расходуете одну из своих костей ОЗ. Выберите существо в пределах дистанции и бросьте израсходованную кость ОЗ. Существо получает [1].&lt;br&gt;&lt;br&gt;В конце каждого своего хода существо проходит &lt;LSTag Tooltip="SavingThrow"&gt;испытание&lt;/LSTag&gt; Выносливости. При провале существо получает [2]. При успехе заклинание прекращается.</content>
+  <content contentuid="hbcd8cc65gd864g4a8dgb9bbg293dd56cb81a" version="1">Покров крови: D10</content>
+  <content contentuid="hbdad2730gd2ffg4b68gb617ga4b0d4dc93db" version="1">Руна кровавой погибели</content>
+  <content contentuid="hc01600f8gcc72g4f83g9e2cg4e02b1dfe5c5" version="1">Руна кровавой погибели: D10</content>
+  <content contentuid="hc9840c32g5843g48dbg8c6fga30270d96a38" version="1">Тронутый тенью: Покров крови</content>
+  <content contentuid="hcad7b313gfe8dg4ba9ga2c3gb1d51919e61f" version="1">Багровый кнут: D12</content>
+  <content contentuid="hd1f0eda1gc981g4c29gb65agef6ffe5d63aa" version="1">Кнут из свернувшейся крови. Броски атаки и урона этим оружием используют модификатор характеристики накладывания заклинаний владельца.</content>
+  <content contentuid="hd3091620g477fg4fbcg9206g60ceea1f38e3" version="1">Поглощение: D10</content>
+  <content contentuid="hd36397d4g4ac8g4306gba25g376e82091899" version="1">Посвященный в магию: Руна кровавой погибели</content>
+  <content contentuid="hda7fb1b1gc6cag4e62gaa6agd1ec89600f4b" version="1">В качестве части накладывания этого заклинания вы расходуете [1] из своих костей ОЗ. Вы выбираете оружие в пределах дистанции и наносите на него руну, написанную кровью.&lt;br&gt;&lt;br&gt;Пока действует заклинание и вы держите это оружие, оно источает призрачную красную сукровицу, если в пределах 30 футов находится нежить. Кроме того, один раз за ход, когда вы наносите урон нежити этим оружием, вы наносите дополнительно [2]. Чтобы определить этот урон, бросьте столько костей ОЗ, сколько вы израсходовали на накладывание заклинания.</content>
+  <content contentuid="hdba027d2gd432g46d3g86b3g3eeeccefb01b" version="1">В качестве части накладывания этого заклинания вы расходуете [1] из своих костей ОЗ. Бросьте каждую израсходованную кость дважды и восстановите [2], равное сумме выпавших значений плюс ваш модификатор характеристики накладывания заклинаний.</content>
+  <content contentuid="hdcbe902age12fg4992ga380g528d61d3db9b" version="1">Используя ячейку заклинания 3-4 уровня, вы можете совершить две атаки этим оружием, когда совершаете действие Атака. С ячейкой заклинания 5-го уровня и выше вы можете совершить три атаки.</content>
+  <content contentuid="hdcc820a8g9b26g4f2ag8fd1g00a9f1f474a3" version="1">Покров крови</content>
+  <content contentuid="hdcff73bbgdbfag4471g9574gb17cfc76be95" version="1">Кипение крови: D8</content>
+  <content contentuid="hdee2e15fg7bccg4e46g8f71g6014ee76ace5" version="1">Поглощение</content>
+  <content contentuid="he26a0b10g5c9bg4fdega3d3gcd78eed83fa1" version="1">Сонливость: d10</content>
+  <content contentuid="he3c59f98ge38cg448cgac08gdaee20df4b96" version="1">Багровая плеть: d10</content>
+  <content contentuid="he60ceef6g1e5ag4107gaf3dgac1d58815e58" version="1">Багровая плеть</content>
+  <content contentuid="he762c439g9c30g4f6fgb43eg68c5b8d5c4b8" version="1">Посвященный в магию: Кровавая пелена</content>
+  <content contentuid="he9d96c2eg8fd8g4649ga05ag5f081c8b36a7" version="1">Сонливость: d12</content>
+  <content contentuid="heaca5834ge7b8g40e9g8c09gf27c9251436c" version="1">Магия теней: Кровавая пелена</content>
+  <content contentuid="hefe7aa02g2948g498dgacc7g10aa72450943" version="1">Посвященный в магию: Руна кровавой погибели</content>
+  <content contentuid="hf01df5c2gf552g420cg954cg25f57d05b46c" version="1">Посвященный в магию: Вибрирующие соки</content>
+  <content contentuid="hf3a05381gc0d7g4125g97e5gc81be7d98b0e" version="1">При сотворении этого заклинания вы тратите одну из своих костей ОЗ. Согласное существо восстанавливает [1] в размере результата броска потраченной кости ОЗ. Если цель находится в состоянии &lt;LSTag Type="Status" Tooltip="POISONED"&gt;Отравление&lt;/LSTag&gt;, это состояние немедленно прекращается.</content>
+  <content contentuid="hf660a818g1398g48a1g8b19g8e9d92a64c94" version="1">Вибрирующие соки: d8</content>
+  <content contentuid="hf8376b23g5524g466eg9861g236003632073" version="1">Посвященный в магию: Вибрирующие соки</content>
+  <content contentuid="hf8464b18g3d1ag4f9bg8666ga788bc19ba54" version="1">Прилив крови: d8</content>
+  <content contentuid="hfe755943gc4adg4ce3ga0bbg0ef657c46d57" version="1">Сонливость</content>
 </contentList>
