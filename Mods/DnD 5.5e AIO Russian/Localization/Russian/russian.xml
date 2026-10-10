@@ -6063,4 +6063,36 @@
   <content contentuid="h60472fbeg8017g4aa6g9d52gb15893bed07c" version="1">Кровавый огонек: к10</content>
   <content contentuid="h6cfafd49g4db7g407ag83e5g60a9a685bef1" version="1">Кровавый огонек</content>
   <content contentuid="ha0380905ga0e4g4f05ga01bg4be3fb33abc7" version="1">Кровавый огонек: к12</content>
+  <content contentuid="h00801c86g20e8g4c63g9f5eg5cec1a1152dc" version="1">Ваша Концентрация может длиться дольше при использовании ячейки заклинания 3-4 уровня (до 1 часа) или 5+ уровня (до 8 часов).</content>
+  <content contentuid="h02948054gc638g4defg94bbg4dc7a76d84d0" version="1">Чутье жизненной силы</content>
+  <content contentuid="h0388a865g740cg44cdga179g6aaa0ca2db77" version="1">Чутье жизненной силы: D8</content>
+  <content contentuid="h146caa62g1cfcg4249g9e55ge88c7adc37f7" version="1">Кража жизни</content>
+  <content contentuid="h168bd680g31c5g4ed1g8bc6g22dcd5a1d86a" version="1">Иссушающая кара: D10</content>
+  <content contentuid="h25f1bed2g9604g4160ga370g7c81d34ccfbb" version="1">Кровавый щит: D10</content>
+  <content contentuid="h267135f7gaa39g4523ga5e4g6de2b4116d57" version="1">Вы получили Временные ОЗ в количестве [1]. Пока действуют эти Временные ОЗ, вы получаете бонус +[2] к КБ и испытаниям Ловкости.</content>
+  <content contentuid="h26eb8a58g2bd3g4c50gb360g2748d8a44285" version="1">Чутье жизненной силы: D10</content>
+  <content contentuid="h42937a09gecf5g4e52g8173g0a273780885c" version="1">В качестве части сотворения этого заклинания вы тратите [1] своих Костей Хитов. Вы черпаете жизненную силу, чтобы создать вихревой щит из крови, и получаете Временные ОЗ в количестве [2], выброшенном на потраченных Костях Хитов.&lt;br&gt;&lt;br&gt;Пока у вас есть Временные ОЗ от этого заклинания, вы получаете бонус +2 к КБ и испытаниям Ловкости. Когда заклинание заканчивается, все Временные ОЗ от него теряются.</content>
+  <content contentuid="h4afb1fafga72bg4445g9c74geda52c586bb9" version="1">Вы тратите одну дополнительную Кость Хитов за каждый уровень ячейки заклинания выше 2-го, увеличивая количество Временных ОЗ.</content>
+  <content contentuid="h4f2d944egd72bg4c8fg9aa9gf6d89cf9971a" version="1">Вы тратите одну дополнительную Кость Хитов за каждый уровень ячейки заклинания выше 2-го, увеличивая урон и количество Временных ОЗ.</content>
+  <content contentuid="h5c407c6dg210cg4562g8867gba54ecd484ea" version="1">Кровавый щит</content>
+  <content contentuid="h633b865fg8665g4417ga99cgfe44523893ba" version="1">Один раз за каждый свой ход, когда вы попадаете по окровавленному существу броском атаки, цель получает дополнительно [1]. Нежить, конструкты и элементали невосприимчивы к этому эффекту.</content>
+  <content contentuid="h63575f1dg4527g4621ga1f6g7f1ac28ad1b8" version="1">Иссушающая кара</content>
+  <content contentuid="h65c4c661g90d7g443cg8d59g901c9e2cccd5" version="1">Кража жизни: D6</content>
+  <content contentuid="h7f965ad2gc96fg4660g9710g285d7d38035e" version="1">Иссушающая кара: D12</content>
+  <content contentuid="h85ad782aga2c0g4874g95c9g774cb7d04a30" version="1">Иссушающая кара: D8</content>
+  <content contentuid="h8c478cbdg2ad4g4280gbdf3g5e398f8b9911" version="1">Кража жизни: D10</content>
+  <content contentuid="h94cdc886g9a9dg4c27g842bg591c4d909b97" version="1">Кража жизни: D8</content>
+  <content contentuid="h980ba3e8g8c34g49b9ga5a8g39dc07feda93" version="1">Иссушающая кара: D6</content>
+  <content contentuid="ha38b515cgf37dg4ce2ga1edg4c66585fc0c9" version="1">Чутье к жизненной силе: D6</content>
+  <content contentuid="hb924db92g252eg4b8egaab5g4d8eede60f47" version="1">Кровавый щит: D12</content>
+  <content contentuid="hba4e7c05g348cg488agb818ga954f47490d1" version="1">Кража жизни: D12</content>
+  <content contentuid="hc22d3bbbg1710g4c44gb2d7gdbccff736f35" version="1">Враг в пределах [1] от вас получил урон. Используйте свое ответное действие, чтобы нанести ему [2] и получить временные ОЗ в размере результата броска [3].</content>
+  <content contentuid="hc26b0621g1ac8g47b3g9378g0b420b193531" version="1">Имеет уязвимость к некротическому урону.</content>
+  <content contentuid="hc67d6099ga480g4db0gae0dgb8fed6b3b802" version="1">Кровавый щит: D6</content>
+  <content contentuid="hcb8ed40cg3097g4123g8f7eg5e2fb5141230" version="1">Вы получили временные ОЗ в размере результата броска [1].</content>
+  <content contentuid="hd1077868g3220g4f46g8384g263a47d52507" version="1">Чутье к жизненной силе: D12</content>
+  <content contentuid="hdc827d85g790dg4773gbafdg5a84b3c10341" version="1">Кровавый щит: D8</content>
+  <content contentuid="he593a68bgf2f7g4b7cg8d97g729e1df55d7c" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Цель, пораженная этим ударом, получает дополнительный [2] от атаки, равный результату броска потраченных костей ОЗ. Кроме того, существо получает уязвимость к некротическому урону до начала вашего следующего хода.</content>
+  <content contentuid="he8976fa4g0cd7g405aga191ge39adfa10f4e" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Когда видимый вами враг в пределах [2] от вас получает урон, вы можете использовать свое ответное действие, чтобы нанести ему [3], равный результату броска потраченных костей ОЗ. Вы также получаете временные ОЗ в размере еще одного броска этих костей.</content>
+  <content contentuid="hfa599f0cg711bg40d6gb4d4g13f6ab27e271" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Кровь, текущая в жилах существ, раскрывает вам свои секреты.&lt;br&gt;&lt;br&gt;Пока заклинание действует, один раз в каждый из ваших ходов, когда вы попадаете по окровавленному существу броском атаки, цель получает дополнительный [2]. Нежить, конструкты и элементали невосприимчивы к этому заклинанию.</content>
 </contentList>
