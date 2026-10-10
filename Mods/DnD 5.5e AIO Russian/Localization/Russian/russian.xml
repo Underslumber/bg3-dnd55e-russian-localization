@@ -6053,4 +6053,14 @@
   <content contentuid="hf8376b23g5524g466eg9861g236003632073" version="1">Посвященный в магию: Вибрирующие соки</content>
   <content contentuid="hf8464b18g3d1ag4f9bg8666ga788bc19ba54" version="1">Прилив крови: d8</content>
   <content contentuid="hfe755943gc4adg4ce3ga0bbg0ef657c46d57" version="1">Сонливость</content>
+  <content contentuid="h01f6fac1gd7abg4334g97c3g4768271af932" version="1">Кровавый огонек: к6</content>
+  <content contentuid="h05902fe0g43aag47c9gb140g697495fcc9ad" version="1">Кровавый огонек</content>
+  <content contentuid="h095f6e64g810dg483bg9b33g91834913f260" version="1">Один раз за ход, когда вы наносите урон врагу заклинанием, вы наносите дополнительно [1] некротического урона и расходуете один заряд кровавого огонька. Огонек исчезает, когда у него не остается зарядов.</content>
+  <content contentuid="h2113ff55gc12cg4673gaf23g23fb99f0a1ce" version="1">В качестве части сотворения этого заклинания вы тратите [1] кость ваших ОЗ. Красный огонек с [2] зарядами кружит над вашей головой до вашего следующего долгого отдыха. Один раз за ход, когда вы наносите урон врагу заклинанием, огонек наносит дополнительный некротический урон, равный броску вашей кости ОЗ, и теряет один заряд. Огонек исчезает, когда у него не остается зарядов.</content>
+  <content contentuid="h34eebf30g8ccag4005g83d2g3456ebeca076" version="1">Кровавый огонек: к8</content>
+  <content contentuid="h3640439cgd77ag4513ga58bgb47a266c8410" version="1">Один раз за ход, когда вы наносите урон врагу заклинанием, вы наносите дополнительный некротический урон, равный броску вашей кости ОЗ, и расходуете один заряд кровавого огонька. Огонек исчезает, когда у него не остается зарядов.</content>
+  <content contentuid="h58d3ce70g8639g4af4gbef7g4708b5e973ab" version="1">Количество расходуемых костей ОЗ и зарядов огонька увеличивается на один за каждый уровень ячейки заклинания выше 2-го.</content>
+  <content contentuid="h60472fbeg8017g4aa6g9d52gb15893bed07c" version="1">Кровавый огонек: к10</content>
+  <content contentuid="h6cfafd49g4db7g407ag83e5g60a9a685bef1" version="1">Кровавый огонек</content>
+  <content contentuid="ha0380905ga0e4g4f05ga01bg4be3fb33abc7" version="1">Кровавый огонек: к12</content>
 </contentList>
