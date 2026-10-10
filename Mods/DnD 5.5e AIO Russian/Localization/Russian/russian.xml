@@ -6095,4 +6095,44 @@
   <content contentuid="he593a68bgf2f7g4b7cg8d97g729e1df55d7c" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Цель, пораженная этим ударом, получает дополнительный [2] от атаки, равный результату броска потраченных костей ОЗ. Кроме того, существо получает уязвимость к некротическому урону до начала вашего следующего хода.</content>
   <content contentuid="he8976fa4g0cd7g405aga191ge39adfa10f4e" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Когда видимый вами враг в пределах [2] от вас получает урон, вы можете использовать свое ответное действие, чтобы нанести ему [3], равный результату броска потраченных костей ОЗ. Вы также получаете временные ОЗ в размере еще одного броска этих костей.</content>
   <content contentuid="hfa599f0cg711bg40d6gb4d4g13f6ab27e271" version="1">В рамках сотворения этого заклинания вы тратите [1] своих костей ОЗ. Кровь, текущая в жилах существ, раскрывает вам свои секреты.&lt;br&gt;&lt;br&gt;Пока заклинание действует, один раз в каждый из ваших ходов, когда вы попадаете по окровавленному существу броском атаки, цель получает дополнительный [2]. Нежить, конструкты и элементали невосприимчивы к этому заклинанию.</content>
+  <content contentuid="h02bdc062g9c58g4153gbf05g5a362c4d8cda" version="1">Кровавые узы: к12</content>
+  <content contentuid="h07185031g9415g426ega0f7gdc74dc799fa5" version="1">Взорвите свою кровавую куклу, завершая действие заклинания. Каждое существо в пределах [1] должно пройти испытание ловкости. При провале оно получает некротический урон, равный результату броска Костей ОЗ, затраченных на сотворение этого заклинания, а при успехе — половину этого урона.</content>
+  <content contentuid="h07c6de60g44ffg4abbg960ag2e63d5294c29" version="1">Кровавая кукла</content>
+  <content contentuid="h18f00ae7g83f4g4326g8640gbaccd7a8762a" version="1">Кровавые узы</content>
+  <content contentuid="h196865abg940ag4497gba4ag9698303452ce" version="1">Оживление: к10</content>
+  <content contentuid="h1d2696d4gc62dg4f9aga28dg829d795bb977" version="1">Извлечение железа: к8</content>
+  <content contentuid="h201bfcc4g44fcg4874g877fgfef5b61bae27" version="1">При сотворении этого заклинания вы тратите [1] своих Костей ОЗ. Бросьте эти кости: цель получает временные ОЗ в размере выпавшего значения. Эти временные ОЗ сохраняются до долгого отдыха.&lt;br&gt;&lt;br&gt;Цель также получает бонус +[2] к &lt;LSTag Tooltip="ArmourClass"&gt;классу брони&lt;/LSTag&gt; и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt; на 100 ходов.</content>
+  <content contentuid="h2101cc35g2017g44cdga70cgc9822cd02f0c" version="1">Вы можете взорвать свою кровавую куклу действием.</content>
+  <content contentuid="h273e3140g1594g4562g8d1cg2f36887b2ddc" version="1">Кровавая кукла: к8</content>
+  <content contentuid="h2cd25251gc04bg4e3bgb4fag7e7950a5d44d" version="1">Смертельный взрыв</content>
+  <content contentuid="h34b34560gb68ag4fb6ga6cfgc8e57f0f016e" version="1">Имеет бонус +[1] к &lt;LSTag Tooltip="ArmourClass"&gt;классу брони&lt;/LSTag&gt; и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt;.</content>
+  <content contentuid="h3787ac08geef3g453cgafd9g9437fc6051be" version="1">Вы тратите одну дополнительную Кость ОЗ за каждый уровень ячейки заклинания выше 3-го. Уровень куклы повышается, а ее безоружные атаки наносят на 1 единицу урона больше за каждый уровень ячейки выше 3-го.</content>
+  <content contentuid="h37d3bb7dg8cacg4453ga865g92a8ec4d7fb5" version="1">Обморожение</content>
+  <content contentuid="h4287ed8eg2eb0g430bg9f9dg9e6b9ce87040" version="1">Если вы используете для сотворения этого заклинания ячейку 5-го уровня или выше, бонус к &lt;LSTag Tooltip="ArmourClass"&gt;классу брони&lt;/LSTag&gt; и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt; действует до долгого отдыха.</content>
+  <content contentuid="h443ad59cg702cg4cabg9809g2e7b97cd061d" version="1">Кукла взрывается фонтаном крови. Каждое существо в пределах [1] должно пройти испытание ловкости. При провале оно получает некротический урон, равный результату броска затраченных Костей ОЗ, а при успехе — половину этого урона.</content>
+  <content contentuid="h4fdd4d69gfa0eg4301g95ebga6195837d541" version="1">Кровавые узы: к6</content>
+  <content contentuid="h50a7bd37g6aa0g4c8ag9cf5g73b203c96e83" version="1">Оживление: неестественная бодрость</content>
+  <content contentuid="h52b3f79ag1b5eg41b3g8199g11c9df38f3a3" version="1">Получено [1] временных ОЗ, которые сохраняются до долгого отдыха.</content>
+  <content contentuid="h54bbc7fegc1bdg4da9gb6fcgb93580b469e7" version="1">При сотворении этого заклинания вы тратите [1] своих Костей ОЗ. Вы мажете своей кровью маленькую фигурку, и она становится подконтрольной вам куклой. Класс брони куклы равен 10 + ваш бонус умения + ваш самый высокий модификатор интеллекта, мудрости или харизмы, а запас ее здоровья составляет 30 ОЗ. Кукла может атаковать &lt;LSTag Type="Spell" Tooltip="Target_SanguinePoppet_Slam"&gt;безоружным ударом&lt;/LSTag&gt;. Заклинание прекращается, если ОЗ куклы опускаются до 0.&lt;br&gt;&lt;br&gt;Действием вы можете взорвать куклу. Каждое существо в пределах [2] должно пройти испытание ловкости. При провале оно получает некротический урон, равный результату броска затраченных Костей ОЗ, а при успехе — половину этого урона.</content>
+  <content contentuid="h56cc5bbag3e63g47d4g9d30gca02e964252f" version="1">При сотворении этого заклинания вы тратите [1] своих Костей ОЗ. Вы прикасаетесь к мертвому существу и возвращаете его к жизни с 1 ОЗ. Бросьте затраченные кости: существо получает [2] временных ОЗ.&lt;br&gt;&lt;br&gt;В конце каждого своего хода существо теряет 1 из этих временных ОЗ. Пока они у него есть, оно получает бонус +[3] к &lt;LSTag Tooltip="AbilityCheck"&gt;проверкам характеристик&lt;/LSTag&gt;, &lt;LSTag Tooltip="AttackRoll"&gt;броскам атаки&lt;/LSTag&gt; и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt;.</content>
+  <content contentuid="h69adff09g8b75g4d01g8849g05835a76788f" version="1">Кровавая кукла: к12</content>
+  <content contentuid="h78d622e8g0d14g4421gbaacg984a282c5fc3" version="1">Оживление: D12</content>
+  <content contentuid="h798c7b68g3328g4d78gaa49g53287736fe32" version="1">Извлечение железа: D10</content>
+  <content contentuid="h81d9d219g4245g463bgb085gbb4c3f62b681" version="1">Извлечение железа: D12</content>
+  <content contentuid="ha104cffcgb71dg42d6gbaebg9d2083398fd9" version="1">Извлечение железа: D6</content>
+  <content contentuid="ha956a77ag00a5g4260g825cgc732af36d57b" version="1">Кровные узы: временные ОЗ</content>
+  <content contentuid="haac46e16gf223g4c76ga44fg3924517fbbef" version="1">При сотворении этого заклинания вы тратите [1] кость ОЗ. Вы извлекаете железо из своей крови и создаете из него [1] немагических кинжала. Их качество оставляет желать лучшего, но они вполне функциональны.</content>
+  <content contentuid="had051424g78adg476bg90f1gbe726ab0fccc" version="1">Получено [1] временных ОЗ, одно из которых теряется в конце каждого хода. Пока они активны, вы получаете бонус +[2] к &lt;LSTag Tooltip="AbilityCheck"&gt;проверкам характеристик&lt;/LSTag&gt;, &lt;LSTag Tooltip="AttackRoll"&gt;броскам атаки&lt;/LSTag&gt; и &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt;.</content>
+  <content contentuid="hb5b5cc70gc1e8g4b3eg9c47gbf7e791e272d" version="1">Взорвать кровавую куклу</content>
+  <content contentuid="hc11cefebgc39bg4370gb912g7974aed07509" version="1">Кровавая кукла: D6</content>
+  <content contentuid="hcd8849e4g2f85g4d30ga9f9gd8f44334b16b" version="1">Кровавая кукла: D10</content>
+  <content contentuid="hd435073dg5a51g4c83g975fg64aacc064801" version="1">Кровные узы: D8</content>
+  <content contentuid="hd5f45120g4ad0g4e71gbfecgdf0dd1c4cec9" version="1">Оживление: D8</content>
+  <content contentuid="hd80d3731g71d6g442bg9b2eg45a8b64153f4" version="1">Уровень 1: Изначальный приказ: Обморожение</content>
+  <content contentuid="hec34cf5cg4095g4cf0gab5fg36915aebb89b" version="1">Оживление</content>
+  <content contentuid="heed58104ge662g48d3g9a6fg57e012834d4b" version="1">Кровные узы: D10</content>
+  <content contentuid="hefecbb30g9d22g497bgb4f7g3625a8c257da" version="1">Вы тратите одну дополнительную кость ОЗ и создаете один дополнительный кинжал за каждый уровень ячейки заклинания выше 3-го.</content>
+  <content contentuid="hf0860902g77e6g4ddfg9380g32e0f2e900b4" version="1">Класс брони увеличивается на бонус умения призывателя и на его самый высокий модификатор интеллекта, мудрости или харизмы.</content>
+  <content contentuid="hf09572cbg23deg4b30g8529gedfa55c27bf9" version="1">Оживление: D6</content>
+  <content contentuid="hf5e67ae5g3e04g4abcga47eg7389ae5a7879" version="1">Извлечение железа</content>
 </contentList>
