@@ -28,6 +28,57 @@ const platformLabels = new Map([
 const adminUrl = `https://mod.io/g/${gameSlug}/m/${modSlug}/admin/settings#files`;
 const bg3PortalUrl = "https://mod.io/g/baldursgate3?portal=studio";
 
+// TARGET_SELECTOR_START
+function selectModioTarget(targets, requestedAdminUrl, requestedPortalUrl) {
+  const admin = new URL(requestedAdminUrl);
+  const portal = new URL(requestedPortalUrl);
+  const profilePath = admin.pathname.replace(/\/admin\/settings$/, "");
+  const trustedPages = targets.flatMap((candidate) => {
+    if (candidate.type !== "page" || !candidate.webSocketDebuggerUrl) return [];
+    try {
+      const url = new URL(candidate.url);
+      if (url.protocol !== "https:" || url.hostname !== "mod.io" ||
+          (url.port !== "" && url.port !== "443") || url.username || url.password) return [];
+      return [{ candidate, url }];
+    } catch {
+      return [];
+    }
+  });
+  const byStableId = (left, right) => {
+    return left.candidate.id < right.candidate.id ? -1 :
+      left.candidate.id > right.candidate.id ? 1 : 0;
+  };
+  const choose = (matches) => {
+    if (matches.length === 0) return null;
+    if (matches.length === 1) return matches[0].candidate;
+    const ids = matches.map(({ candidate }) => candidate.id);
+    if (ids.some((id) => !id) || new Set(ids).size !== ids.length) {
+      throw new Error("Multiple matching mod.io browser pages do not have unique target IDs.");
+    }
+    return [...matches].sort(byStableId)[0].candidate;
+  };
+
+  const adminTarget = choose(trustedPages.filter(({ url }) =>
+    url.origin === admin.origin && url.pathname === admin.pathname && url.search === ""));
+  if (adminTarget) return adminTarget;
+
+  const profileTarget = choose(trustedPages.filter(({ url }) =>
+    url.pathname === profilePath && url.search === ""));
+  if (profileTarget) return profileTarget;
+
+  const portalTarget = choose(trustedPages.filter(({ url }) =>
+    url.origin === portal.origin && url.pathname === portal.pathname &&
+    url.search === portal.search));
+  if (portalTarget) return portalTarget;
+
+  const loginTarget = choose(trustedPages.filter(({ url }) =>
+    url.pathname === "/login" || url.pathname === "/signin"));
+  if (loginTarget) return loginTarget;
+
+  throw new Error("No existing trusted mod.io admin, same-mod profile, BG3 portal, or login page is available.");
+}
+// TARGET_SELECTOR_END
+
 function sleep(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -53,19 +104,7 @@ const targets = await fetch(`http://127.0.0.1:${debugPort}/json/list`, {
   }
   return response.json();
 });
-const modioTargets = targets.filter((candidate) => {
-  if (candidate.type !== "page") return false;
-  try {
-    const url = new URL(candidate.url);
-    return url.protocol === "https:" && url.hostname === "mod.io" && (url.port === "" || url.port === "443");
-  } catch {
-    return false;
-  }
-});
-if (modioTargets.length !== 1) {
-  throw new Error(`Expected exactly one HTTPS mod.io browser page; found ${modioTargets.length}.`);
-}
-const target = modioTargets[0];
+const target = selectModioTarget(targets, adminUrl, bg3PortalUrl);
 const CDP_REQUEST_TIMEOUT_MS = 10_000;
 const socket = new WebSocket(target.webSocketDebuggerUrl);
 await new Promise((resolve, reject) => {
