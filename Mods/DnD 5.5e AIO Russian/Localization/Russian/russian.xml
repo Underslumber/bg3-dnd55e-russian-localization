@@ -883,7 +883,7 @@
 
 Дальние выстрелы. Атака двуручным дальнобойным оружием увеличивает его обычную дальность до 90 футов.</content>
   <content contentuid="ha55fe95cgd504gfcc1gb585g1162cb7cffcc" version="1">Черта: Меткий стрелок</content>
-  <content contentuid="hb219036fg4365gffedg71d5g938331069179" version="2">Игнорирование укрытий. Ваши &lt;LSTag Tooltip="RangedWeaponAttack"&gt;атаки дальнобойным оружием&lt;/LSTag&gt; не получают штрафов от &lt;LSTag Tooltip="HighGroundRules"&gt;правил возвышенности&lt;/LSTag&gt;.
+  <content contentuid="hb219036fg4365gffedg71d5g938331069179" version="3">Игнорирование укрытий. Ваши &lt;LSTag Tooltip="RangedWeaponAttack"&gt;атаки дальнобойным оружием&lt;/LSTag&gt; не получают штрафов от &lt;LSTag Tooltip="HighGroundRules"&gt;правил возвышенности&lt;/LSTag&gt;.
 
 Стрельба в ближнем бою. Нахождение в пределах 5 футов от противника не налагает помеху на ваши броски атаки дальнобойным оружием.
 
