@@ -6231,4 +6231,8 @@
   <content contentuid="ha5617601gf549g47b7g9d02g6ea3458b6d73" version="1">Получает помеху при следующем броске атаки до начала своего следующего хода.</content>
   <content contentuid="hc25971eeg611bg4e20g90cag61ce83375009" version="1">Если существо начнет свой следующий ход в дыму, оно окажется под воздействием эффекта &lt;LSTag Type="Status" Tooltip="SHADOW_SMOKE_AURA_DEBUFF"&gt;Теневой дым&lt;/LSTag&gt; и получит помеху при следующем броске атаки до начала своего последующего хода.</content>
   <content contentuid="hfc9da1adg03cdg4403g8b03g8b054edd2b40" version="1">Восстанавливает 1 ОЗ в начале каждого своего хода. Эффект прекращается, когда заканчивается ярость.</content>
+  <content contentuid="h1865b043g7767g45d5ga931g8e954b442527" version="1">Выстрелите из пальца-пистолета. При попадании он наносит [1] и применяет свойство мастерства «Замедление».</content>
+  <content contentuid="h1ec5edaeg6725g46ffg9e2cg7039367dba58" version="1">Пальцы-пистолеты</content>
+  <content contentuid="hb5a6b60eg032fg4a8ag9c51g0d8acf62def5" version="1">Ваша рука считается пистолетом. Вы можете стрелять из пальцев-пистолетов, нанося [1] при попадании.</content>
+  <content contentuid="hbf18c5f4g3952g4e08gaeb6ga9785601dd2c" version="4">Отметьте существо как свою добычу, чтобы наносить дополнительные [1] каждый раз, когда вы попадаете по нему броском атаки.</content>
 </contentList>
