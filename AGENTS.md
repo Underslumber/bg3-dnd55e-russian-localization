@@ -18,6 +18,10 @@ Project-wide rules for coding agents. `CLAUDE.md` imports this file.
 - After work on `fix/*` or `feat/*`, offer either merge into `main` with branch deletion or a PR. This does not apply on other branches.
 - Push retries: at most 2 retries with a 3-second delay.
 
+## Evidence required for release recovery
+- Before diagnosing a release failure, changing publication code, or reporting that execution cannot continue, follow [the execution and recovery procedure](docs/release-recovery.md). Record its evidence checkpoint in the existing task state; a plan or agent summary does not satisfy the checkpoint.
+- Diagnose the current failed boundary before proposing a code change: tool discovery, transport/permissions, Larian session, mod.io session, Toolkit, upload discovery, or activation. A failure in one boundary is not evidence that the others are unavailable. After two failed attempts at the same boundary, require a new direct runtime observation or independent diagnosis before another repair; do not reset the counter by renaming the approach or spawning an agent.
+
 ## Key paths
 - localization: `Mods/DnD 5.5e AIO Russian/Localization/Russian/russian.xml`
 - metadata: `Mods/DnD 5.5e AIO Russian/meta.lsx`

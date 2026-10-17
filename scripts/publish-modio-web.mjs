@@ -276,11 +276,17 @@ async function readLoginActionState() {
         if (countUnsafeTarget) {
           const linkAction = gamePortalRoute && labelsOf(element).some((label) => /^link your larian studios account$/i.test(label));
           const href = element.getAttribute('href');
-          if (linkAction && !href) {
-            // The exact, visible BG3 portal button is the documented linking action.
+          const portalLoginButton = gamePortalRoute && url.searchParams.get('portal') === 'studio' &&
+            element.tagName === 'BUTTON' && !href &&
+            labelsOf(element).some((label) => /^log in with larian studios$/i.test(label));
+          if ((linkAction && !href) || portalLoginButton) {
+            // The BG3 portal exposes its linking and Larian login actions as buttons.
           } else {
             let target;
-            try { target = new URL(href || element.href, url); } catch {
+            try {
+              if (!href && !element.href) throw new TypeError('SSO control has no target');
+              target = new URL(href || element.href, url);
+            } catch {
               counts.unsafeSsoTarget++;
               unsafeTargets.push({ unparseable: true, linkAction, tag: element.tagName });
               continue;
@@ -374,9 +380,16 @@ async function clickVisibleLarianSsoAction() {
         const allowedHost = target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io') || target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com');
         if (target.protocol !== 'https:' || !allowedHost || !(target.port === '' || target.port === '443')) return 'invalid_target';
       }
+    } else if (gamePortalRoute && url.searchParams.get('portal') === 'studio' &&
+        matches[0].tagName === 'BUTTON' && !matches[0].getAttribute('href') &&
+        labelsOf(matches[0]).some((label) => /^log in with larian studios$/i.test(label))) {
+      // The trusted BG3 studio portal exposes SSO as a form button, not a URL.
     } else {
       let target;
-      try { target = new URL(matches[0].href); } catch { return 'invalid_target'; }
+      try {
+        if (!matches[0].getAttribute('href') && !matches[0].href) return 'invalid_target';
+        target = new URL(matches[0].getAttribute('href') || matches[0].href, location.href);
+      } catch { return 'invalid_target'; }
       const allowlistedHost =
         target.hostname === 'larian.com' || target.hostname.endsWith('.larian.com') ||
         (gamePortalRoute && (target.hostname === 'mod.io' || target.hostname.endsWith('.mod.io')));
