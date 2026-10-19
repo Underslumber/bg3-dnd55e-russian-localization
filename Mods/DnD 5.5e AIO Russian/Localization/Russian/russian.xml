@@ -6246,4 +6246,5 @@
   <content contentuid="h71dc3d03gabaag851dg85cbg8c163a9116ec" version="1">Улучшенная хитрая атака: Отход</content>
   <content contentuid="hb7f61658gf898g8730g1b0cg85c98fbff120" version="1">Улучшенная хитрая атака: Устрашение</content>
   <content contentuid="hdce46d71ga685g97bag29b1g52e317e29a71" version="1">Улучшенная хитрая атака: Яд</content>
+  <content contentuid="hb2c037c3g7e2eg4543g95fdg4b9b76dcce08" version="1">Отображается как заклинание 1-го уровня из-за ограничений игрового движка, но на самом деле это заклинание 2-го уровня.</content>
 </contentList>
