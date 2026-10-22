@@ -6254,4 +6254,22 @@
   <content contentuid="hecaf5e04gad04gaff1g8fecg4be3a059172e" version="1">Громобус</content>
   <content contentuid="h4fa901e9gdd45g97b3g965agcde6f7c125a1" version="1">Магия жестянщика</content>
   <content contentuid="hc7ee220dg7551gb43fgcbb6gd0ce60b776ec" version="3">Вы можете создавать инструменты, такие как лопата, с помощью магии. Эти инструменты позволяют выполнять задачи, например, раскапывать кучу земли, даже если у вас нет настоящего инструмента. Призванный инструмент исчезает, как только вы закончите его использовать.</content>
+  <content contentuid="h139f969fgc335g4103gb166gab78b11615bb" version="1">Свиток «Мучение»</content>
+  <content contentuid="h1e689baeg1abeg40b3g98e9gdf6e888d3ae3" version="1">У вас есть &lt;LSTag Type="Passive" Tooltip="HalfCover"&gt;половинное укрытие&lt;/LSTag&gt; и &lt;LSTag Tooltip="Resistant"&gt;устойчивость&lt;/LSTag&gt; к урону холодом, молнией и лучистому урону.</content>
+  <content contentuid="h2345f2b8gcb85g4637g8611g97c1a159d580" version="1">Мучение</content>
+  <content contentuid="h2a698eb8gf94bg4156ga8cag533e5b8e3e88" version="1">Свиток «Лунного плаща Алустриэль»</content>
+  <content contentuid="h37585662g45f4g40d4g96a8g7792328d063d" version="1">На время действия лунный свет заполняет [1] излучение, исходящее от вас, тусклым светом. Находясь в этой области, вы и ваши союзники получаете &lt;LSTag Type="Passive" Tooltip="HalfCover"&gt;половинное укрытие&lt;/LSTag&gt; и &lt;LSTag Tooltip="Resistant"&gt;устойчивость&lt;/LSTag&gt; к урону холодом, молнией и лучистому урону.&lt;br&gt;&lt;br&gt;Пока заклинание действует, вы можете воспользоваться одним из следующих вариантов, что немедленно прекратит действие заклинания:&lt;br&gt;&lt;br&gt;Освобождение. Когда вы оказываетесь под эффектом испуга или обездвиженности, вы можете использовать свое ответное действие, чтобы удалить это состояние.&lt;br&gt;&lt;br&gt;Передышка. Действием «Магия» вы или союзник в пределах области восстанавливаете [2] плюс модификатор вашей характеристики накладывания заклинаний.</content>
+  <content contentuid="h4259786ag4195g4e31gbfe5g33814ee60900" version="1">Доступно классам: бард, друид, волшебник</content>
+  <content contentuid="h52d747f0g8f3eg41a1g8b7dgbd781d5ca332" version="1">Вы или союзник в пределах области восстанавливаете [1] плюс модификатор вашей характеристики накладывания заклинаний. Действие «Лунного плаща Алустриэль» немедленно прекращается.</content>
+  <content contentuid="h59792facge4d5g432fgb218g17b5b4eb98a3" version="1">Лунный плащ Алустриэль: Освобождение</content>
+  <content contentuid="h5edb32abg9f34g4a97g8f71g4df4a19166c8" version="1">Когда вы оказываетесь под эффектом испуга или обездвиженности, вы можете использовать свое ответное действие, чтобы удалить это состояние. Действие «Лунного плаща Алустриэль» немедленно прекращается.</content>
+  <content contentuid="h633c8862gfa02g4292g893egc6825f0f5169" version="1">Лунный плащ Алустриэль</content>
+  <content contentuid="h6a5b7fdeg4a50g4bcfg876egea3558ce3f64" version="1">Дает [1] плюс модификатор интеллекта изобретателя.</content>
+  <content contentuid="h70d55668gfbfag48ffgb935gd8b56f9c16ca" version="1">Скорость снижена вдвое, и существо получает помеху при бросках атаки. Цель повторяет испытание в конце каждого своего хода, при успехе заклинание прекращается.</content>
+  <content contentuid="h969327acg9157g4e31g8426g9d823372edac" version="1">Вы получаете бонус +2 к КБ и испытаниям ловкости.</content>
+  <content contentuid="hbdb2364dgf1e6g4733g888eg07e9922e368e" version="1">Лунный плащ Алустриэль: Передышка</content>
+  <content contentuid="hbf964229gbb75g49c3g9b53g7656c2ca4e2d" version="1">Доступные классы: Жрец</content>
+  <content contentuid="hbfbe60a5gcb7eg4b5bgb3bbg382e50307d68" version="1">Мучение</content>
+  <content contentuid="hd15d55aeg3d63g4583g9527g9ddcd11bb935" version="1">Выберите существо, которое вы видите в пределах дистанции. Цель должна преуспеть в испытании выносливости, иначе на время действия заклинания она будет страдать от мучительных мышечных спазмов.&lt;br&gt;&lt;br&gt;При провале испытания скорость цели снижается вдвое, и она получает помеху при бросках атаки. Цель повторяет испытание в конце каждого своего хода, при успехе заклинание прекращается.</content>
+  <content contentuid="hf0dacdaegddcbg4df8ga7cdgd329793fd7f5" version="1">Половинное укрытие</content>
 </contentList>
