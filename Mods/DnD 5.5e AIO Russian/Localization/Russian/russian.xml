@@ -51,7 +51,7 @@
   <content contentuid="hebd8f833g052cg4774g5e19geb34be606a5f" version="1">Безрассудная атака: Удар по ногам</content>
   <content contentuid="h0eff4b2bgeb61g4e62ga1ffg3b4f777317e1" version="1">Скорость цели уменьшается на [1] до начала вашего следующего хода. На цель может влиять только один Удар по ногам одновременно — самый последний из наложенных.</content>
   <content contentuid="h2fea2840g0902gdf2bg7797g549c20c3d6e3" version="1">Мощный удар</content>
-  <content contentuid="hcd10eb1fgc367ga39egd371g5e071e079549" version="1">Вы можете переместиться на половину своей скорости по прямой к цели, не провоцируя атак по возможности.</content>
+  <content contentuid="hcd10eb1fgc367ga39egd371g5e071e079549" version="2">Вы можете переместиться на половину своей скорости по прямой к цели, не провоцируя атак по возможности.</content>
   <content contentuid="hd5311cf0g6f4fg9a03g45f9gf5ba41e2994c" version="1">Удар по сухожилиям</content>
   <content contentuid="hcba666bcgdd43g5b9agef09gdcfd2c3d20ff" version="1">Скорость уменьшается на [1] до начала следующего хода атакующего.</content>
   <content contentuid="hebad3866ga362g915cge97fg661e8b92ea36" version="2">Уровень 11: Неудержимая ярость</content>
@@ -6312,4 +6312,9 @@
   <content contentuid="he325a532g75b9g6d5cgf6a7gc679e1c7a534" version="1">«Огненные ладони»</content>
   <content contentuid="heecb95bcg6afeg212ag19bag14edd7578b35" version="1">Вы можете взывать к своей «магии», чтобы использовать «Фокусы» в бою. Один раз за каждый свой ход, когда вы попадаете по цели атакой, основанной на Силе, вы можете применить один из следующих «Фокусов» на свой выбор.&lt;br&gt;&lt;br&gt;«Магическая рука». Вы можете оттолкнуть цель на [1] прямо от себя, если она имеет размер «Большой» или меньше. Пока активна ваша &lt;LSTag Type="Status" Tooltip="RAGE"&gt;Ярость&lt;/LSTag&gt;, вы можете оттолкнуть цель на [2].&lt;br&gt;&lt;br&gt;«Шоковое прикосновение». Сила вашего удара поистине шокирует. Цель не может совершать &lt;LSTag Tooltip="OpportunityAttack"&gt;Атаки по возможности&lt;/LSTag&gt; до конца текущего хода. Пока активна ваша &lt;LSTag Type="Status" Tooltip="RAGE"&gt;Ярость&lt;/LSTag&gt;, она не может совершать &lt;LSTag Tooltip="OpportunityAttack"&gt;Атаки по возможности&lt;/LSTag&gt; до начала вашего следующего хода.&lt;br&gt;&lt;br&gt;«Верный удар». Вы наносите по-настоящему верный удар, причиняя цели дополнительные [3] урона. Пока активна ваша &lt;LSTag Type="Status" Tooltip="RAGE"&gt;Ярость&lt;/LSTag&gt;, вы добавляете половину вашего уровня Варвара (округляя в меньшую сторону) к этому дополнительному урону.</content>
   <content contentuid="hf5fe97f4ga042g7f76gf80dg7be4e8947cf1" version="1">Оно не может совершать &lt;LSTag Tooltip="OpportunityAttack"&gt;Атаки по возможности&lt;/LSTag&gt; до конца текущего хода.</content>
+  <content contentuid="h1adbe27dg071agcfa2g9dcbg88d8be667a62" version="1">Мощный удар: Продолжение атаки</content>
+  <content contentuid="h3733cedfg3133g8148gbf58g8884adb0866f" version="1">Мощный удар</content>
+  <content contentuid="h91a252b0g2adfg6ef9g2687g16705f45ad9a" version="1">Двигайтесь прямо к существу с состоянием &lt;LSTag Type="Status" Tooltip="FORCEFULBLOW_TARGET"&gt;Мощный удар: Отбрасывание&lt;/LSTag&gt;, не провоцируя атаки по возможности.</content>
+  <content contentuid="ha3fa1938g7aebg4126g8840g9af44c7d5355" version="1">Мощный удар: Отбрасывание</content>
+  <content contentuid="hb8daacc1g2940gc6a6g60eegb90ee36186c9" version="1">Удар по сухожилиям</content>
 </contentList>
