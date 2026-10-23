@@ -6272,4 +6272,19 @@
   <content contentuid="hbfbe60a5gcb7eg4b5bgb3bbg382e50307d68" version="1">Мучение</content>
   <content contentuid="hd15d55aeg3d63g4583g9527g9ddcd11bb935" version="1">Выберите существо, которое вы видите в пределах дистанции. Цель должна преуспеть в испытании выносливости, иначе на время действия заклинания она будет страдать от мучительных мышечных спазмов.&lt;br&gt;&lt;br&gt;При провале испытания скорость цели снижается вдвое, и она получает помеху при бросках атаки. Цель повторяет испытание в конце каждого своего хода, при успехе заклинание прекращается.</content>
   <content contentuid="hf0dacdaegddcbg4df8ga7cdgd329793fd7f5" version="1">Половинное укрытие</content>
+  <content contentuid="h06a6426dg0fbbg4936g82cfgac92c997849e" version="1">Свиток «Тень Мойла»</content>
+  <content contentuid="h1359d187g4052g4557g87b4g775b70e6a5e5" version="1">Затронутая сущность &lt;LSTag Type=Status Tooltip=RESTRAINED&gt;обездвижена&lt;/LSTag&gt;, враждебна ко всем и бесцельно блуждает. Когда она использует действие или бонусное действие, она получает [1], и «Ментальная тюрьма» прекращается.</content>
+  <content contentuid="h2cf537a0g4078g4dd5g88f8g30360f18c3fd" version="1">Подобные пламени тени окутывают ваше тело, делая вас сильно затененным для окружающих. Тени превращают тусклый свет в радиусе [1] от вас во тьму, а яркий свет в той же области — в тусклый свет.&lt;br&gt;&lt;br&gt;Пока заклинание действует, у вас есть устойчивость к лучистому урону. Кроме того, когда существо в пределах [1] от вас попадает по вам атакой, тени набрасываются на это существо, нанося ему [2].</content>
+  <content contentuid="h3a01f617gc5a9g4bcega8eag969b5e79915d" version="1">Вы прикасаетесь к добровольному существу, превращая его кожу в красную чешую. Пока заклинание действует, цель имеет &lt;LSTag Tooltip="Resistant"&gt;устойчивость&lt;/LSTag&gt; к урону холодом, огнем и молнией, а также &lt;LSTag Tooltip="Immune"&gt;иммунитет&lt;/LSTag&gt; к урону ядом.</content>
+  <content contentuid="h3dd2e59cgdd04g4cf0gad86g2c9a0b80ca1f" version="1">Тень Мойла</content>
+  <content contentuid="h5112de1agc373g4d69ga568ge091ad3d1426" version="1">Ментальная тюрьма</content>
+  <content contentuid="h6524a14fgb4e7g4a5ega551g374da4579ce7" version="1">Плоть исчадия</content>
+  <content contentuid="h6dc100c9gcc40g4359g86acgf997e3b65619" version="1">Вы сильно затенены для окружающих, и тени сгущают свет в радиусе [1] от вас. У вас есть устойчивость к лучистому урону.&lt;br&gt;&lt;br&gt;Когда существо в пределах [1] от вас попадает по вам атакой, оно получает [2].</content>
+  <content contentuid="h7117f9dfga2dcg4eb9g804dg962c1206ae24" version="1">Свиток «Плоти исчадия»</content>
+  <content contentuid="h8146428bg034cg4ed6gb1c9g7e11cb11bd30" version="1">Заточите существо в иллюзорную камеру, которую воспринимает только оно. Цель получает [1] и должна преуспеть в испытании интеллекта, иначе она будет заточена в &lt;LSTag Type=Status Tooltip=MENTAL_PRISON&gt;ментальную тюрьму&lt;/LSTag&gt;. Существо с иммунитетом к &lt;LSTag Type=Status Tooltip=CHARMED&gt;обворожению&lt;/LSTag&gt; не может быть заточено.</content>
+  <content contentuid="h8a3cd2dcg6ed1g4bf3gba80gf54c748ba9dd" version="1">Доступно классам: бард, жрец, чародей, колдун, волшебник</content>
+  <content contentuid="h95ec7f93gbff5g4bbag88abgd2031e9db5db" version="1">&lt;LSTag Tooltip="Resistant"&gt;Устойчивость&lt;/LSTag&gt; к урону холодом, огнем и молнией. &lt;LSTag Tooltip="Immune"&gt;Иммунитет&lt;/LSTag&gt; к урону ядом.</content>
+  <content contentuid="hb8f7c145g25b0g40aag826agacfb49117a37" version="1">Свиток «Ментальной тюрьмы»</content>
+  <content contentuid="hebfc961agcd5fg4a9dga7a3g6ec38be2645a" version="1">Доступные классы: Чародей, Колдун, Волшебник</content>
+  <content contentuid="hec78d58eg8718g495aga35cgcb71875668a3" version="1">Доступные классы: Колдун</content>
 </contentList>
