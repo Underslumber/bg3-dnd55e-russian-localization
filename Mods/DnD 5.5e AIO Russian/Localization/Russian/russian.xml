@@ -6350,4 +6350,8 @@
   <content contentuid="h705a27d7gfc67gc390gf30dg040cc992e6d8" version="1">Огнестрельное оружие с широким раструбом. Мушкетон наносит сокрушительный удар на близкой дистанции, осыпая цель градом дроби.</content>
   <content contentuid="hd4ae8dfegb122ga4e9g89f3g3b407ad2984d" version="1">Нахождение в пределах 5 футов от врага не дает помеху вашим броскам дистанционной атаки этим оружием.</content>
   <content contentuid="hee490f77gf7e6g0529gf811geff84e5ed6f9" version="2">Мушкетон</content>
+  <content contentuid="h639fa2afg0b32g439bga502g8c5913c196c3" version="1">Весь входящий урон уменьшается на [1].</content>
+  <content contentuid="h6b7bf055g23feg4c07g91e8g299ae0aa31c1" version="1">Находясь в &lt;LSTag Type="Spell" Tooltip="Shout_WildShape"&gt;диком облике&lt;/LSTag&gt;, весь входящий урон уменьшается на [1].</content>
+  <content contentuid="h7aa27b7ag259bg4394g97a7g5fd5100be99b" version="2">Невидимость прерывается, если вы проваливаете &lt;LSTag Tooltip="AbilityCheck"&gt;проверки&lt;/LSTag&gt; скрытности при атаке, сотворении заклинаний или взаимодействии с предметами.</content>
+  <content contentuid="ha4468dd2gdefeg4a52ga0c7g91ae57aef8a3" version="6">Существо получает &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; при &lt;LSTag Tooltip="AttackRoll"&gt;бросках атаки&lt;/LSTag&gt;. Броски атаки против него совершаются с &lt;LSTag Tooltip="Disadvantage"&gt;помехой&lt;/LSTag&gt;.&lt;br&gt;&lt;br&gt;При взаимодействии с предметами, сотворении заклинаний или атаке существо должно успешно пройти &lt;LSTag Tooltip="AbilityCheck"&gt;проверку&lt;/LSTag&gt; скрытности, чтобы сохранить невидимость.</content>
 </contentList>
