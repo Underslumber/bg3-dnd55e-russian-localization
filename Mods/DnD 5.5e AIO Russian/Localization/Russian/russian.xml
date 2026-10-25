@@ -2160,8 +2160,8 @@
   <content contentuid="h5455adb5gc4c2g9159g585eg6c24762cbd53" version="1">Некротический саван</content>
   <content contentuid="h3a16b87eg8dd3g9578gd609gbf2f106aa676" version="1">Ваши глаза ненадолго превращаются в омуты тьмы, а на спине временно вырастают нелетающие крылья. Все существа, кроме ваших союзников, в пределах 10 футов от вас должны преуспеть в испытании Харизмы или получить состояние «Испуг» до конца вашего следующего хода.</content>
   <content contentuid="h14b0a7adg6f8dg3aefgbc10ge9f1398e2825" version="1">Внутреннее сияние</content>
-  <content contentuid="h868292b4g07bag5039g7a39g8b646671c67e" version="2">Получает штраф 1к4 к &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt;.</content>
-  <content contentuid="h6ef5198eg577fg6ca6gc4d9gb725efc2c584" version="1">Расщепление разума</content>
+  <content contentuid="h868292b4g07bag5039g7a39g8b646671c67e" version="3">Получает штраф 1к4 к &lt;LSTag Tooltip="SavingThrow"&gt;испытаниям&lt;/LSTag&gt;.</content>
+  <content contentuid="h6ef5198eg577fg6ca6gc4d9gb725efc2c584" version="3">Расщепление разума</content>
   <content contentuid="h8c610e61ga284gbdd9gf4c4gc19e363942ea" version="1">Коллегия Луны</content>
   <content contentuid="h759d592bgce3eg0689gb28cgb0e2182d4aba" version="1">Коллегия Луны ведет свое происхождение от древних кругов друидов Лунных островов, которые доверили первым бардам этой традиции летописи об островах и их жителях. Барды этой коллегии черпают силы из фейской магии островов и первобытной силы лунных колодцев, чтобы усиливать союзников, защищать мир природы и вдохновлять свои бардовские произведения.</content>
   <content contentuid="h9223661bgace2gba01g10dcgfc1ea09add5a" version="2">Уровень 3: Вдохновение Луны</content>
@@ -3218,7 +3218,7 @@
   <content contentuid="h65c236c4gca30g9d80g8ce9geda1067e572a" version="1">Лунный серп</content>
   <content contentuid="h9c04874bg78bdgf61ag7978g3898f2f266ca" version="1">Требуется настройка друидом или следопытом.&lt;br&gt;&lt;br&gt;Когда вы сотворяете заклинание, восстанавливающее ОЗ, вы можете бросить к4 и добавить выпавшее число к количеству восстановленных ОЗ.</content>
   <content contentuid="ha29a53f0gdcdag13d4g65a6g4969c1a596e5" version="1">Требуется настройка друидом или следопытом</content>
-  <content contentuid="h463f00d2g43d4g6387ga3e8g5af46bc31369" version="2">Расщепление разума (остаточное)</content>
+  <content contentuid="h463f00d2g43d4g6387ga3e8g5af46bc31369" version="4">Расщепление разума (остаточное)</content>
   <content contentuid="h0bf5656fg0b15g4da8gc1fcg0b504c8b4a4b" version="1">Очаг лунного света и тени</content>
   <content contentuid="h0e4f0ac6g2f7egd603gf1dfgbe7d59c073b3" version="1">Круг вещих снов</content>
   <content contentuid="h25cebc5cgd794gb02fg2941g193df53c964f" version="1">Очаг лунного света и тени</content>
