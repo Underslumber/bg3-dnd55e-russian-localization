@@ -6354,4 +6354,28 @@
   <content contentuid="h6b7bf055g23feg4c07g91e8g299ae0aa31c1" version="1">Находясь в &lt;LSTag Type="Spell" Tooltip="Shout_WildShape"&gt;диком облике&lt;/LSTag&gt;, весь входящий урон уменьшается на [1].</content>
   <content contentuid="h7aa27b7ag259bg4394g97a7g5fd5100be99b" version="2">Невидимость прерывается, если вы проваливаете &lt;LSTag Tooltip="AbilityCheck"&gt;проверки&lt;/LSTag&gt; скрытности при атаке, сотворении заклинаний или взаимодействии с предметами.</content>
   <content contentuid="ha4468dd2gdefeg4a52ga0c7g91ae57aef8a3" version="6">Существо получает &lt;LSTag Tooltip="Advantage"&gt;преимущество&lt;/LSTag&gt; при &lt;LSTag Tooltip="AttackRoll"&gt;бросках атаки&lt;/LSTag&gt;. Броски атаки против него совершаются с &lt;LSTag Tooltip="Disadvantage"&gt;помехой&lt;/LSTag&gt;.&lt;br&gt;&lt;br&gt;При взаимодействии с предметами, сотворении заклинаний или атаке существо должно успешно пройти &lt;LSTag Tooltip="AbilityCheck"&gt;проверку&lt;/LSTag&gt; скрытности, чтобы сохранить невидимость.</content>
+  <content contentuid="h039ed18bge1e8g4aaeg9c14g7d6c5a78d84a" version="2">Создать персонажа со случайными видом, классом, происхождением и внешностью.</content>
+  <content contentuid="h08c34beeg3883g49b0gb9ffg79cad05797e9" version="2">Подвид</content>
+  <content contentuid="h21db8ebbg9c9dg4133g8c81g9eadf1f91a59" version="2">Особенность вида [1]-го ур.</content>
+  <content contentuid="h243c9397g8fbbg4ba5gacd6gc49ca5826bf0" version="2">Выбрано в виде</content>
+  <content contentuid="h29d1d637g94bbg4f11g9bdfgbe0042b60e40" version="2">Подвид</content>
+  <content contentuid="h2b695f65g9317g4a75g9ae2g7f45350c3bfc" version="2">Даровано видом</content>
+  <content contentuid="h380f966eg24c6g4202gb7d2g6d3eb8a8ffaa" version="2">Заклинания вида</content>
+  <content contentuid="h4810b5bag5482g4b47ga5b7ge7c1156969d9" version="2">Вид</content>
+  <content contentuid="h5702bcfbg5b6bg4c6cga370gbabede69cf41" version="2">Ваше общее количество &lt;LSTag Tooltip="HitPoints"&gt;ОЗ&lt;/LSTag&gt; определяется вашим классом, &lt;LSTag Tooltip="AbilityModifier"&gt;модификатором&lt;/LSTag&gt; Выносливости и соответствующими чертами вида. ОЗ увеличиваются с каждым уровнем, полученным в вашем классе.</content>
+  <content contentuid="h5cba8e35g057eg4e08g84f2g186b89ba12cc" version="2">Навыки вида</content>
+  <content contentuid="h6020727bge0e3g4de7gaf3ag469c3b32b3d2" version="2">Вид</content>
+  <content contentuid="h6fcd4f19ge511g4ffcg86c9g61e1175b9c88" version="2">Владение от вида</content>
+  <content contentuid="h915b24f2gd95bg47cfg992dg8dbcb2954665" version="2">Пассивные умения вида</content>
+  <content contentuid="h92ae61bbgb88dg458egad89gf8ed8c7a3122" version="3">Базовая скорость вида</content>
+  <content contentuid="ha0bb1044gdf6cg4c18gbbe8g16935dae77ab" version="6">Базовая скорость вида</content>
+  <content contentuid="ha7ad1dd3g4394g403cga657g9a9ff697e596" version="2">от вида</content>
+  <content contentuid="ha862c94eg92a9g471fga23dg15fbf27ff537" version="3">Базовая скорость вида</content>
+  <content contentuid="hadf27237ge191g4922ga84cg055b984c9b1f" version="3">Вид</content>
+  <content contentuid="hb4961bdbg618bg4350g8bdbg89221f97b659" version="2">Особенности подвида</content>
+  <content contentuid="hc72a24a6g081ag4ac2g9a95g466b27d877b8" version="2">Снаряжение вида</content>
+  <content contentuid="hc9f10748ga20dg44a6g85c5g5ded37d38459" version="2">Черты подвида</content>
+  <content contentuid="hd0d992ebg43f8g429bgbf11g0cbf54d84d4e" version="4">Особенности вида</content>
+  <content contentuid="hf4977710g272bg4334g84aegf749a3b18205" version="2">Подвид</content>
+  <content contentuid="hf4cf9188gf1ddg4c70g8512g4578eb1e15b6" version="2">Вид</content>
 </contentList>
