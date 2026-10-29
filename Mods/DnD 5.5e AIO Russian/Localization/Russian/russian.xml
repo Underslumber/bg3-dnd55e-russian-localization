@@ -2175,7 +2175,7 @@
 
 Кроме того, выберите один из следующих навыков: &lt;LSTag Type="Skills" Tooltip="AnimalHandling"&gt;Дрессировка&lt;/LSTag&gt;, &lt;LSTag Type="Skills" Tooltip="Insight"&gt;Проницательность&lt;/LSTag&gt;, &lt;LSTag Type="Skills" Tooltip="Medicine"&gt;Медицина&lt;/LSTag&gt;, &lt;LSTag Type="Skills" Tooltip="Nature"&gt;Природа&lt;/LSTag&gt;, &lt;LSTag Type="Skills" Tooltip="Perception"&gt;Внимание&lt;/LSTag&gt; или &lt;LSTag Type="Skills" Tooltip="Survival"&gt;Выживание&lt;/LSTag&gt;. Вы получаете владение этим навыком.</content>
   <content contentuid="h3911c437g16cagdddcgede4gaa0c643aec8c" version="2">Уровень 6: Благословения лунного света</content>
-  <content contentuid="haa5e73d8ga7e5ge281g8b67gae695bb23d75" version="1">Заклинание «Лунный луч» всегда подготовлено.
+  <content contentuid="haa5e73d8ga7e5ge281g8b67gae695bb23d75" version="4">Заклинание «Лунный луч» всегда подготовлено.
 
 Пока вы накладываете «Лунный луч», выбранное вами существо, которое вы видите в пределах 60 футов от себя, восстанавливает 2к4 ОЗ.
 
@@ -2191,7 +2191,7 @@
   <content contentuid="h81c2cbd1ge2a2g4781g89a2gf1b79723f601" version="1">Один раз за ход, когда вы восстанавливаете существу ОЗ заклинанием, вы можете потратить кость &lt;LSTag Type="ActionResource" Tooltip="BardicInspiration"&gt;бардовского вдохновения&lt;/LSTag&gt; и увеличить количество восстановленных ОЗ на значение, выпавшее на этой кости. Скорость существа также увеличивается на 10 футов до конца его следующего хода.</content>
   <content contentuid="hc939b12eg2ee5g197bgc522ga5abc592a4b0" version="1">Лунная живучесть</content>
   <content contentuid="h97618a1dg57f7g2acfg001dg5ba785249fde" version="1">Благословения лунного света</content>
-  <content contentuid="h13f755b1gb20cg69d9g98a6g40d319bcab11" version="1">Пока вы накладываете «Лунный луч», выбранное вами существо, которое вы видите в пределах 60 футов от себя, восстанавливает 2к4 ОЗ.</content>
+  <content contentuid="h13f755b1gb20cg69d9g98a6g40d319bcab11" version="3">Пока вы накладываете «Лунный луч», выбранное вами существо, которое вы видите в пределах 60 футов от себя, восстанавливает 2к4 ОЗ.</content>
   <content contentuid="h010a539fg50d1ga5d6g15a9g504704ac4e2c" version="1">Баннерет</content>
   <content contentuid="h6ea1c6eag9b3dg7479ge12cgb52dd829b0da" version="1">Баннереты — это образцы доблести и лидерства, защищающие невинных и объединяющие искателей приключений ради борьбы за справедливость и свободу. Многие из них служат рыцарями в Кормире, Серебряных Пределах, Дамаре, Чессенте или других землях Фаэруна. Они странствуют по королевствам как рыцари без страха и упрека, вынося борьбу со злом за границы своих родных земель.
 
