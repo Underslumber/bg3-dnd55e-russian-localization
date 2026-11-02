@@ -6486,4 +6486,7 @@
   <content contentuid="hef9ea119g1b3cg4dddgbd74g26e874147267" version="1">Заклинания Круга спор</content>
   <content contentuid="hf76a4068ge731g413agbe3dg11c6586c182f" version="1">Священное оружие</content>
   <content contentuid="hffabd299gfe84g474ag9d03g449b5d4dada3" version="1">Когда вы достигаете указанного ниже уровня следопыта, у вас всегда будут подготовлены следующие заклинания: на 3-м уровне — &lt;LSTag Type="Spell" Tooltip="Shout_DisguiseSelf"&gt;Маскировка&lt;/LSTag&gt;; на 5-м уровне — &lt;LSTag Type="Spell" Tooltip="Target_MistyStep"&gt;Туманный шаг&lt;/LSTag&gt;; на 9-м уровне — &lt;LSTag Type="Spell" Tooltip="Zone_Fear"&gt;Ужас&lt;/LSTag&gt;.</content>
+  <content contentuid="h0be0754cgd3e9g4a9cgb5cagd324c61c7087" version="1">Потратьте две кости ОЗ, чтобы нанести дополнительные [1].</content>
+  <content contentuid="h235f3325g3466g4974gae44gc76ef4d397ff" version="1">Заряженное магическое пламя</content>
+  <content contentuid="hd62b8bd1g845bg4f4eg8063g3c19839002ab" version="1">Потратьте кость ОЗ, чтобы нанести дополнительные [1].</content>
 </contentList>
