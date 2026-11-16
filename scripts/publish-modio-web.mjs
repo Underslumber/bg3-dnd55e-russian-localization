@@ -491,16 +491,52 @@ async function recoverModioSessionWithLarian() {
   throw new Error('Timed out restoring mod.io through the BG3 portal Larian SSO. State: ' +
     JSON.stringify({ larian: lastState, modio: lastModioState }));
 }
+
+function createSessionRecoveryController(recover, navigateAndWaitForAdmin) {
+  let recoveryUsed = false;
+  return async function ensureAuthenticated(state, stage) {
+    if (state?.ready) return state;
+    if (state?.host !== 'mod.io' || !state.loginRequired) {
+      throw new Error(`mod.io session was lost during ${stage}; refusing SSO outside a confirmed mod.io login state. ` +
+        JSON.stringify({ host: state?.host || 'unknown', loginRequired: Boolean(state?.loginRequired) }));
+    }
+    if (recoveryUsed) {
+      throw new Error(`mod.io session was lost again during ${stage} after the single Larian SSO recovery. ` +
+        JSON.stringify({ host: state.host, loginRequired: true, loginRoute: Boolean(state.loginRoute) }));
+    }
+    recoveryUsed = true;
+    await recover();
+    const restored = await navigateAndWaitForAdmin();
+    if (!restored?.ready) {
+      throw new Error(`mod.io session recovery did not restore the authenticated file manager before ${stage}. ` +
+        JSON.stringify({ host: restored?.host || 'unknown', loginRequired: Boolean(restored?.loginRequired) }));
+    }
+    return restored;
+  };
+}
+
 try {
   await call("Page.navigate", { url: adminUrl });
   let sessionState = await waitFor("mod.io session state", async () => {
     const state = await readModioSessionState();
     return state?.ready || state?.loginRequired ? state : null;
   });
+  const ensureAuthenticated = createSessionRecoveryController(
+    recoverModioSessionWithLarian,
+    async () => {
+      await call("Page.navigate", { url: adminUrl });
+      return waitFor("authenticated mod.io file manager after Larian SSO recovery", async () => {
+        const state = await readModioSessionState();
+        return state?.ready ? state : null;
+      });
+    },
+  );
   if (sessionState.loginRequired) {
-    await recoverModioSessionWithLarian();
+    sessionState = await ensureAuthenticated(sessionState, 'preflight');
+  }
+  if (!sessionState.ready) {
     await call("Page.navigate", { url: adminUrl });
-    sessionState = await waitFor("authenticated mod.io file manager after Larian SSO recovery", async () => {
+    sessionState = await waitFor("authenticated mod.io file manager", async () => {
       const state = await readModioSessionState();
       return state?.ready ? state : null;
     });
@@ -521,8 +557,15 @@ try {
     process.exitCode = 0;
   } else {
     let notReadyPolls = 0;
-    const rowState = await waitFor(`mod.io file ${fileId}`, async () =>
-      evaluate(`(() => {
+    const rowState = await waitFor(`mod.io file ${fileId}`, async () => {
+      const session = await readModioSessionState().catch(() => null);
+      if (session?.loginRequired) {
+        await ensureAuthenticated(session, 'file row discovery');
+      } else if (session && session.host !== 'mod.io') {
+        throw new Error('mod.io file row discovery left the trusted mod.io context; refusing session recovery. ' +
+          JSON.stringify({ host: session.host || 'unknown', loginRequired: Boolean(session.loginRequired) }));
+      }
+      return evaluate(`(() => {
         const anchor = [...document.querySelectorAll('a')]
           .find((item) => item.href.includes('/files/${fileId}/download'));
         const row = anchor?.closest('tr');
@@ -546,9 +589,8 @@ try {
           await call("Page.reload", { ignoreCache: true });
         }
         return null;
-      }),
-      1500,
-    );
+      });
+    }, 1500);
 
     if (!rowState.editAvailable) {
       throw new Error(`Edit control for mod.io file ${fileId} is unavailable.`);

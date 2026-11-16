@@ -156,3 +156,111 @@ def test_existing_link_action_and_safe_larian_anchor_behavior_is_preserved():
     assert anchor["state"]["ssoCount"] == 1
     assert anchor["result"] == "clicked"
     assert anchor["clicked"] == [True]
+
+
+def test_preflight_and_row_discovery_share_one_confirmed_login_recovery():
+    match = re.search(
+        r"function createSessionRecoveryController\([\s\S]*?\n}\n",
+        PUBLISH_WEB,
+    )
+    assert match, "session recovery controller was not found"
+    row_discovery = PUBLISH_WEB[
+        PUBLISH_WEB.index("const rowState = await waitFor") :
+        PUBLISH_WEB.index("if (!rowState.editAvailable)")
+    ]
+    preflight = PUBLISH_WEB[
+        PUBLISH_WEB.index("const ensureAuthenticated = createSessionRecoveryController") :
+        PUBLISH_WEB.index("if (!sessionState.ready)")
+    ]
+    assert "ensureAuthenticated(sessionState, 'preflight')" in preflight
+    assert row_discovery.index("readModioSessionState()") < row_discovery.index(
+        "ensureAuthenticated(session, 'file row discovery')"
+    ) < row_discovery.index("return evaluate(`(() => {")
+    assert "session?.loginRequired" in row_discovery
+    assert "session.host !== 'mod.io'" in row_discovery
+
+    script = f"""
+const createSessionRecoveryController = {match.group(0)};
+(async () => {{
+  let recoveries = 0;
+  const ensure = createSessionRecoveryController(
+    async () => {{ recoveries++; }},
+    async () => ({{ ready: true, host: 'mod.io' }}),
+  );
+  const ready = {{ ready: true, host: 'mod.io' }};
+  const noLoginRecovery = await ensure(ready, 'preflight');
+  let rowRecovered = false;
+  const recovered = await ensure(
+    {{ ready: false, host: 'mod.io', loginRequired: true, loginRoute: true }},
+    'file row discovery',
+  );
+  let preflightConsumedBudget = false;
+  let preflightRecoveries = 0;
+  const sharedEnsure = createSessionRecoveryController(
+    async () => {{ preflightRecoveries++; }},
+    async () => ({{ ready: true, host: 'mod.io' }}),
+  );
+  await sharedEnsure(
+    {{ ready: false, host: 'mod.io', loginRequired: true, loginRoute: true }},
+    'preflight',
+  );
+  try {{
+    await sharedEnsure(
+      {{ ready: false, host: 'mod.io', loginRequired: true, loginRoute: true }},
+      'file row discovery',
+    );
+  }} catch (error) {{
+    preflightConsumedBudget = /lost again during file row discovery/.test(error.message);
+  }}
+  try {{
+    await ensure(
+      {{ ready: false, host: 'mod.io', loginRequired: true, loginRoute: true }},
+      'file row discovery',
+    );
+  }} catch (error) {{
+    rowRecovered = /lost again during file row discovery/.test(error.message) &&
+      !/https?:|token|cookie/i.test(error.message);
+  }}
+  process.stdout.write(JSON.stringify({{
+    recoveries, noLoginRecovery: noLoginRecovery.ready,
+    rowRecovered: recovered.ready, repeatedLossStopped: rowRecovered,
+    preflightRecoveries, preflightConsumedBudget
+  }}));
+}})();
+"""
+    result = subprocess.run(
+        ["node", "-e", script], check=True, capture_output=True, text=True
+    )
+    assert json.loads(result.stdout) == {
+        "recoveries": 1,
+        "noLoginRecovery": True,
+        "rowRecovered": True,
+        "repeatedLossStopped": True,
+        "preflightRecoveries": 1,
+        "preflightConsumedBudget": True,
+    }
+
+
+def test_unconfirmed_context_never_starts_larian_sso_recovery():
+    match = re.search(
+        r"function createSessionRecoveryController\([\s\S]*?\n}\n",
+        PUBLISH_WEB,
+    )
+    assert match
+    script = f"""
+const createSessionRecoveryController = {match.group(0)};
+let recoveries = 0;
+const ensure = createSessionRecoveryController(
+  async () => {{ recoveries++; }},
+  async () => ({{ ready: true, host: 'mod.io' }}),
+);
+ensure({{ ready: false, host: 'other', loginRequired: false }}, 'row discovery')
+  .then(() => process.exitCode = 2)
+  .catch(error => process.stdout.write(JSON.stringify({{
+    recoveries, safeDiagnostic: /host/.test(error.message) && !/https?:|token|cookie/i.test(error.message)
+  }})));
+"""
+    result = subprocess.run(
+        ["node", "-e", script], check=True, capture_output=True, text=True
+    )
+    assert json.loads(result.stdout) == {"recoveries": 0, "safeDiagnostic": True}
