@@ -573,10 +573,14 @@ try {
         const editButton = row.querySelector('svg[data-icon="pencil-alt"]')?.closest('button');
         const publishButton = [...row.querySelectorAll('button')]
           .find((button) => button.innerText.trim() === 'Publish');
+        const headers = [...(row.closest('table')?.querySelectorAll('thead th') || [])];
+        const cellFor = (name) => row.children[headers.findIndex((header) => header.innerText.trim() === name)];
         return {
           found: true,
           editAvailable: Boolean(editButton && !editButton.disabled),
           publishDisabled: Boolean(publishButton?.disabled),
+          live: Boolean(cellFor('Live')?.querySelector('svg[data-icon="check"]')),
+          windowsLive: Boolean(cellFor('Win')?.querySelector('svg[data-icon="check-circle"].tw-text-success')),
           version: row.children[2]?.innerText.trim() || '',
           filename: row.children[0]?.innerText.trim() || ''
         };
@@ -644,6 +648,15 @@ try {
         }),
       );
       process.exitCode = 0;
+    } else if (rowState.publishDisabled && rowState.live &&
+        (!requestedPlatforms.includes("windows") || rowState.windowsLive) &&
+        desiredLabels.length > 0 && desiredLabels.every((label) =>
+          editorState.platforms.some((platform) => platform.label === label && platform.checked))) {
+      await call("Page.navigate", { url: adminUrl });
+      console.log(JSON.stringify({
+        status: "already_live", fileId, filename: rowState.filename,
+        version: rowState.version, platforms: desiredLabels,
+      }));
     } else {
       const selectionRequest = await evaluate(`(() => {
         const marker = [...document.querySelectorAll('div, span')]
