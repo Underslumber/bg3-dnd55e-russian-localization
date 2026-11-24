@@ -6600,4 +6600,11 @@
   <content contentuid="hecaa3219gb282g40a5g83aeg62ba385a0156" version="1">Манипуляция жизнью: 1d6</content>
   <content contentuid="hefe46e49g05dcg4c8aga646g07d49ba76b35" version="1">Манипуляция жизнью: 2D8</content>
   <content contentuid="hf6fdd05fg1fabg4aeag87e3gd0347412067a" version="1">Свиток короткого сна</content>
+  <content contentuid="h26e450e4g3146g418bg93abg6cfb8e43bf14" version="1">Вы должны провалить испытание против заклинания. Бросьте 1d6 и добавьте выпавшее число к результату испытания.</content>
+  <content contentuid="hb5d65151g54dbg47c0gb3b9gd5ede7dcc725" version="1">Магическая устойчивость</content>
+  <content contentuid="hd5681885g00deg439dg8261gd2e32af964df" version="1">У вас есть устойчивость к лучистому урону.</content>
+  <content contentuid="hd72e6d45g2cdeg4c78gb240g4ba70e3f9c8c" version="1">Магическая устойчивость</content>
+  <content contentuid="hdc1ec119g2430g4491g8e4fg80891eb60760" version="1">У вас есть устойчивость к урону громом.</content>
+  <content contentuid="hdfa117a4g319cg4637gb15cg98b36f310a5c" version="1">У вас есть устойчивость к одному из следующих типов урона на ваш выбор: некротический, психический, лучистый или гром.&lt;br&gt;&lt;br&gt;Магическая устойчивость: когда вы должны провалить испытание против заклинания или магического эффекта, вы можете бросить 1d6 и добавить выпавшее число к результату испытания, что потенциально может превратить провал в успех. Вы можете использовать это преимущество количество раз, равное вашему бонусу умения, и восстанавливаете все израсходованные заряды после завершения долгого отдыха.</content>
+  <content contentuid="hfa676888g9c48g4760g8e6egd6d2cdc24f2a" version="1">Устойчивость к заклинаниям</content>
 </contentList>
