@@ -25,6 +25,7 @@ param(
     [switch]$NoGuiFallback,
     [switch]$SkipModioApiFinalize,
     [switch]$SkipWebFinalize,
+    [string]$WebFinalizeHandoffPath,
     [switch]$SkipParentModSync,
     [switch]$SkipAuthCheck,
     [switch]$WhatIf,
@@ -496,7 +497,14 @@ if (-not $SkipModioApiFinalize) {
     if ($platformApprovalDeferred) {
         Write-Host "[publish-modio] File id=$($finalizeResult.fileId) requires browser finalization because platform approval is unavailable to the API token."
     }
-    if ($requiresWebFinalize) {
+    if ($WebFinalizeHandoffPath) {
+        $fileId = [int64]$finalizeResult.fileId
+        if ($fileId -le 0) {
+            throw "Missing mod.io file ID."
+        }
+        $handoff = if ($requiresWebFinalize) { "$fileId" } else { "live" }
+        [IO.File]::WriteAllText($WebFinalizeHandoffPath, $handoff)
+    } elseif ($requiresWebFinalize) {
         if ($SkipWebFinalize) {
             throw "mod.io file id=$($finalizeResult.fileId) is not live and browser finalization was disabled."
         }

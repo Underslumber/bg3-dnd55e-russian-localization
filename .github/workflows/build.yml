@@ -72,7 +72,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $target = if ("${{ steps.vars.outputs.version_tag }}") { "${{ steps.vars.outputs.version_tag }}" } else { "${{ github.ref_name }}" }
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "⏳ <b>Старт сборки релиза</b>`n<b>Репозиторий:</b> <code>${{ github.repository }}</code>`n<b>Тег:</b> <code>$target</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
+          $text = "вЏі <b>РЎС‚Р°СЂС‚ СЃР±РѕСЂРєРё СЂРµР»РёР·Р°</b>`n<b>Р РµРїРѕР·РёС‚РѕСЂРёР№:</b> <code>${{ github.repository }}</code>`n<b>РўРµРі:</b> <code>$target</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі СЃР±РѕСЂРєРё</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Download latest LSLib release
@@ -206,7 +206,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-          $text = "🏁 <b>Релиз собран успешно</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$releaseUrl`">Открыть готовый релиз</a>"
+          $text = "рџЏЃ <b>Р РµР»РёР· СЃРѕР±СЂР°РЅ СѓСЃРїРµС€РЅРѕ</b>`n<b>РўРµРі:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$releaseUrl`">РћС‚РєСЂС‹С‚СЊ РіРѕС‚РѕРІС‹Р№ СЂРµР»РёР·</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Notify Telegram about build failure
@@ -217,7 +217,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "❌ <b>Сборка релиза завершилась ошибкой</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
+          $text = "вќЊ <b>РЎР±РѕСЂРєР° СЂРµР»РёР·Р° Р·Р°РІРµСЂС€РёР»Р°СЃСЊ РѕС€РёР±РєРѕР№</b>`n<b>РўРµРі:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі СЃР±РѕСЂРєРё</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
 
   upload_to_nexusmods:
@@ -331,8 +331,8 @@ jobs:
           needs.build.result == 'success' &&
           needs.upload_to_nexusmods.result == 'success') ||
         (github.event_name == 'workflow_dispatch' &&
-          inputs.modio_version_tag != '' &&
-          inputs.modio_file_id == '' &&
+          ((inputs.modio_version_tag != '' && inputs.modio_file_id == '') ||
+            (inputs.modio_version_tag == '' && inputs.modio_file_id != '')) &&
           needs.build.result == 'skipped' &&
           needs.upload_to_nexusmods.result == 'skipped')
       )
@@ -345,6 +345,7 @@ jobs:
         shell: powershell
 
     env:
+      EXISTING_FILE_ID: ${{ inputs.modio_file_id }}
       BG3TOOL_PATH: ${{ vars.BG3TOOL_PATH }}
       MODIO_ACCESS_TOKEN: ${{ secrets.MODIO_ACCESS_TOKEN }}
       MODIO_API_BASE: ${{ vars.MODIO_API_BASE }}
@@ -372,20 +373,36 @@ jobs:
           ref: ${{ inputs.modio_version_tag }}
           path: release-source
 
+      - name: Prepare existing mod.io file for finalization
+        if: env.EXISTING_FILE_ID != ''
+        run: |
+          $ErrorActionPreference = "Stop"
+          if ($env:EXISTING_FILE_ID -notmatch '^[1-9][0-9]*$') { throw "Invalid mod.io file ID." }
+          $path = Join-Path $env:RUNNER_WORKSPACE "modio-handoff-$env:GITHUB_RUN_ID.txt"
+          [IO.File]::WriteAllText($path, $env:EXISTING_FILE_ID)
+
       - name: Notify Telegram about mod.io publish start
-        if: env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        if: env.EXISTING_FILE_ID == '' && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
         continue-on-error: true
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "⏳ <b>Публикация на mod.io начата</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          $text = "вЏі <b>РџСѓР±Р»РёРєР°С†РёСЏ РЅР° mod.io РЅР°С‡Р°С‚Р°</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Publish release to mod.io
+        if: env.EXISTING_FILE_ID == ''
         run: |
           $ErrorActionPreference = "Stop"
+          $handoffPath = Join-Path $env:RUNNER_WORKSPACE "modio-handoff-$env:GITHUB_RUN_ID.txt"
+          if (Test-Path -LiteralPath $handoffPath) {
+              $previous = [IO.File]::ReadAllText($handoffPath)
+              if ($previous -cnotmatch '^(live|[1-9][0-9]*)$') { throw "Invalid existing mod.io handoff." }
+              Write-Host "Reusing the existing mod.io handoff for this run."
+              return
+          }
           $bg3ToolPath = $env:BG3TOOL_PATH
           if (-not $bg3ToolPath) {
               $bg3ToolPath = "C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3 Toolkit\Glasses.exe"
@@ -398,18 +415,8 @@ jobs:
           .\scripts\publish-modio.ps1 `
             -VersionTag $env:MODIO_VERSION_TAG `
             -Workspace $publishWorkspace `
-            -Bg3ToolPath $bg3ToolPath
-
-      - name: Notify Telegram about mod.io publish success
-        if: success() && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
-        continue-on-error: true
-        env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-        run: |
-          $ErrorActionPreference = "Stop"
-          $modioUrl = "https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization"
-          $text = "✅ <b>Опубликовано на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$modioUrl`">Открыть страницу мода</a>"
-          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+            -Bg3ToolPath $bg3ToolPath `
+            -WebFinalizeHandoffPath $handoffPath
 
       - name: Notify Telegram about mod.io publish failure
         if: failure() && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
@@ -419,11 +426,12 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
+          $text = "вќЊ <b>РћС€РёР±РєР° РїСѓР±Р»РёРєР°С†РёРё РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
 
   finalize_existing_modio:
-    if: github.event_name == 'workflow_dispatch' && inputs.modio_file_id != '' && inputs.modio_version_tag == ''
+    needs: publish_to_modio
+    if: always() && !cancelled() && needs.publish_to_modio.result == 'success'
     runs-on: [self-hosted, Windows, bg3-toolkit]
     environment: Mod.io
 
@@ -432,6 +440,9 @@ jobs:
         shell: powershell
 
     env:
+      MODIO_VERSION_TAG: ${{ inputs.modio_version_tag || github.ref_name }}
+      TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+      TG_THREAD_ID: ${{ secrets.TG_THREAD_ID }}
       MODIO_BROWSER_PATH: ${{ vars.MODIO_BROWSER_PATH }}
       MODIO_PLATFORMS: ${{ vars.MODIO_PLATFORMS }}
 
@@ -442,6 +453,12 @@ jobs:
       - name: Finalize existing mod.io file
         run: |
           $ErrorActionPreference = "Stop"
+          $path = Join-Path $env:RUNNER_WORKSPACE "modio-handoff-$env:GITHUB_RUN_ID.txt"
+          $fileId = [IO.File]::ReadAllText($path)
+          if ($fileId -ceq 'live') { return }
+          if ($fileId -notmatch '^[1-9][0-9]*$') {
+              throw "Missing or invalid mod.io file ID for finalization."
+          }
           $platforms = if ($env:MODIO_PLATFORMS) {
               @($env:MODIO_PLATFORMS -split "," | ForEach-Object { $_.Trim() } | Where-Object { $_ })
           } else {
@@ -449,6 +466,28 @@ jobs:
           }
 
           .\scripts\publish-modio-web.ps1 `
-            -FileId ([int64]"${{ inputs.modio_file_id }}") `
+            -FileId ([int64]$fileId) `
             -Platforms $platforms `
             -TimeoutSeconds 180
+
+      - name: Notify Telegram about mod.io publish success
+        if: success() && inputs.modio_file_id == '' && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $modioUrl = "https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization"
+          $text = "вњ… <b>РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$modioUrl`">РћС‚РєСЂС‹С‚СЊ СЃС‚СЂР°РЅРёС†Сѓ РјРѕРґР°</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
+
+      - name: Notify Telegram about mod.io publish failure
+        if: failure() && inputs.modio_file_id == '' && env.TG_CHAT_ID != '' && env.TG_THREAD_ID != '' && env.TG_BOT_TOKEN != ''
+        continue-on-error: true
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          $text = "вќЊ <b>РћС€РёР±РєР° РїСѓР±Р»РёРєР°С†РёРё РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
+          .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
