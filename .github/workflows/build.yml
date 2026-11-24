@@ -72,7 +72,7 @@ jobs:
           $ErrorActionPreference = "Stop"
           $target = if ("${{ steps.vars.outputs.version_tag }}") { "${{ steps.vars.outputs.version_tag }}" } else { "${{ github.ref_name }}" }
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "вЏі <b>РЎС‚Р°СЂС‚ СЃР±РѕСЂРєРё СЂРµР»РёР·Р°</b>`n<b>Р РµРїРѕР·РёС‚РѕСЂРёР№:</b> <code>${{ github.repository }}</code>`n<b>РўРµРі:</b> <code>$target</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі СЃР±РѕСЂРєРё</a>"
+          $text = "⏳ <b>Старт сборки релиза</b>`n<b>Репозиторий:</b> <code>${{ github.repository }}</code>`n<b>Тег:</b> <code>$target</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Download latest LSLib release
@@ -206,7 +206,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $releaseUrl = "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-          $text = "рџЏЃ <b>Р РµР»РёР· СЃРѕР±СЂР°РЅ СѓСЃРїРµС€РЅРѕ</b>`n<b>РўРµРі:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$releaseUrl`">РћС‚РєСЂС‹С‚СЊ РіРѕС‚РѕРІС‹Р№ СЂРµР»РёР·</a>"
+          $text = "🏁 <b>Релиз собран успешно</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$releaseUrl`">Открыть готовый релиз</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Notify Telegram about build failure
@@ -217,7 +217,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "вќЊ <b>РЎР±РѕСЂРєР° СЂРµР»РёР·Р° Р·Р°РІРµСЂС€РёР»Р°СЃСЊ РѕС€РёР±РєРѕР№</b>`n<b>РўРµРі:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі СЃР±РѕСЂРєРё</a>"
+          $text = "❌ <b>Сборка релиза завершилась ошибкой</b>`n<b>Тег:</b> <code>${{ github.ref_name }}</code>`n<a href=`"$runUrl`">Открыть лог сборки</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
 
   upload_to_nexusmods:
@@ -389,7 +389,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "вЏі <b>РџСѓР±Р»РёРєР°С†РёСЏ РЅР° mod.io РЅР°С‡Р°С‚Р°</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
+          $text = "⏳ <b>Публикация на mod.io начата</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Publish release to mod.io
@@ -426,7 +426,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "вќЊ <b>РћС€РёР±РєР° РїСѓР±Р»РёРєР°С†РёРё РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
+          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
 
   finalize_existing_modio:
@@ -478,7 +478,7 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $modioUrl = "https://mod.io/g/baldursgate3/m/dnd-55e-all-in-one-beyond-russian-localization"
-          $text = "вњ… <b>РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$modioUrl`">РћС‚РєСЂС‹С‚СЊ СЃС‚СЂР°РЅРёС†Сѓ РјРѕРґР°</a>"
+          $text = "✅ <b>Опубликовано на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$modioUrl`">Открыть страницу мода</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text -DisableNotification
 
       - name: Notify Telegram about mod.io publish failure
@@ -489,5 +489,5 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $runUrl = "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          $text = "вќЊ <b>РћС€РёР±РєР° РїСѓР±Р»РёРєР°С†РёРё РЅР° mod.io</b>`n<b>РўРµРі:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">РћС‚РєСЂС‹С‚СЊ Р»РѕРі</a>"
+          $text = "❌ <b>Ошибка публикации на mod.io</b>`n<b>Тег:</b> <code>$env:MODIO_VERSION_TAG</code>`n<a href=`"$runUrl`">Открыть лог</a>"
           .\scripts\send-telegram-notification.ps1 -BotToken $env:TG_BOT_TOKEN -ChatId $env:TG_CHAT_ID -ThreadId $env:TG_THREAD_ID -Text $text
